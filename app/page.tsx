@@ -1,65 +1,102 @@
-import Image from "next/image";
+"use client";
+
+import { TileDataClass } from "@/libs/types";
+import { Tile } from "@/ui/components/basic/tile";
+import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
+  const windowWidth = 48;
+  const windowHeight = 30;
+  const total = windowWidth * windowHeight;
+  const triggerIndex = windowWidth - 1; // the tile that starts the wave
+
+  // use softer shades instead of pure black/white
+  const COLOR_DARK = "#0f1724"; // dark slate instead of pure black
+  const COLOR_LIGHT = "#f8fafc"; // gentle off-white (flip color)
+
+  const initialTileData = Array.from({ length: total }).map((_, i) =>
+    new TileDataClass(i === triggerIndex ? COLOR_LIGHT : COLOR_DARK, 1, 1, i === triggerIndex ? "flip-button" : "")
+  );
+
+  // Tiles for creating gdg logo
+
+
+  // visual state (color per tile)
+  const [colors, setColors] = useState<string[]>(initialTileData.map((t) => t.tileColor));
+  const [containerInverted, setContainerInverted] = useState(false);
+  const timersRef = useRef<number[]>([]);
+
+  useEffect(() => {
+    return () => {
+      // cleanup scheduled timeouts on unmount
+      timersRef.current.forEach((id) => clearTimeout(id));
+      timersRef.current = [];
+      setContainerInverted(false);
+    };
+  }, []);
+
+  function clearTimers() {
+    timersRef.current.forEach((id) => clearTimeout(id));
+    timersRef.current = [];
+    setContainerInverted(false);
+  }
+
+  // diagonal sweep from top-right → bottom-left
+  function handleWave() {
+    clearTimers();
+
+    // compute diagonal distance for each tile so tiles on the same diagonal flip together
+    const distances = new Array(total).fill(0);
+    for (let idx = 0; idx < total; idx++) {
+      const r = Math.floor(idx / windowWidth);
+      const c = idx % windowWidth;
+      // distance from top-right corner along diagonals
+      distances[idx] = r + (windowWidth - 1 - c);
+    }
+
+    const baseDelay = 50; // ms per diagonal step
+
+    // schedule tile flips using diagonal distance
+    for (let i = 0; i < total; i++) {
+      const d = distances[i];
+      const id = window.setTimeout(() => {
+        setColors((prev) => {
+          const next = prev.slice();
+          next[i] = prev[i] === COLOR_DARK ? COLOR_LIGHT : COLOR_DARK; // toggle to show flipped/back face
+          return next;
+        });
+      }, d * baseDelay);
+      timersRef.current.push(id);
+    }
+
+    // container pulse synchronized to diagonal steps
+    const maxDistance = Math.max(...distances);
+    const pulseMs = Math.max(40, Math.floor(baseDelay * 0.6));
+    for (let step = 0; step <= maxDistance; step++) {
+      const onId = window.setTimeout(() => setContainerInverted(true), step * baseDelay);
+      const offId = window.setTimeout(() => setContainerInverted(false), step * baseDelay + pulseMs);
+      timersRef.current.push(onId, offId);
+    }
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div
+      className={`grid grid-flow-row gap-px p-px min-h-screen min-w-screen layout-container transition-colors duration-300 ease-in-out ${containerInverted ? "bg-neutral-200 dark:bg-neutral-800" : "bg-neutral-900 dark:bg-neutral-400"}`}
+      style={{
+        gridTemplateColumns: `repeat(${windowWidth}, minmax(0, 1fr))`,
+      }}
+    >
+      {initialTileData.map((data, i) => (
+        <Tile
+          key={i}
+          {...data}
+          frontColor={COLOR_DARK}
+          backColor={COLOR_LIGHT}
+          flipped={colors[i] === COLOR_LIGHT}
+          className={`${data.className ?? ""} ${i === triggerIndex ? "cursor-pointer" : ""}`}
+          onClick={i === triggerIndex ? handleWave : undefined}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      ))}
     </div>
   );
 }

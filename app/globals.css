@@ -1,26 +1,56 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Enables 3D space */
+.preserve-3d {
+  transform-style: preserve-3d;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Hides the mirrored back side */
+.backface-hidden {
+  backface-visibility: hidden;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Rotates the back face */
+.rotate-y-180 {
+  transform: rotateY(180deg);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Tile flip styles */
+.tile {
+  position: relative;
+  width: 100%;
+  /* ensure tiles are square and visible inside CSS grid */
+  aspect-ratio: 1 / 1;
+  height: auto;
+  perspective: 900px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tile-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* pivot around top-left corner for the diagonal axis */
+  transform-origin: 0% 0%;
+}
+
+/* rotate around the diagonal axis (top-left → bottom-right) */
+.tile.is-flipped .tile-inner {
+  transform: rotate3d(1, 1, 0, 180deg);
+}
+.tile-face {
+  position: absolute;
+  inset: 0;
+  display: block;
+  backface-visibility: hidden;
+  transform-origin: 0% 0%;
+  /* subtle separation from the container so tiles remain visible */
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+/* orient the back face so it reads correctly when the inner rotates along the diagonal axis */
+.tile-back {
+  transform: rotate3d(1, 1, 0, 180deg);
 }
