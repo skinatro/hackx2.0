@@ -38,8 +38,10 @@ export default function WaveTiles() {
 
     const baseCells = 24;
     const perspective = 500;
-    const viewYaw = Math.PI / 4;
-    const viewPitch = -Math.atan(1 / Math.SQRT2);
+    const viewYaw = 0;
+    const viewPitch = 0;
+    const maxCursorYaw = Math.PI / 6;
+    const maxCursorPitch = Math.PI / 8;
     const maxVisibleCubes = 900;
     const minCubeSize = 16;
     const lightDir = normalize({ x: -0.35, y: -0.45, z: 1 });
@@ -51,7 +53,12 @@ export default function WaveTiles() {
     let raf = 0;
     let lastTime = 0;
     let transitionToBlack = false;
+    let isDarkMode = true;
+    let bgCurrent = 10;
+    let bgTarget = 10;
     let isPaused = false;
+    let cursorX = 0;
+    let cursorY = 0;
 
     function normalize(point: Point3D): Point3D {
       const length = Math.hypot(point.x, point.y, point.z) || 1;
@@ -92,6 +99,14 @@ export default function WaveTiles() {
       return t * t * (3 - 2 * t);
     }
 
+    function clamp(value: number, min: number, max: number): number {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function mix(from: number, to: number, amount: number): number {
+      return from + (to - from) * amount;
+    }
+
     function rotateY(point: Point3D, angle: number): Point3D {
       const cos = Math.cos(angle);
       const sin = Math.sin(angle);
@@ -122,7 +137,7 @@ export default function WaveTiles() {
       };
     }
 
-    function drawCube(cube: Cube) {
+    function drawCube(cube: Cube, cursorYaw: number, cursorPitch: number) {
       const half = ((size - 1) / 2) / Math.SQRT2;
       const points: Point3D[] = [
         { x: -half, y: -half, z: -half },
@@ -136,7 +151,10 @@ export default function WaveTiles() {
       ];
 
       const transformed = points.map((point) => {
-        const rotated = rotateX(rotateY(point, viewYaw + cube.angle), viewPitch);
+        const rotated = rotateX(
+          rotateY(point, viewYaw + cube.angle + cursorYaw),
+          viewPitch + cursorPitch,
+        );
         return {
           x: rotated.x,
           y: rotated.y,
@@ -144,17 +162,24 @@ export default function WaveTiles() {
         };
       });
       const projected = transformed.map(project);
-      const highlight = cube.highlightUntil > performance.now() ? 16 : 0;
+      const highlight = cube.highlightUntil > performance.now() ? 20 : 0;
+      const cubeCenter: Point3D = { x: 0, y: 0, z: cube.depthBias };
 
+      // face base brightness
       const faces = [
-        { idx: [0, 1, 2, 3], base: 16 },
-        { idx: [4, 5, 6, 7], base: 240 },
-        { idx: [0, 1, 5, 4], base: 178 },
-        { idx: [2, 3, 7, 6], base: 150 },
-        { idx: [1, 2, 6, 5], base: 188 },
-        { idx: [0, 3, 7, 4], base: 140 },
+        { idx: [0, 1, 2, 3], base: 0, isBack: true },   // back (pure black)
+        { idx: [4, 5, 6, 7], base: 255, isBack: false }, // front (pure white)
+        { idx: [0, 1, 5, 4], base: 145, isBack: false }, // bottom
+        { idx: [2, 3, 7, 6], base: 115, isBack: false }, // top
+        { idx: [1, 2, 6, 5], base: 195, isBack: false }, // right
+        { idx: [0, 3, 7, 4], base: 100, isBack: false }, // left
       ].map((face) => ({
         ...face,
+        center: {
+          x: face.idx.reduce((sum, index) => sum + transformed[index].x, 0) / face.idx.length,
+          y: face.idx.reduce((sum, index) => sum + transformed[index].y, 0) / face.idx.length,
+          z: face.idx.reduce((sum, index) => sum + transformed[index].z, 0) / face.idx.length,
+        },
         depth: face.idx.reduce((sum, index) => sum + transformed[index].z, 0) / face.idx.length,
         normal: normalize(
           cross(
@@ -167,24 +192,66 @@ export default function WaveTiles() {
       faces.sort((a, b) => a.depth - b.depth);
 
       for (const face of faces) {
-        if (face.normal.z <= 0) continue;
+        const outward = subtract(face.center, cubeCenter);
+        const orientedNormal = dot(face.normal, outward) < 0
+          ? { x: -face.normal.x, y: -face.normal.y, z: -face.normal.z }
+          : face.normal;
 
-        ctx.beginPath();
+        if (orientedNormal.z <= 0) continue;
 
-        const first = projected[face.idx[0]];
-        ctx.moveTo(cube.cx + first.x, cube.cy + first.y);
+        const pts = face.idx.map((i) => projected[i]);
 
-        for (let i = 1; i < face.idx.length; i++) {
-          const p = projected[face.idx[i]];
-          ctx.lineTo(cube.cx + p.x, cube.cy + p.y);
-        }
+        // build path once, reuse via clip
+        const tracePath = () => {
+          ctx.beginPath();
+          ctx.moveTo(cube.cx + pts[0].x, cube.cy + pts[0].y);
+          for (let i = 1; i < pts.length; i++) {
+            ctx.lineTo(cube.cx + pts[i].x, cube.cy + pts[i].y);
+          }
+          ctx.closePath();
+        };
 
-        ctx.closePath();
-        const light = Math.max(0, dot(face.normal, lightDir));
-        const shaded = face.base * (0.7 + light * 0.5) + highlight;
-        ctx.fillStyle = grayscale(shaded);
+        const light = Math.max(0, dot(orientedNormal, lightDir));
+        const brightness = face.isBack
+          ? 0
+          : Math.round(Math.max(70, face.base * (0.55 + light * 0.45) + highlight));
+
+        tracePath();
+        ctx.fillStyle = grayscale(brightness);
         ctx.fill();
-        ctx.strokeStyle = "rgba(0, 0, 0, 0.45)";
+
+        // subtle grid texture clipped to this face
+        ctx.save();
+        tracePath();
+        ctx.clip();
+        const step = Math.max(5, size / 4);
+        ctx.lineWidth = 0.5;
+        ctx.strokeStyle = brightness > 120
+          ? "rgba(0,0,0,0.10)"
+          : "rgba(255,255,255,0.07)";
+        const minX = Math.min(...pts.map((p) => cube.cx + p.x));
+        const maxX = Math.max(...pts.map((p) => cube.cx + p.x));
+        const minY = Math.min(...pts.map((p) => cube.cy + p.y));
+        const maxY = Math.max(...pts.map((p) => cube.cy + p.y));
+        for (let lx = Math.floor(minX / step) * step; lx <= maxX; lx += step) {
+          ctx.beginPath();
+          ctx.moveTo(lx, minY);
+          ctx.lineTo(lx, maxY);
+          ctx.stroke();
+        }
+        for (let ly = Math.floor(minY / step) * step; ly <= maxY; ly += step) {
+          ctx.beginPath();
+          ctx.moveTo(minX, ly);
+          ctx.lineTo(maxX, ly);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        // adaptive edge stroke: light on dark faces, dark on bright faces
+        tracePath();
+        ctx.strokeStyle = brightness > 130
+          ? "rgba(0,0,0,0.55)"
+          : "rgba(255,255,255,0.50)";
         ctx.lineWidth = 1;
         ctx.stroke();
       }
@@ -219,6 +286,8 @@ export default function WaveTiles() {
 
     function triggerTransition() {
       transitionToBlack = !transitionToBlack;
+      bgTarget = 255 - bgCurrent;
+      isDarkMode = bgTarget < 128;
       const now = performance.now();
 
       for (const cube of cubes) {
@@ -237,6 +306,8 @@ export default function WaveTiles() {
 
       canvas.width = width;
       canvas.height = height;
+      cursorX = width / 2;
+      cursorY = height / 2;
 
       size = Math.max(minCubeSize, Math.floor(Math.min(width, height) / baseCells));
 
@@ -252,11 +323,16 @@ export default function WaveTiles() {
 
     function render(timestamp: number) {
       if (!lastTime) lastTime = timestamp;
-      const delta = (timestamp - lastTime) / 1000;
+      const delta = Math.min(0.05, (timestamp - lastTime) / 1000);
       lastTime = timestamp;
 
-      ctx.fillStyle = "#0a0a0a";
+      const fadeAmount = 1 - Math.exp(-delta * 8);
+      bgCurrent = mix(bgCurrent, bgTarget, fadeAmount);
+      ctx.fillStyle = grayscale(bgCurrent);
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const halfWidth = Math.max(1, canvas.width / 2);
+      const halfHeight = Math.max(1, canvas.height / 2);
 
       for (const cube of cubes) {
         if (timestamp >= cube.animationStart) {
@@ -265,7 +341,13 @@ export default function WaveTiles() {
           const eased = easeInOut(progress);
           cube.angle = cube.startAngle + (cube.targetAngle - cube.startAngle) * eased;
         }
-        drawCube(cube);
+
+        const nx = clamp((cursorX - cube.cx) / halfWidth, -1, 1);
+        const ny = clamp((cursorY - cube.cy) / halfHeight, -1, 1);
+        const cursorYaw = nx * maxCursorYaw;
+        const cursorPitch = -ny * maxCursorPitch;
+
+        drawCube(cube, cursorYaw, cursorPitch);
       }
 
       raf = window.requestAnimationFrame(render);
@@ -301,18 +383,33 @@ export default function WaveTiles() {
       }
     }
 
+    function handleMouseMove(e: MouseEvent) {
+      const rect = canvas.getBoundingClientRect();
+      cursorX = e.clientX - rect.left;
+      cursorY = e.clientY - rect.top;
+    }
+
+    function handleMouseLeave() {
+      cursorX = canvas.width / 2;
+      cursorY = canvas.height / 2;
+    }
+
     resizeCanvas();
     startLoop();
 
     window.addEventListener("resize", resizeCanvas);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     canvas.addEventListener("click", handleClick);
+    canvas.addEventListener("mousemove", handleMouseMove);
+    canvas.addEventListener("mouseleave", handleMouseLeave);
 
     return () => {
       window.cancelAnimationFrame(raf);
       window.removeEventListener("resize", resizeCanvas);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       canvas.removeEventListener("click", handleClick);
+      canvas.removeEventListener("mousemove", handleMouseMove);
+      canvas.removeEventListener("mouseleave", handleMouseLeave);
     };
   }, []);
 
