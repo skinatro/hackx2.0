@@ -1,5 +1,6 @@
 'use client'
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 
 type Point3D = {
   x: number;
@@ -28,6 +29,22 @@ type Cube = {
   animationDuration: number;
   highlightUntil: number;
   depthBias: number;
+  content?: ReactNode;
+  color?: {r: number, g: number, b: number} | null;
+  onClick?: () => void;
+  nextLayout?: CubeDefinition[];
+  frontFacePath?: Path2D;
+  // Position transition animation
+  startCx: number;
+  startCy: number;
+  startWidth: number;
+  startHeight: number;
+  targetCx: number;
+  targetCy: number;
+  targetWidth: number;
+  targetHeight: number;
+  posAnimStart: number;
+  posAnimDuration: number;
 };
 
 type CubeDefinition = {
@@ -35,15 +52,32 @@ type CubeDefinition = {
   col: number;      // starting column position
   rowSpan: number;  // height in cells (1 = single cell)
   colSpan: number;  // width in cells (1 = single cell)
+  content?: ReactNode; // React content to display on this cube face
+  color?: string;   // optional hex color for the cube
+  onClick?: () => void; // Optional click handler - called when this cube is clicked
+  nextLayout?: CubeDefinition[]; // When clicked, smoothly transitions to this new layout
+};
+
+type ContentOverlay = {
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  content: ReactNode;
+  opacity: number;
 };
 
 type WaveTilesProps = {
   className?: string;
   cubeLayout?: CubeDefinition[];
+  globalColor?: string; // Optional default color for all cubes
 };
 
-export function WaveTiles({ className = "", cubeLayout }: WaveTilesProps) {
+export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTilesProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [contentOverlays, setContentOverlays] = useState<ContentOverlay[]>([]);
+  const overlaysRef = useRef<ContentOverlay[]>([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -77,6 +111,12 @@ export function WaveTiles({ className = "", cubeLayout }: WaveTilesProps) {
     let isPaused = false;
     let cursorX = 0;
     let cursorY = 0;
+
+    // Layout transition state
+    type TransitionPhase = 'idle' | 'decombining' | 'rotating' | 'recombining';
+    let transitionPhase: TransitionPhase = 'idle';
+    let pendingLayout: CubeDefinition[] | null = null;
+    let phaseEndTime = 0;
 
     function normalize(point: Point3D): Point3D {
       const length = Math.hypot(point.x, point.y, point.z) || 1;
@@ -113,6 +153,16 @@ export function WaveTiles({ className = "", cubeLayout }: WaveTilesProps) {
       return `rgb(${channel}, ${channel}, ${channel})`;
     }
 
+    function getShadedColor(baseColor: {r: number, g: number, b: number} | null | undefined, brightness: number): string {
+      if (!baseColor) return grayscale(brightness);
+      
+      const factor = brightness / 255;
+      const r = Math.min(255, Math.max(0, Math.round(baseColor.r * factor)));
+      const g = Math.min(255, Math.max(0, Math.round(baseColor.g * factor)));
+      const b = Math.min(255, Math.max(0, Math.round(baseColor.b * factor)));
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
     function easeInOut(t: number): number {
       return t * t * (3 - 2 * t);
     }
@@ -123,6 +173,15 @@ export function WaveTiles({ className = "", cubeLayout }: WaveTilesProps) {
 
     function mix(from: number, to: number, amount: number): number {
       return from + (to - from) * amount;
+    }
+
+    function hexToRgb(hex: string | undefined): {r: number, g: number, b: number} | null {
+      if (!hex) return null;
+      hex = hex.replace(/^#/, '');
+      if (hex.length === 3) hex = hex.split('').map(x => x + x).join('');
+      if (hex.length !== 6) return null;
+      const num = parseInt(hex, 16);
+      return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
     }
 
     function rotateY(point: Point3D, angle: number): Point3D {
@@ -155,7 +214,7 @@ export function WaveTiles({ className = "", cubeLayout }: WaveTilesProps) {
       };
     }
 
-    function drawCube(cube: Cube, cursorYaw: number, cursorPitch: number, modeMix: number) {
+    function drawCube(cube: Cube, cursorYaw: number, cursorPitch: number, modeMix: number): { overlay: ContentOverlay | null; frontFacePath: Path2D | null } {
       const halfWidth = ((cube.width - 1) / 2) / Math.SQRT2;
       const halfHeight = ((cube.height - 1) / 2) / Math.SQRT2;
       // Use consistent depth for all cubes regardless of their width/height
@@ -193,7 +252,7 @@ export function WaveTiles({ className = "", cubeLayout }: WaveTilesProps) {
 
       const faces = [
         { idx: [0, 1, 2, 3], lightBase: 255 - 42, darkBase: 42,  isBack: true },  // back
-        { idx: [4, 5, 6, 7], lightBase: 255 - 8,  darkBase: 8,   isBack: false }, // front
+        { idx: [4, 5, 6, 7], lightBase: 255 - 8,  darkBase: 8,   isBack: false, isFront: true }, // front
         { idx: [0, 1, 5, 4], lightBase: 255 - 18, darkBase: 18,  isBack: false }, // bottom
         { idx: [2, 3, 7, 6], lightBase: 255 - 12, darkBase: 12,  isBack: false }, // top
         { idx: [1, 2, 6, 5], lightBase: 255 - 24, darkBase: 24,  isBack: false }, // right
@@ -216,6 +275,9 @@ export function WaveTiles({ className = "", cubeLayout }: WaveTilesProps) {
       }));
 
       faces.sort((a, b) => a.depth - b.depth);
+
+      let contentOverlay: ContentOverlay | null = null;
+      let frontFacePath: Path2D | null = null;
 
       for (const face of faces) {
         const outward = subtract(face.center, cubeCenter);
@@ -242,7 +304,7 @@ export function WaveTiles({ className = "", cubeLayout }: WaveTilesProps) {
           : Math.round(Math.max(minBrightness, face.base * (ambient + light * diffuse) + highlight));
 
         tracePath();
-        drawingContext.fillStyle = grayscale(brightness);
+        drawingContext.fillStyle = getShadedColor(cube.color, brightness);
         drawingContext.fill();
 
         drawingContext.save();
@@ -278,11 +340,45 @@ export function WaveTiles({ className = "", cubeLayout }: WaveTilesProps) {
           : `rgba(255,255,255,${mix(0.45, 0.75, modeMix).toFixed(3)})`;
         drawingContext.lineWidth = 1;
         drawingContext.stroke();
+
+        // Store front face path for click detection
+        if (face.isFront && orientedNormal.z > 0.3) {
+          const path = new Path2D();
+          path.moveTo(cube.cx + pts[0].x, cube.cy + pts[0].y);
+          for (let i = 1; i < pts.length; i++) {
+            path.lineTo(cube.cx + pts[i].x, cube.cy + pts[i].y);
+          }
+          path.closePath();
+          frontFacePath = path;
+        }
+
+        // Calculate content overlay for the front face if this cube has content
+        if (cube.content && face.isFront && orientedNormal.z > 0.3) {
+          const absolutePts = pts.map(p => ({ x: cube.cx + p.x, y: cube.cy + p.y }));
+          const minX = Math.min(...absolutePts.map(p => p.x));
+          const maxX = Math.max(...absolutePts.map(p => p.x));
+          const minY = Math.min(...absolutePts.map(p => p.y));
+          const maxY = Math.max(...absolutePts.map(p => p.y));
+          
+          contentOverlay = {
+            id: `${cube.row}-${cube.col}`,
+            x: minX,
+            y: minY,
+            width: maxX - minX,
+            height: maxY - minY,
+            content: cube.content,
+            opacity: Math.min(1, orientedNormal.z * 1.5),
+          };
+        }
       }
+
+      return { overlay: contentOverlay, frontFacePath };
     }
 
     function buildGrid() {
       cubes = [];
+
+      const parsedGlobalColor = hexToRgb(globalColor);
 
       // Track which grid cells are covered by custom cubes
       const coveredCells = new Set<string>();
@@ -304,13 +400,15 @@ export function WaveTiles({ className = "", cubeLayout }: WaveTilesProps) {
           // Skip this cell if it's covered by a custom cube
           if (coveredCells.has(`${row},${col}`)) continue;
 
+          const _cx1 = col * size + size / 2;
+          const _cy1 = row * size + size / 2;
           cubes.push({
             row,
             col,
             rowSpan: 1,
             colSpan: 1,
-            cx: col * size + size / 2,
-            cy: row * size + size / 2,
+            cx: _cx1,
+            cy: _cy1,
             width: size,
             height: size,
             angle: Math.PI,  // Default dark, will be corrected for trigger
@@ -320,6 +418,11 @@ export function WaveTiles({ className = "", cubeLayout }: WaveTilesProps) {
             animationDuration: 0,
             highlightUntil: 0,
             depthBias: (row / Math.max(1, rows - 1) - 0.5) * 10 + (col / Math.max(1, cols - 1) - 0.5) * 10,
+            color: parsedGlobalColor,
+            frontFacePath: undefined,
+            startCx: _cx1, startCy: _cy1, startWidth: size, startHeight: size,
+            targetCx: _cx1, targetCy: _cy1, targetWidth: size, targetHeight: size,
+            posAnimStart: 0, posAnimDuration: 0,
           });
         }
       }
@@ -348,6 +451,14 @@ export function WaveTiles({ className = "", cubeLayout }: WaveTilesProps) {
             animationDuration: 0,
             highlightUntil: 0,
             depthBias: (def.row / Math.max(1, rows - 1) - 0.5) * 10 + (def.col / Math.max(1, cols - 1) - 0.5) * 10,
+            content: def.content,
+            color: def.color ? hexToRgb(def.color) : parsedGlobalColor,
+            onClick: def.onClick,
+            nextLayout: def.nextLayout,
+            frontFacePath: undefined,
+            startCx: centerX, startCy: centerY, startWidth: cubeWidth, startHeight: cubeHeight,
+            targetCx: centerX, targetCy: centerY, targetWidth: cubeWidth, targetHeight: cubeHeight,
+            posAnimStart: 0, posAnimDuration: 0,
           });
         });
       }
@@ -397,6 +508,151 @@ export function WaveTiles({ className = "", cubeLayout }: WaveTilesProps) {
       buildGrid();
     }
 
+    // ── LAYOUT TRANSITION HELPERS ─────────────────────────────────────────
+
+    /** Called when a cube with `nextLayout` is clicked — starts the 3-phase transition */
+    function startLayoutTransition(newLayout: CubeDefinition[]) {
+      if (transitionPhase !== 'idle') return; // Ignore clicks while transitioning
+      transitionPhase = 'decombining';
+      pendingLayout = newLayout;
+      const now = performance.now();
+
+      for (const cube of cubes) {
+        if (cube.colSpan > 1 || cube.rowSpan > 1) {
+          // Animate multi-cell cube to shrink to 1×1 at its top-left corner
+          const tlCx = cube.col * size + size / 2;
+          const tlCy = cube.row * size + size / 2;
+          cube.startCx = cube.cx;
+          cube.startCy = cube.cy;
+          cube.startWidth = cube.width;
+          cube.startHeight = cube.height;
+          cube.targetCx = tlCx;
+          cube.targetCy = tlCy;
+          cube.targetWidth = size;
+          cube.targetHeight = size;
+          cube.posAnimStart = now;
+          cube.posAnimDuration = 420;
+        }
+      }
+
+      phaseEndTime = now + 480;
+    }
+
+    /** Phase 1 → 2: replace shrunken multi-cell cubes with their constituent 1×1 cells,
+     *  then kick off a wave rotation from the canvas centre. */
+    function flushDecombine() {
+      const now = performance.now();
+      const newCubes: Cube[] = [];
+
+      for (const cube of cubes) {
+        if (cube.colSpan === 1 && cube.rowSpan === 1) {
+          // Already a single cell — reset pos animation and keep
+          cube.startCx = cube.cx; cube.startCy = cube.cy;
+          cube.startWidth = cube.width; cube.startHeight = cube.height;
+          cube.targetCx = cube.cx; cube.targetCy = cube.cy;
+          cube.targetWidth = cube.width; cube.targetHeight = cube.height;
+          cube.posAnimStart = 0; cube.posAnimDuration = 0;
+          newCubes.push(cube);
+        } else {
+          // Explode into constituent 1×1 cells at their actual grid positions
+          for (let r = cube.row; r < cube.row + cube.rowSpan; r++) {
+            for (let c = cube.col; c < cube.col + cube.colSpan; c++) {
+              const cellCx = c * size + size / 2;
+              const cellCy = r * size + size / 2;
+              newCubes.push({
+                row: r, col: c, rowSpan: 1, colSpan: 1,
+                cx: cellCx, cy: cellCy, width: size, height: size,
+                angle: cube.angle, startAngle: cube.angle, targetAngle: cube.angle,
+                animationStart: 0, animationDuration: 0, highlightUntil: 0,
+                depthBias: (r / Math.max(1, rows - 1) - 0.5) * 10 + (c / Math.max(1, cols - 1) - 0.5) * 10,
+                color: cube.color,
+                startCx: cellCx, startCy: cellCy, startWidth: size, startHeight: size,
+                targetCx: cellCx, targetCy: cellCy, targetWidth: size, targetHeight: size,
+                posAnimStart: 0, posAnimDuration: 0,
+              });
+            }
+          }
+        }
+      }
+
+      cubes = newCubes;
+
+      // Trigger wave rotation from the canvas centre
+      const centerRow = rows / 2;
+      const centerCol = cols / 2;
+      const maxDist = centerRow + centerCol;
+
+      for (const cube of cubes) {
+        const cubeRow = cube.row + 0.5;
+        const cubeCol = cube.col + 0.5;
+        const distance = Math.abs(cubeRow - centerRow) + Math.abs(cubeCol - centerCol);
+        cube.startAngle = cube.angle;
+        cube.targetAngle = cube.angle + Math.PI * 2; // full spin — ends at same visual state, no mode flip
+        cube.animationStart = now + distance * 18;
+        cube.animationDuration = 380;
+        cube.highlightUntil = cube.animationStart + 280;
+      }
+
+      // Phase ends after the wave has fully passed through all cells
+      phaseEndTime = now + maxDist * 18 + 420;
+    }
+
+    /** Phase 2 → 3: rebuild the cube array using the pending layout,
+     *  with new multi-cell cubes starting at 1×1 and expanding to full size. */
+    function applyNewLayoutCubes() {
+      if (!pendingLayout) return;
+      const now = performance.now();
+      const parsedGlobalColor = hexToRgb(globalColor);
+
+      // Cells covered by new multi-cell definitions
+      const coveredCells = new Set<string>();
+      pendingLayout.forEach(def => {
+        for (let r = def.row; r < def.row + def.rowSpan; r++) {
+          for (let c = def.col; c < def.col + def.colSpan; c++) {
+            coveredCells.add(`${r},${c}`);
+          }
+        }
+      });
+
+      // Keep 1×1 grid cells not occupied by the new layout
+      const newCubes: Cube[] = cubes.filter(c => !coveredCells.has(`${c.row},${c.col}`));
+
+      // Add new layout cubes — start at 1×1 and animate to full merged size
+      pendingLayout.forEach(def => {
+        const startCx   = def.col * size + size / 2;
+        const startCy   = def.row * size + size / 2;
+        const targetCx  = def.col * size + def.colSpan * size / 2;
+        const targetCy  = def.row * size + def.rowSpan * size / 2;
+        const targetW   = def.colSpan * size;
+        const targetH   = def.rowSpan * size;
+        const existing  = cubes.find(c => c.row === def.row && c.col === def.col);
+        // Normalise to [0, 2π) to strip accumulated full-rotation drift from the morph spin
+        const rawAngle = existing?.angle ?? (isLightMode ? 0 : Math.PI);
+        const inheritedAngle = ((rawAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+
+        newCubes.push({
+          row: def.row, col: def.col,
+          rowSpan: def.rowSpan, colSpan: def.colSpan,
+          cx: startCx, cy: startCy,
+          width: size, height: size,
+          angle: inheritedAngle, startAngle: inheritedAngle, targetAngle: inheritedAngle,
+          animationStart: 0, animationDuration: 0, highlightUntil: 0,
+          depthBias: (def.row / Math.max(1, rows - 1) - 0.5) * 10 + (def.col / Math.max(1, cols - 1) - 0.5) * 10,
+          content: def.content,
+          color: def.color ? hexToRgb(def.color) : parsedGlobalColor,
+          onClick: def.onClick,
+          nextLayout: def.nextLayout,
+          startCx, startCy, startWidth: size, startHeight: size,
+          targetCx, targetCy, targetWidth: targetW, targetHeight: targetH,
+          posAnimStart: now, posAnimDuration: 450,
+        });
+      });
+
+      cubes = newCubes;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+
     function render(timestamp: number) {
       if (!lastTime) lastTime = timestamp;
       const delta = Math.min(0.05, (timestamp - lastTime) / 1000);
@@ -410,12 +666,26 @@ export function WaveTiles({ className = "", cubeLayout }: WaveTilesProps) {
       const halfWidth = Math.max(1, canvasEl.width / 2);
       const halfHeight = Math.max(1, canvasEl.height / 2);
 
+      const newOverlays: ContentOverlay[] = [];
+
       for (const cube of cubes) {
+        // ── Angle animation ──
         if (timestamp >= cube.animationStart) {
           const elapsed = timestamp - cube.animationStart;
           const progress = Math.min(1, elapsed / Math.max(1, cube.animationDuration));
           const eased = easeInOut(progress);
           cube.angle = cube.startAngle + (cube.targetAngle - cube.startAngle) * eased;
+        }
+
+        // ── Position / size animation ──
+        if (cube.posAnimDuration > 0) {
+          const elapsed = timestamp - cube.posAnimStart;
+          const progress = clamp(elapsed / cube.posAnimDuration, 0, 1);
+          const eased = easeInOut(progress);
+          cube.cx     = cube.startCx     + (cube.targetCx     - cube.startCx)     * eased;
+          cube.cy     = cube.startCy     + (cube.targetCy     - cube.startCy)     * eased;
+          cube.width  = cube.startWidth  + (cube.targetWidth  - cube.startWidth)  * eased;
+          cube.height = cube.startHeight + (cube.targetHeight - cube.startHeight) * eased;
         }
 
         const nx = clamp((cursorX - cube.cx) / halfWidth, -1, 1);
@@ -425,7 +695,42 @@ export function WaveTiles({ className = "", cubeLayout }: WaveTilesProps) {
 
         const cubeModeMix = (Math.cos(cube.angle) + 1) / 2;
 
-        drawCube(cube, cursorYaw, cursorPitch, cubeModeMix);
+        const { overlay, frontFacePath } = drawCube(cube, cursorYaw, cursorPitch, cubeModeMix);
+        if (overlay) {
+          newOverlays.push(overlay);
+        }
+        cube.frontFacePath = frontFacePath || undefined;
+      }
+
+      // ── Transition phase state machine ──
+      if (transitionPhase === 'decombining' && timestamp >= phaseEndTime) {
+        flushDecombine();
+        transitionPhase = 'rotating';
+      } else if (transitionPhase === 'rotating' && timestamp >= phaseEndTime) {
+        applyNewLayoutCubes();
+        transitionPhase = 'recombining';
+        phaseEndTime = performance.now() + 500;
+      } else if (transitionPhase === 'recombining' && timestamp >= phaseEndTime) {
+        transitionPhase = 'idle';
+        pendingLayout = null;
+      }
+
+      // Update overlays ref and trigger state update if changed
+      const overlaysChanged = 
+        newOverlays.length !== overlaysRef.current.length ||
+        newOverlays.some((overlay, i) => {
+          const prev = overlaysRef.current[i];
+          return !prev || 
+            Math.abs(overlay.x - prev.x) > 0.5 || 
+            Math.abs(overlay.y - prev.y) > 0.5 ||
+            Math.abs(overlay.width - prev.width) > 0.5 ||
+            Math.abs(overlay.height - prev.height) > 0.5 ||
+            Math.abs(overlay.opacity - prev.opacity) > 0.01;
+        });
+
+      if (overlaysChanged) {
+        overlaysRef.current = newOverlays;
+        setContentOverlays(newOverlays);
       }
 
       raf = window.requestAnimationFrame(render);
@@ -452,14 +757,43 @@ export function WaveTiles({ className = "", cubeLayout }: WaveTilesProps) {
       const rect = canvasEl.getBoundingClientRect();
       cursorX = e.clientX - rect.left;
       cursorY = e.clientY - rect.top;
+
+      // Change cursor to pointer when hovering an interactive cube
+      if (transitionPhase !== 'idle') {
+        canvasEl.style.cursor = 'wait';
+        return;
+      }
+      const isInteractive = cubes.some(cube =>
+        cube.frontFacePath &&
+        drawingContext.isPointInPath(cube.frontFacePath, cursorX, cursorY) &&
+        (cube.onClick || cube.nextLayout)
+      );
+      canvasEl.style.cursor = isInteractive ? 'pointer' : 'default';
     }
 
     function handleClick(e: MouseEvent) {
+      if (transitionPhase !== 'idle') return; // Ignore clicks during transition
       const rect = canvasEl.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      // Find the trigger cube (top-right cube at row 0)
+      // Check all cubes for clicks on their front faces
+      for (const cube of cubes) {
+        if (cube.frontFacePath && drawingContext.isPointInPath(cube.frontFacePath, x, y)) {
+          // nextLayout takes priority — triggers a full layout transition
+          if (cube.nextLayout) {
+            startLayoutTransition(cube.nextLayout);
+            return;
+          }
+          // Otherwise call the custom onClick handler
+          if (cube.onClick) {
+            cube.onClick();
+            return;
+          }
+        }
+      }
+
+      // Fallback to original trigger cube behavior if no custom handler was found
       let triggerCube: Cube | null = null;
       let maxRight = -1;
       
@@ -532,14 +866,31 @@ export function WaveTiles({ className = "", cubeLayout }: WaveTilesProps) {
       canvasEl.removeEventListener("mousemove", handleMouseMove);
       canvasEl.removeEventListener("mouseleave", handleMouseLeave);
     };
-  }, []);
+  }, [cubeLayout, globalColor]);
 
   return (
-    <div className={`w-screen h-screen overflow-hidden bg-neutral-900 ${className}`}>
+    <div className={`w-screen h-screen overflow-hidden bg-neutral-900 relative ${className}`}>
       <canvas
         ref={canvasRef}
         className="w-full h-full block"
       />
+      {contentOverlays.map((overlay) => (
+        <div
+          key={overlay.id}
+          className="absolute overflow-hidden pointer-events-none"
+          style={{
+            left: `${overlay.x}px`,
+            top: `${overlay.y}px`,
+            width: `${overlay.width}px`,
+            height: `${overlay.height}px`,
+            opacity: overlay.opacity,
+          }}
+        >
+          <div className="w-full h-full flex items-center justify-center pointer-events-none">
+            {overlay.content}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
