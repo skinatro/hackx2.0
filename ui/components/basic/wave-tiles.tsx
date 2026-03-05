@@ -143,13 +143,12 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
     let transitionOriginRow = 0;
     let transitionOriginCol = 0;
 
-    // Layout morph timings for click-triggered transitions.
-    const LAYOUT_SHRINK_SCALE = 0.22;
-    const LAYOUT_SHRINK_STAGGER = 28;
-    const LAYOUT_SHRINK_DURATION = 230;
-    const LAYOUT_GROW_SCALE = 0.22;
-    const LAYOUT_GROW_STAGGER = 24;
-    const LAYOUT_GROW_DURATION = 340;
+    // Layout morph timings — only changed tiles animate; identical tiles stay still.
+    // A "flip" is a 180° Y-rotation. Phase 1 flips old tiles out; phase 2 flips new tiles in.
+    // Together they form a seamless full-rotation coin-flip effect per changed tile.
+    const LAYOUT_FLIP_STAGGER = 22;        // ms delay per Manhattan-distance unit from click
+    const LAYOUT_FLIP_OUT_DURATION = 260;  // ms for the half-spin out
+    const LAYOUT_FLIP_IN_DURATION  = 300;  // ms for the half-spin in
 
     function normalize(point: Point3D): Point3D {
       const length = Math.hypot(point.x, point.y, point.z) || 1;
@@ -571,7 +570,36 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
 
     // ── LAYOUT TRANSITION HELPERS ─────────────────────────────────────────
 
-    /** Called when a cube with `nextLayout` is clicked — starts wave shrink from clicked cube. */
+    // Layout morph timings — only changed tiles animate; identical tiles stay still.
+    // The animation shrinks old differing tiles to 0, then grows new differing tiles from 0.
+    const LAYOUT_SHRINK_STAGGER = 22;        // ms delay per Manhattan-distance unit from click
+    const LAYOUT_SHRINK_DURATION = 260;      // ms for the tile to shrink away
+    const LAYOUT_GROW_DURATION  = 300;       // ms for the new tile to grow in
+
+    /**
+     * Returns true when a cube will look different after transitioning to `newLayout`.
+     * Unchanged cubes (same row/col/rowSpan/colSpan) are skipped entirely — they stay
+     * perfectly still while the changing tiles transition.
+     */
+    function cubeWillChange(cube: Cube, newLayout: CubeDefinition[]): boolean {
+      // Exact structural match → nothing to animate
+      if (newLayout.some(d =>
+        d.row === cube.row && d.col === cube.col &&
+        d.rowSpan === cube.rowSpan && d.colSpan === cube.colSpan
+      )) return false;
+
+      // Multi-cell tiles that don't match always change
+      if (cube.rowSpan > 1 || cube.colSpan > 1) return true;
+
+      // 1×1 background cell: changes only if it gets absorbed into a new merged tile
+      return newLayout.some(d =>
+        cube.row >= d.row && cube.row < d.row + d.rowSpan &&
+        cube.col >= d.col && cube.col < d.col + d.colSpan
+      );
+    }
+
+    /** Called when a cube with `nextLayout` is clicked.
+     *  Only tiles that differ between old and new layout shrink away. */
     function startLayoutTransition(newLayout: CubeDefinition[], sourceCube: Cube) {
       if (transitionPhase !== 'idle') return; // Ignore clicks while transitioning
       transitionPhase = 'decombining';
@@ -583,19 +611,23 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
       let maxDistance = 0;
 
       for (const cube of cubes) {
+        // Unchanged cubes: skip all animation
+        if (!cubeWillChange(cube, newLayout)) continue;
+
         const cubeRow = cube.row + cube.rowSpan / 2;
         const cubeCol = cube.col + cube.colSpan / 2;
         const distance = Math.abs(cubeRow - transitionOriginRow) + Math.abs(cubeCol - transitionOriginCol);
         maxDistance = Math.max(maxDistance, distance);
 
+        // Shrink the tile down to almost zero safely
         cube.startCx = cube.cx;
         cube.startCy = cube.cy;
         cube.startWidth = cube.width;
         cube.startHeight = cube.height;
         cube.targetCx = cube.cx;
         cube.targetCy = cube.cy;
-        cube.targetWidth = Math.max(size * 0.08, cube.width * LAYOUT_SHRINK_SCALE);
-        cube.targetHeight = Math.max(size * 0.08, cube.height * LAYOUT_SHRINK_SCALE);
+        cube.targetWidth = 2; // don't go exactly to 0 to avoid negative geometry flips
+        cube.targetHeight = 2;
         cube.posAnimStart = now + distance * LAYOUT_SHRINK_STAGGER;
         cube.posAnimDuration = LAYOUT_SHRINK_DURATION;
       }
@@ -603,14 +635,17 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
       phaseEndTime = now + maxDistance * LAYOUT_SHRINK_STAGGER + LAYOUT_SHRINK_DURATION + 20;
     }
 
-    /** Rebuild cube list directly as the target layout and run center-anchored wave grow. */
+    /** Swap to the target layout. Unchanged tiles are transferred as-is (no animation).
+     *  New/changed tiles grow in from scale 0. 
+     *  Importantly, newly exposed 1x1 background cells revert to default grey color! */
     function applyNewLayoutCubes() {
       if (!pendingLayout) return;
       const now = performance.now();
       const parsedGlobalColor = hexToRgb(globalColor);
       const defaultAngle = isLightMode ? 0 : Math.PI;
-      const triggerAngle = isLightMode ? Math.PI : 0;
       const nextLayout = pendingLayout;
+
+      // Map every cell in the old layout to its cube so we can inherit properties.
       const previousByCell = new Map<string, Cube>();
       for (const existingCube of cubes) {
         for (let r = existingCube.row; r < existingCube.row + existingCube.rowSpan; r++) {
@@ -620,7 +655,7 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
         }
       }
 
-      // Cells covered by new multi-cell definitions
+      // Cells occupied by custom definitions in the new layout
       const coveredCells = new Set<string>();
       nextLayout.forEach(def => {
         for (let r = def.row; r < def.row + def.rowSpan; r++) {
@@ -631,130 +666,99 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
       });
 
       const newCubes: Cube[] = [];
+      let maxDistance = 0;
 
-      // Create background 1x1 cells for uncovered positions.
+      // ── Background 1×1 cells ─────────────────────────────────────────────
       for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
           if (coveredCells.has(`${row},${col}`)) continue;
 
+          const previous = previousByCell.get(`${row},${col}`);
           const centerX = col * size + size / 2;
           const centerY = row * size + size / 2;
-          const previous = previousByCell.get(`${row},${col}`);
-          const inheritedAngle = previous
-            ? ((previous.angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)
-            : defaultAngle;
 
+          // Unchanged 1×1 cells are lifted straight from the old array, skipping all animation.
+          if (previous && previous.rowSpan === 1 && previous.colSpan === 1 &&
+              !nextLayout.some(d =>
+                row >= d.row && row < d.row + d.rowSpan &&
+                col >= d.col && col < d.col + d.colSpan
+              )) {
+            newCubes.push({ ...previous });
+            continue;
+          }
+
+          // This cell was previously covered by an old merged tile (which shrank away).
+          // Grow it in as a regular background cell.
+          const distance = Math.abs(row + 0.5 - transitionOriginRow) + Math.abs(col + 0.5 - transitionOriginCol);
+          maxDistance = Math.max(maxDistance, distance);
+
+          // We explicitly reset the color to the global default so we DO NOT bleed the old merged tile's color.
           newCubes.push({
-            row,
-            col,
-            rowSpan: 1,
-            colSpan: 1,
-            cx: centerX,
-            cy: centerY,
-            width: size,
-            height: size,
-            angle: inheritedAngle,
-            startAngle: inheritedAngle,
-            targetAngle: inheritedAngle,
-            animationStart: 0,
-            animationDuration: 0,
-            highlightUntil: 0,
+            row, col, rowSpan: 1, colSpan: 1,
+            cx: centerX, cy: centerY, width: 2, height: 2,
+            angle: defaultAngle, startAngle: defaultAngle, targetAngle: defaultAngle,
+            animationStart: 0, animationDuration: 0, highlightUntil: 0,
             depthBias: (row / Math.max(1, rows - 1) - 0.5) * 10 + (col / Math.max(1, cols - 1) - 0.5) * 10,
-            color: previous?.color ?? parsedGlobalColor,
+            color: parsedGlobalColor, // FIX: never inherit previous color for a newly exposed grey sub-cell
             frontFacePath: undefined,
-            startCx: centerX,
-            startCy: centerY,
-            startWidth: size,
-            startHeight: size,
-            targetCx: centerX,
-            targetCy: centerY,
-            targetWidth: size,
-            targetHeight: size,
-            posAnimStart: 0,
-            posAnimDuration: 0,
+            startCx: centerX, startCy: centerY, startWidth: 2, startHeight: 2,
+            targetCx: centerX, targetCy: centerY, targetWidth: size, targetHeight: size,
+            posAnimStart: now + distance * LAYOUT_SHRINK_STAGGER,
+            posAnimDuration: LAYOUT_GROW_DURATION,
           });
         }
       }
 
-      // Add merged cubes from the target layout.
+      // ── Custom / merged tiles ─────────────────────────────────────────────
       nextLayout.forEach(def => {
-        const targetCx  = def.col * size + def.colSpan * size / 2;
-        const targetCy  = def.row * size + def.rowSpan * size / 2;
-        const targetW   = def.colSpan * size;
-        const targetH   = def.rowSpan * size;
-        const existing  = previousByCell.get(`${def.row},${def.col}`);
-        // Normalise to [0, 2π) to strip accumulated full-rotation drift from the morph spin
-        const rawAngle = existing?.angle ?? (isLightMode ? 0 : Math.PI);
-        const inheritedAngle = ((rawAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        const targetCx = def.col * size + def.colSpan * size / 2;
+        const targetCy = def.row * size + def.rowSpan * size / 2;
+        const targetW  = def.colSpan * size;
+        const targetH  = def.rowSpan * size;
+        const existing = previousByCell.get(`${def.row},${def.col}`);
+
+        // Exact structural match → transfer unchanged (no animation).
+        const isUnchanged = cubes.some(c =>
+          c.row === def.row && c.col === def.col &&
+          c.rowSpan === def.rowSpan && c.colSpan === def.colSpan
+        );
+        if (isUnchanged && existing) {
+          newCubes.push({
+            ...existing,
+            content: def.content,
+            color: def.color ? hexToRgb(def.color) : existing.color,
+            onClick: def.onClick,
+            nextLayout: def.nextLayout,
+          });
+          return;
+        }
+
+        // Changed tile: grow from 0 size up to full target size.
+        const normalAngle = (( (existing?.angle ?? defaultAngle) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        const distance = Math.abs(def.row + def.rowSpan / 2 - transitionOriginRow) +
+                         Math.abs(def.col + def.colSpan / 2 - transitionOriginCol);
+        maxDistance = Math.max(maxDistance, distance);
 
         newCubes.push({
-          row: def.row, col: def.col,
-          rowSpan: def.rowSpan, colSpan: def.colSpan,
-          cx: targetCx, cy: targetCy,
-          width: targetW, height: targetH,
-          angle: inheritedAngle, startAngle: inheritedAngle, targetAngle: inheritedAngle,
+          row: def.row, col: def.col, rowSpan: def.rowSpan, colSpan: def.colSpan,
+          cx: targetCx, cy: targetCy, width: 2, height: 2,
+          angle: defaultAngle, startAngle: normalAngle, targetAngle: defaultAngle,
           animationStart: 0, animationDuration: 0, highlightUntil: 0,
           depthBias: (def.row / Math.max(1, rows - 1) - 0.5) * 10 + (def.col / Math.max(1, cols - 1) - 0.5) * 10,
           content: def.content,
           color: def.color ? hexToRgb(def.color) : parsedGlobalColor,
           onClick: def.onClick,
           nextLayout: def.nextLayout,
-          startCx: targetCx,
-          startCy: targetCy,
-          startWidth: targetW,
-          startHeight: targetH,
-          targetCx,
-          targetCy,
-          targetWidth: targetW,
-          targetHeight: targetH,
-          posAnimStart: 0,
-          posAnimDuration: 0,
+          frontFacePath: undefined,
+          startCx: targetCx, startCy: targetCy, startWidth: 2, startHeight: 2,
+          targetCx: targetCx, targetCy: targetCy, targetWidth: targetW, targetHeight: targetH,
+          posAnimStart: now + distance * LAYOUT_SHRINK_STAGGER,
+          posAnimDuration: LAYOUT_GROW_DURATION,
         });
       });
 
-      // Keep trigger cube opposite to the rest for the mode toggle behavior.
-      let triggerCube: Cube | null = null;
-      let maxRight = -1;
-      for (const cube of newCubes) {
-        if (cube.row === 0) {
-          const rightEdge = cube.col + cube.colSpan;
-          if (rightEdge > maxRight) {
-            maxRight = rightEdge;
-            triggerCube = cube;
-          }
-        }
-      }
-      for (const cube of newCubes) {
-        cube.angle = defaultAngle;
-        cube.startAngle = defaultAngle;
-        cube.targetAngle = defaultAngle;
-      }
-      if (triggerCube) {
-        triggerCube.angle = triggerAngle;
-        triggerCube.startAngle = triggerAngle;
-        triggerCube.targetAngle = triggerAngle;
-      }
-
-      // Grow wave from the original clicked trigger position.
-      let maxDistance = 0;
-      for (const cube of newCubes) {
-        const cubeRow = cube.row + cube.rowSpan / 2;
-        const cubeCol = cube.col + cube.colSpan / 2;
-        const distance = Math.abs(cubeRow - transitionOriginRow) + Math.abs(cubeCol - transitionOriginCol);
-        maxDistance = Math.max(maxDistance, distance);
-
-        cube.startCx = cube.targetCx;
-        cube.startCy = cube.targetCy;
-        cube.startWidth = cube.targetWidth * LAYOUT_GROW_SCALE;
-        cube.startHeight = cube.targetHeight * LAYOUT_GROW_SCALE;
-        cube.width = cube.startWidth;
-        cube.height = cube.startHeight;
-        cube.posAnimStart = now + distance * LAYOUT_GROW_STAGGER;
-        cube.posAnimDuration = LAYOUT_GROW_DURATION;
-      }
-
       cubes = newCubes;
-      phaseEndTime = now + maxDistance * LAYOUT_GROW_STAGGER + LAYOUT_GROW_DURATION + 20;
+      phaseEndTime = now + maxDistance * LAYOUT_SHRINK_STAGGER + LAYOUT_GROW_DURATION + 20;
     }
 
     function introDelayForCube(cube: Cube): number {
