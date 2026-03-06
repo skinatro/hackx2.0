@@ -252,14 +252,14 @@ const sendMessageContent: ReactNode = (
 );
 
 // ── Cube layout — 3 big merged cubes, no decorative extras ───────────────────
-const contactLayout = [
+const contactLayout: Parameters<typeof WaveTiles>[0]["cubeLayout"] = [
     {
         // Header — wide strip spanning both blocks
         row: 1,
         col: 4,
         rowSpan: 4,
         colSpan: 21,
-        color: "#1e40af",
+        color: "blue",
         content: headerContent,
     },
     {
@@ -268,7 +268,7 @@ const contactLayout = [
         col: 4,
         rowSpan: 16,
         colSpan: 10,
-        color: "#1e3a8a",
+        color: "maroon",
         content: contactInfoContent,
     },
     {
@@ -277,7 +277,7 @@ const contactLayout = [
         col: 15,
         rowSpan: 16,
         colSpan: 10,
-        color: "#312e81",
+        color: "purple",
         content: sendMessageContent,
     },
 ];
