@@ -11,6 +11,13 @@ export type WaveTileColor =
   | 'black'
   | 'white';
 
+export type WaveTileTexture =
+  | 'jaali'
+  | 'ikat'
+  | 'bandhani'
+  | 'blockprint'
+  | 'chikankari';
+
 const WAVE_TILE_COLOR_HEX: Record<WaveTileColor, string> = {
   purple: '#1A0B2E',
   violet: '#4B1D6E',
@@ -50,6 +57,7 @@ type Cube = {
   depthBias: number;
   content?: ReactNode;
   color?: {r: number, g: number, b: number} | null;
+  texture?: WaveTileTexture;
   onClick?: () => void;
   nextLayout?: CubeDefinition[];
   frontFacePath?: Path2D;
@@ -73,6 +81,7 @@ type CubeDefinition = {
   colSpan: number;  // width in cells (1 = single cell)
   content?: ReactNode; // React content to display on this cube face
   color?: WaveTileColor;   // optional theme color for the cube
+  texture?: WaveTileTexture; // optional Indian texture preset for this cube
   onClick?: () => void; // Optional click handler - called when this cube is clicked
   nextLayout?: CubeDefinition[]; // When clicked, smoothly transitions to this new layout
 };
@@ -91,9 +100,10 @@ type WaveTilesProps = {
   className?: string;
   cubeLayout?: CubeDefinition[];
   globalColor?: WaveTileColor; // Optional default color for all cubes
+  globalTexture?: WaveTileTexture; // Optional default texture for all cubes
 };
 
-export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTilesProps) {
+export function WaveTiles({ className = "", cubeLayout, globalColor, globalTexture }: WaveTilesProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [contentOverlays, setContentOverlays] = useState<ContentOverlay[]>([]);
   const overlaysRef = useRef<ContentOverlay[]>([]);
@@ -117,7 +127,7 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
     const maxVisibleCubes = 900;
     const minCubeSize = 16;
     const lightDir = normalize({ x: -0.35, y: -0.45, z: 1 });
-    const GRID_GAP_SIZE = 1;
+    const GRID_GAP_SIZE = 0;
     const CUSTOM_CUBE_GAP_SIZE = GRID_GAP_SIZE;
 
     let size = 0;
@@ -266,7 +276,45 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
       };
     }
 
-    function drawFaceTexture(pts: Point2D[], cubeX: number, cubeY: number, divisions: number) {
+    function mapUvToQuad(pts: Point2D[], u: number, v: number): Point2D {
+      const p0 = pts[0];
+      const p1 = pts[1];
+      const p2 = pts[2];
+      const p3 = pts[3];
+      const oneMinusU = 1 - u;
+      const oneMinusV = 1 - v;
+
+      return {
+        x: p0.x * oneMinusU * oneMinusV + p1.x * u * oneMinusV + p2.x * u * v + p3.x * oneMinusU * v,
+        y: p0.y * oneMinusU * oneMinusV + p1.y * u * oneMinusV + p2.y * u * v + p3.y * oneMinusU * v,
+      };
+    }
+
+    function drawWarpedCurve(
+      pts: Point2D[],
+      cubeX: number,
+      cubeY: number,
+      uvAt: (t: number) => { u: number; v: number },
+      steps: number,
+    ) {
+      const start = uvAt(0);
+      const startPoint = mapUvToQuad(pts, clamp(start.u, 0, 1), clamp(start.v, 0, 1));
+
+      drawingContext.beginPath();
+      drawingContext.moveTo(cubeX + startPoint.x, cubeY + startPoint.y);
+
+      for (let s = 1; s <= steps; s++) {
+        const t = s / steps;
+        const uv = uvAt(t);
+        const p = mapUvToQuad(pts, clamp(uv.u, 0, 1), clamp(uv.v, 0, 1));
+        drawingContext.lineTo(cubeX + p.x, cubeY + p.y);
+      }
+
+      drawingContext.stroke();
+    }
+
+    function drawBaseTextureGrid(pts: Point2D[], cubeX: number, cubeY: number, divisions: number) {
+      // Base woven grid
       for (let i = 1; i < divisions; i++) {
         const t = i / divisions;
 
@@ -283,6 +331,193 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
         drawingContext.moveTo(cubeX + top.x, cubeY + top.y);
         drawingContext.lineTo(cubeX + bottom.x, cubeY + bottom.y);
         drawingContext.stroke();
+      }
+    }
+
+    function drawJaaliOverlay(pts: Point2D[], cubeX: number, cubeY: number, divisions: number) {
+      // Jaali-inspired diagonal weave pass (subtle secondary motif)
+      const weaveBands = Math.max(2, Math.floor(divisions / 2));
+      const curveSteps = 10;
+
+      drawingContext.save();
+      drawingContext.globalAlpha *= 0.72;
+      drawingContext.lineWidth = Math.max(0.35, drawingContext.lineWidth * 0.78);
+
+      for (let i = -weaveBands; i <= weaveBands; i++) {
+        const offset = i / (weaveBands + 1);
+
+        // Family A (↘)
+        drawWarpedCurve(
+          pts,
+          cubeX,
+          cubeY,
+          (t) => ({ u: t, v: t + offset }),
+          curveSteps,
+        );
+
+        // Family B (↙)
+        drawWarpedCurve(
+          pts,
+          cubeX,
+          cubeY,
+          (t) => ({ u: t, v: 1 - t + offset }),
+          curveSteps,
+        );
+      }
+
+      drawingContext.restore();
+    }
+
+    function drawIkatOverlay(pts: Point2D[], cubeX: number, cubeY: number, divisions: number) {
+      const bands = Math.max(3, Math.floor(divisions / 2));
+      const curveSteps = 12;
+      const amplitude = 0.055;
+
+      drawingContext.save();
+      drawingContext.globalAlpha *= 0.64;
+      drawingContext.lineWidth = Math.max(0.35, drawingContext.lineWidth * 0.82);
+
+      for (let i = 1; i <= bands; i++) {
+        const baseV = i / (bands + 1);
+        drawWarpedCurve(
+          pts,
+          cubeX,
+          cubeY,
+          (t) => ({
+            u: t,
+            v: baseV + Math.sin(t * Math.PI * 2 + baseV * Math.PI * 3) * amplitude,
+          }),
+          curveSteps,
+        );
+
+        const baseU = i / (bands + 1);
+        drawWarpedCurve(
+          pts,
+          cubeX,
+          cubeY,
+          (t) => ({
+            u: baseU + Math.sin(t * Math.PI * 2 + baseU * Math.PI * 2.5) * amplitude,
+            v: t,
+          }),
+          curveSteps,
+        );
+      }
+
+      drawingContext.restore();
+    }
+
+    function drawBandhaniOverlay(pts: Point2D[], cubeX: number, cubeY: number, divisions: number) {
+      const dotRows = Math.max(4, Math.floor(divisions / 2));
+
+      drawingContext.save();
+      drawingContext.globalAlpha *= 0.68;
+      drawingContext.fillStyle = drawingContext.strokeStyle;
+
+      for (let r = 1; r < dotRows; r++) {
+        for (let c = 1; c < dotRows; c++) {
+          if ((r + c) % 2 !== 0) continue;
+          const u = c / dotRows;
+          const v = r / dotRows;
+          const p = mapUvToQuad(pts, u, v);
+          const radius = Math.max(0.4, ((pts[1].x - pts[0].x + pts[2].y - pts[1].y) / 2) / (dotRows * 10));
+          drawingContext.beginPath();
+          drawingContext.arc(cubeX + p.x, cubeY + p.y, Math.abs(radius), 0, Math.PI * 2);
+          drawingContext.fill();
+        }
+      }
+
+      drawingContext.restore();
+    }
+
+    function drawBlockprintOverlay(pts: Point2D[], cubeX: number, cubeY: number, divisions: number) {
+      const motifs = Math.max(3, Math.floor(divisions / 2));
+      const cell = 1 / motifs;
+      const motifRadius = cell * 0.22;
+
+      drawingContext.save();
+      drawingContext.globalAlpha *= 0.62;
+      drawingContext.lineWidth = Math.max(0.35, drawingContext.lineWidth * 0.84);
+
+      for (let r = 1; r < motifs; r++) {
+        for (let c = 1; c < motifs; c++) {
+          const u = c * cell;
+          const v = r * cell;
+          const pTop = mapUvToQuad(pts, u, v - motifRadius);
+          const pRight = mapUvToQuad(pts, u + motifRadius, v);
+          const pBottom = mapUvToQuad(pts, u, v + motifRadius);
+          const pLeft = mapUvToQuad(pts, u - motifRadius, v);
+
+          drawingContext.beginPath();
+          drawingContext.moveTo(cubeX + pTop.x, cubeY + pTop.y);
+          drawingContext.lineTo(cubeX + pRight.x, cubeY + pRight.y);
+          drawingContext.lineTo(cubeX + pBottom.x, cubeY + pBottom.y);
+          drawingContext.lineTo(cubeX + pLeft.x, cubeY + pLeft.y);
+          drawingContext.closePath();
+          drawingContext.stroke();
+        }
+      }
+
+      drawingContext.restore();
+    }
+
+    function drawChikankariOverlay(pts: Point2D[], cubeX: number, cubeY: number, divisions: number) {
+      const stitches = Math.max(4, Math.floor(divisions / 2));
+      const arm = 0.14 / stitches;
+
+      drawingContext.save();
+      drawingContext.globalAlpha *= 0.66;
+      drawingContext.lineWidth = Math.max(0.35, drawingContext.lineWidth * 0.8);
+
+      for (let r = 1; r < stitches; r++) {
+        for (let c = 1; c < stitches; c++) {
+          if ((r + c) % 2 !== 0) continue;
+          const u = c / stitches;
+          const v = r / stitches;
+
+          const a = mapUvToQuad(pts, u - arm, v - arm);
+          const b = mapUvToQuad(pts, u + arm, v + arm);
+          drawingContext.beginPath();
+          drawingContext.moveTo(cubeX + a.x, cubeY + a.y);
+          drawingContext.lineTo(cubeX + b.x, cubeY + b.y);
+          drawingContext.stroke();
+
+          const c1 = mapUvToQuad(pts, u + arm, v - arm);
+          const d = mapUvToQuad(pts, u - arm, v + arm);
+          drawingContext.beginPath();
+          drawingContext.moveTo(cubeX + c1.x, cubeY + c1.y);
+          drawingContext.lineTo(cubeX + d.x, cubeY + d.y);
+          drawingContext.stroke();
+        }
+      }
+
+      drawingContext.restore();
+    }
+
+    function drawFaceTexture(
+      pts: Point2D[],
+      cubeX: number,
+      cubeY: number,
+      divisions: number,
+      texture: WaveTileTexture,
+    ) {
+      drawBaseTextureGrid(pts, cubeX, cubeY, divisions);
+
+      switch (texture) {
+        case 'ikat':
+          drawIkatOverlay(pts, cubeX, cubeY, divisions);
+          return;
+        case 'bandhani':
+          drawBandhaniOverlay(pts, cubeX, cubeY, divisions);
+          return;
+        case 'blockprint':
+          drawBlockprintOverlay(pts, cubeX, cubeY, divisions);
+          return;
+        case 'chikankari':
+          drawChikankariOverlay(pts, cubeX, cubeY, divisions);
+          return;
+        case 'jaali':
+        default:
+          drawJaaliOverlay(pts, cubeX, cubeY, divisions);
       }
     }
 
@@ -445,7 +680,7 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
         const divisions = Math.max(3, Math.round(avgSize / 7));
         drawingContext.lineWidth = 0.5;
         drawingContext.strokeStyle = getTextureStrokeColor(cube.color, brightness, modeMix);
-        drawFaceTexture(pts, cube.cx, cube.cy, divisions);
+        drawFaceTexture(pts, cube.cx, cube.cy, divisions, cube.texture || 'jaali');
         drawingContext.restore();
 
         tracePath();
@@ -494,6 +729,7 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
       cubes = [];
 
       const parsedGlobalColor = colorToRgb(globalColor);
+      const parsedGlobalTexture: WaveTileTexture = globalTexture || 'jaali';
       // Preserve the current mode when rebuilding (e.g. after resize).
       // In light mode all cubes are light except the trigger cube, and vice versa in dark mode.
       const defaultAngle = isLightMode ? 0 : Math.PI;
@@ -538,6 +774,7 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
             highlightUntil: 0,
             depthBias: (row / Math.max(1, rows - 1) - 0.5) * 10 + (col / Math.max(1, cols - 1) - 0.5) * 10,
             color: parsedGlobalColor,
+            texture: parsedGlobalTexture,
             frontFacePath: undefined,
             startCx: _cx1, startCy: _cy1, startWidth: size - GRID_GAP_SIZE, startHeight: size - GRID_GAP_SIZE,
             targetCx: _cx1, targetCy: _cy1, targetWidth: size - GRID_GAP_SIZE, targetHeight: size - GRID_GAP_SIZE,
@@ -572,6 +809,7 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
             depthBias: (def.row / Math.max(1, rows - 1) - 0.5) * 10 + (def.col / Math.max(1, cols - 1) - 0.5) * 10,
             content: def.content,
             color: def.color ? colorToRgb(def.color) : parsedGlobalColor,
+            texture: def.texture || parsedGlobalTexture,
             onClick: def.onClick,
             nextLayout: def.nextLayout,
             frontFacePath: undefined,
@@ -713,6 +951,7 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
       if (!pendingLayout) return;
       const now = performance.now();
       const parsedGlobalColor = colorToRgb(globalColor);
+      const parsedGlobalTexture: WaveTileTexture = globalTexture || 'jaali';
       const defaultAngle = isLightMode ? 0 : Math.PI;
       const nextLayout = pendingLayout;
 
@@ -771,6 +1010,7 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
             animationStart: 0, animationDuration: 0, highlightUntil: 0,
             depthBias: (row / Math.max(1, rows - 1) - 0.5) * 10 + (col / Math.max(1, cols - 1) - 0.5) * 10,
             color: parsedGlobalColor, // FIX: never inherit previous color for a newly exposed grey sub-cell
+            texture: parsedGlobalTexture,
             frontFacePath: undefined,
             startCx: centerX, startCy: centerY, startWidth: 2, startHeight: 2,
             targetCx: centerX, targetCy: centerY, targetWidth: size - GRID_GAP_SIZE, targetHeight: size - GRID_GAP_SIZE,
@@ -798,6 +1038,7 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
             ...existing,
             content: def.content,
             color: def.color ? colorToRgb(def.color) : existing.color,
+            texture: def.texture || existing.texture,
             onClick: def.onClick,
             nextLayout: def.nextLayout,
           });
@@ -818,6 +1059,7 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
           depthBias: (def.row / Math.max(1, rows - 1) - 0.5) * 10 + (def.col / Math.max(1, cols - 1) - 0.5) * 10,
           content: def.content,
           color: def.color ? colorToRgb(def.color) : parsedGlobalColor,
+          texture: def.texture || parsedGlobalTexture,
           onClick: def.onClick,
           nextLayout: def.nextLayout,
           frontFacePath: undefined,
@@ -1139,7 +1381,7 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
       canvasEl.removeEventListener("pointermove", handlePointerMove);
       canvasEl.removeEventListener("pointerleave", handlePointerLeave);
     };
-  }, [cubeLayout, globalColor]);
+  }, [cubeLayout, globalColor, globalTexture]);
 
   return (
     <div className={`w-screen h-screen overflow-hidden bg-neutral-900 relative ${className}`}>
