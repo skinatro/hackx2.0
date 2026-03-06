@@ -477,7 +477,8 @@ export function WaveTiles({ className = "", cubeLayout, globalColor, globalTextu
       };
     }
 
-    function drawWarpedCurve(
+    function appendWarpedCurve(
+      path: Path2D,
       pts: Point2D[],
       cubeX: number,
       cubeY: number,
@@ -486,60 +487,49 @@ export function WaveTiles({ className = "", cubeLayout, globalColor, globalTextu
     ) {
       const start = uvAt(0);
       const startPoint = mapUvToQuad(pts, clamp(start.u, 0, 1), clamp(start.v, 0, 1));
-
-      drawingContext.beginPath();
-      drawingContext.moveTo(cubeX + startPoint.x, cubeY + startPoint.y);
+      path.moveTo(cubeX + startPoint.x, cubeY + startPoint.y);
 
       for (let s = 1; s <= steps; s++) {
         const t = s / steps;
         const uv = uvAt(t);
         const p = mapUvToQuad(pts, clamp(uv.u, 0, 1), clamp(uv.v, 0, 1));
-        drawingContext.lineTo(cubeX + p.x, cubeY + p.y);
+        path.lineTo(cubeX + p.x, cubeY + p.y);
       }
-
-      drawingContext.stroke();
     }
 
     function drawBaseTextureGrid(pts: Point2D[], cubeX: number, cubeY: number, divisions: number) {
-      // Base woven grid
+      const path = new Path2D();
       for (let i = 1; i < divisions; i++) {
         const t = i / divisions;
 
         const left = interpolate2D(pts[0], pts[3], t);
         const right = interpolate2D(pts[1], pts[2], t);
-        drawingContext.beginPath();
-        drawingContext.moveTo(cubeX + left.x, cubeY + left.y);
-        drawingContext.lineTo(cubeX + right.x, cubeY + right.y);
-        drawingContext.stroke();
+        path.moveTo(cubeX + left.x, cubeY + left.y);
+        path.lineTo(cubeX + right.x, cubeY + right.y);
 
         const top = interpolate2D(pts[0], pts[1], t);
         const bottom = interpolate2D(pts[3], pts[2], t);
-        drawingContext.beginPath();
-        drawingContext.moveTo(cubeX + top.x, cubeY + top.y);
-        drawingContext.lineTo(cubeX + bottom.x, cubeY + bottom.y);
-        drawingContext.stroke();
+        path.moveTo(cubeX + top.x, cubeY + top.y);
+        path.lineTo(cubeX + bottom.x, cubeY + bottom.y);
       }
+      drawingContext.stroke(path);
     }
 
     function drawJaaliOverlay(pts: Point2D[], cubeX: number, cubeY: number, divisions: number) {
-      // Jaali-inspired diagonal weave pass (subtle secondary motif)
       const weaveBands = Math.max(2, Math.floor(divisions / 2));
       const curveSteps = 10;
+      const path = new Path2D();
+
+      for (let i = -weaveBands; i <= weaveBands; i++) {
+        const offset = i / (weaveBands + 1);
+        appendWarpedCurve(path, pts, cubeX, cubeY, (t) => ({ u: t, v: t + offset }), curveSteps);
+        appendWarpedCurve(path, pts, cubeX, cubeY, (t) => ({ u: t, v: 1 - t + offset }), curveSteps);
+      }
 
       drawingContext.save();
       drawingContext.globalAlpha *= 0.72;
       drawingContext.lineWidth = Math.max(0.35, drawingContext.lineWidth * 0.78);
-
-      for (let i = -weaveBands; i <= weaveBands; i++) {
-        const offset = i / (weaveBands + 1);
-
-        // Family A (↘)
-        drawWarpedCurve(pts, cubeX, cubeY, (t) => ({ u: t, v: t + offset }), curveSteps);
-
-        // Family B (↙)
-        drawWarpedCurve(pts, cubeX, cubeY, (t) => ({ u: t, v: 1 - t + offset }), curveSteps);
-      }
-
+      drawingContext.stroke(path);
       drawingContext.restore();
     }
 
@@ -547,14 +537,12 @@ export function WaveTiles({ className = "", cubeLayout, globalColor, globalTextu
       const bands = Math.max(3, Math.floor(divisions / 2));
       const curveSteps = 12;
       const amplitude = 0.055;
-
-      drawingContext.save();
-      drawingContext.globalAlpha *= 0.64;
-      drawingContext.lineWidth = Math.max(0.35, drawingContext.lineWidth * 0.82);
+      const path = new Path2D();
 
       for (let i = 1; i <= bands; i++) {
         const baseV = i / (bands + 1);
-        drawWarpedCurve(
+        appendWarpedCurve(
+          path,
           pts,
           cubeX,
           cubeY,
@@ -566,7 +554,8 @@ export function WaveTiles({ className = "", cubeLayout, globalColor, globalTextu
         );
 
         const baseU = i / (bands + 1);
-        drawWarpedCurve(
+        appendWarpedCurve(
+          path,
           pts,
           cubeX,
           cubeY,
@@ -578,15 +567,16 @@ export function WaveTiles({ className = "", cubeLayout, globalColor, globalTextu
         );
       }
 
+      drawingContext.save();
+      drawingContext.globalAlpha *= 0.64;
+      drawingContext.lineWidth = Math.max(0.35, drawingContext.lineWidth * 0.82);
+      drawingContext.stroke(path);
       drawingContext.restore();
     }
 
     function drawBandhaniOverlay(pts: Point2D[], cubeX: number, cubeY: number, divisions: number) {
       const dotRows = Math.max(4, Math.floor(divisions / 2));
-
-      drawingContext.save();
-      drawingContext.globalAlpha *= 0.68;
-      drawingContext.fillStyle = drawingContext.strokeStyle;
+      const path = new Path2D();
 
       for (let r = 1; r < dotRows; r++) {
         for (let c = 1; c < dotRows; c++) {
@@ -595,12 +585,15 @@ export function WaveTiles({ className = "", cubeLayout, globalColor, globalTextu
           const v = r / dotRows;
           const p = mapUvToQuad(pts, u, v);
           const radius = Math.max(0.4, (pts[1].x - pts[0].x + pts[2].y - pts[1].y) / 2 / (dotRows * 10));
-          drawingContext.beginPath();
-          drawingContext.arc(cubeX + p.x, cubeY + p.y, Math.abs(radius), 0, Math.PI * 2);
-          drawingContext.fill();
+          path.moveTo(cubeX + p.x + Math.abs(radius), cubeY + p.y);
+          path.arc(cubeX + p.x, cubeY + p.y, Math.abs(radius), 0, Math.PI * 2);
         }
       }
 
+      drawingContext.save();
+      drawingContext.globalAlpha *= 0.68;
+      drawingContext.fillStyle = drawingContext.strokeStyle;
+      drawingContext.fill(path);
       drawingContext.restore();
     }
 
@@ -608,10 +601,7 @@ export function WaveTiles({ className = "", cubeLayout, globalColor, globalTextu
       const motifs = Math.max(3, Math.floor(divisions / 2));
       const cell = 1 / motifs;
       const motifRadius = cell * 0.22;
-
-      drawingContext.save();
-      drawingContext.globalAlpha *= 0.62;
-      drawingContext.lineWidth = Math.max(0.35, drawingContext.lineWidth * 0.84);
+      const path = new Path2D();
 
       for (let r = 1; r < motifs; r++) {
         for (let c = 1; c < motifs; c++) {
@@ -622,26 +612,25 @@ export function WaveTiles({ className = "", cubeLayout, globalColor, globalTextu
           const pBottom = mapUvToQuad(pts, u, v + motifRadius);
           const pLeft = mapUvToQuad(pts, u - motifRadius, v);
 
-          drawingContext.beginPath();
-          drawingContext.moveTo(cubeX + pTop.x, cubeY + pTop.y);
-          drawingContext.lineTo(cubeX + pRight.x, cubeY + pRight.y);
-          drawingContext.lineTo(cubeX + pBottom.x, cubeY + pBottom.y);
-          drawingContext.lineTo(cubeX + pLeft.x, cubeY + pLeft.y);
-          drawingContext.closePath();
-          drawingContext.stroke();
+          path.moveTo(cubeX + pTop.x, cubeY + pTop.y);
+          path.lineTo(cubeX + pRight.x, cubeY + pRight.y);
+          path.lineTo(cubeX + pBottom.x, cubeY + pBottom.y);
+          path.lineTo(cubeX + pLeft.x, cubeY + pLeft.y);
+          path.closePath();
         }
       }
 
+      drawingContext.save();
+      drawingContext.globalAlpha *= 0.62;
+      drawingContext.lineWidth = Math.max(0.35, drawingContext.lineWidth * 0.84);
+      drawingContext.stroke(path);
       drawingContext.restore();
     }
 
     function drawChikankariOverlay(pts: Point2D[], cubeX: number, cubeY: number, divisions: number) {
       const stitches = Math.max(4, Math.floor(divisions / 2));
       const arm = 0.14 / stitches;
-
-      drawingContext.save();
-      drawingContext.globalAlpha *= 0.66;
-      drawingContext.lineWidth = Math.max(0.35, drawingContext.lineWidth * 0.8);
+      const path = new Path2D();
 
       for (let r = 1; r < stitches; r++) {
         for (let c = 1; c < stitches; c++) {
@@ -651,20 +640,20 @@ export function WaveTiles({ className = "", cubeLayout, globalColor, globalTextu
 
           const a = mapUvToQuad(pts, u - arm, v - arm);
           const b = mapUvToQuad(pts, u + arm, v + arm);
-          drawingContext.beginPath();
-          drawingContext.moveTo(cubeX + a.x, cubeY + a.y);
-          drawingContext.lineTo(cubeX + b.x, cubeY + b.y);
-          drawingContext.stroke();
+          path.moveTo(cubeX + a.x, cubeY + a.y);
+          path.lineTo(cubeX + b.x, cubeY + b.y);
 
           const c1 = mapUvToQuad(pts, u + arm, v - arm);
           const d = mapUvToQuad(pts, u - arm, v + arm);
-          drawingContext.beginPath();
-          drawingContext.moveTo(cubeX + c1.x, cubeY + c1.y);
-          drawingContext.lineTo(cubeX + d.x, cubeY + d.y);
-          drawingContext.stroke();
+          path.moveTo(cubeX + c1.x, cubeY + c1.y);
+          path.lineTo(cubeX + d.x, cubeY + d.y);
         }
       }
 
+      drawingContext.save();
+      drawingContext.globalAlpha *= 0.66;
+      drawingContext.lineWidth = Math.max(0.35, drawingContext.lineWidth * 0.8);
+      drawingContext.stroke(path);
       drawingContext.restore();
     }
 
@@ -825,14 +814,13 @@ export function WaveTiles({ className = "", cubeLayout, globalColor, globalTextu
 
         const pts = face.idx.map((i) => projected[i]);
 
-        const tracePath = () => {
-          drawingContext.beginPath();
-          drawingContext.moveTo(cube.cx + pts[0].x, cube.cy + pts[0].y);
-          for (let i = 1; i < pts.length; i++) {
-            drawingContext.lineTo(cube.cx + pts[i].x, cube.cy + pts[i].y);
-          }
-          drawingContext.closePath();
-        };
+        // Construct the path EXACTLY ONCE per face using Path2D
+        const path = new Path2D();
+        path.moveTo(cube.cx + pts[0].x, cube.cy + pts[0].y);
+        for (let i = 1; i < pts.length; i++) {
+          path.lineTo(cube.cx + pts[i].x, cube.cy + pts[i].y);
+        }
+        path.closePath();
 
         const light = Math.max(0, dot(orientedNormal, lightDir));
         const brightness = Math.round(
@@ -842,36 +830,32 @@ export function WaveTiles({ className = "", cubeLayout, globalColor, globalTextu
         drawingContext.save();
         drawingContext.globalAlpha = cubeOpacity;
 
-        tracePath();
+        // 1. Fill
         drawingContext.fillStyle = getShadedColor(cube.color, brightness, modeMix);
-        drawingContext.fill();
+        drawingContext.fill(path);
 
-        drawingContext.save();
-        tracePath();
-        drawingContext.clip();
-        const avgSize = (cube.width + cube.height) / 2;
-        const divisions = Math.max(3, Math.round(avgSize / 7));
-        drawingContext.lineWidth = 0.5;
-        drawingContext.strokeStyle = getTextureStrokeColor(cube.color, brightness, modeMix);
-        drawFaceTexture(pts, cube.cx, cube.cy, divisions, cube.texture || "jaali");
-        drawingContext.restore();
+        // 2. Texture (clipped) - Only draw texture on primary faces
+        if (face.isFront || face.isBack) {
+          drawingContext.save();
+          drawingContext.clip(path);
+          const avgSize = (cube.width + cube.height) / 2;
+          const divisions = Math.max(3, Math.round(avgSize / 7));
+          drawingContext.lineWidth = 0.5;
+          drawingContext.strokeStyle = getTextureStrokeColor(cube.color, brightness, modeMix);
+          drawFaceTexture(pts, cube.cx, cube.cy, divisions, cube.texture || "jaali");
+          drawingContext.restore();
+        }
 
-        tracePath();
+        // 3. Stroke Outline
         drawingContext.strokeStyle = (modeMix > 0.5 ? brightness > 230 : brightness < 30)
           ? `rgba(0,0,0,${mix(0.35, 0.15, modeMix).toFixed(3)})`
           : `rgba(255,255,255,${mix(0.45, 0.75, modeMix).toFixed(3)})`;
         drawingContext.lineWidth = 1;
-        drawingContext.stroke();
+        drawingContext.stroke(path);
         drawingContext.restore();
 
         // Store front OR back face path for click detection (needed for both light & dark mode)
         if ((face.isFront || face.isBack) && orientedNormal.z > 0.3) {
-          const path = new Path2D();
-          path.moveTo(cube.cx + pts[0].x, cube.cy + pts[0].y);
-          for (let i = 1; i < pts.length; i++) {
-            path.lineTo(cube.cx + pts[i].x, cube.cy + pts[i].y);
-          }
-          path.closePath();
           frontFacePath = path;
         }
 
