@@ -2,6 +2,25 @@
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
+export type WaveTileColor =
+  | 'purple'
+  | 'violet'
+  | 'ember'
+  | 'orange'
+  | 'maroon'
+  | 'black'
+  | 'white';
+
+const WAVE_TILE_COLOR_HEX: Record<WaveTileColor, string> = {
+  purple: '#1A0B2E',
+  violet: '#4B1D6E',
+  ember: '#FF6B35',
+  orange: '#FF9F1C',
+  maroon: '#3D0C11',
+  black: '#000000',
+  white: '#FFFFFF',
+};
+
 type Point3D = {
   x: number;
   y: number;
@@ -53,7 +72,7 @@ type CubeDefinition = {
   rowSpan: number;  // height in cells (1 = single cell)
   colSpan: number;  // width in cells (1 = single cell)
   content?: ReactNode; // React content to display on this cube face
-  color?: string;   // optional hex color for the cube
+  color?: WaveTileColor;   // optional theme color for the cube
   onClick?: () => void; // Optional click handler - called when this cube is clicked
   nextLayout?: CubeDefinition[]; // When clicked, smoothly transitions to this new layout
 };
@@ -71,7 +90,7 @@ type ContentOverlay = {
 type WaveTilesProps = {
   className?: string;
   cubeLayout?: CubeDefinition[];
-  globalColor?: string; // Optional default color for all cubes
+  globalColor?: WaveTileColor; // Optional default color for all cubes
 };
 
 export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTilesProps) {
@@ -98,6 +117,8 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
     const maxVisibleCubes = 900;
     const minCubeSize = 16;
     const lightDir = normalize({ x: -0.35, y: -0.45, z: 1 });
+    const GRID_GAP_SIZE = 1;
+    const CUSTOM_CUBE_GAP_SIZE = GRID_GAP_SIZE;
 
     let size = 0;
     let rows = 0;
@@ -185,14 +206,84 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
       return `rgb(${channel}, ${channel}, ${channel})`;
     }
 
-    function getShadedColor(baseColor: {r: number, g: number, b: number} | null | undefined, brightness: number): string {
-      if (!baseColor) return grayscale(brightness);
+    function getModeAdjustedColor(
+      baseColor: {r: number, g: number, b: number} | null | undefined,
+      modeMix: number,
+    ): {r: number, g: number, b: number} | null {
+      if (!baseColor) return null;
+
+      const invertMix = 1 - modeMix;
+      return {
+        r: Math.round(mix(baseColor.r, 255 - baseColor.r, invertMix)),
+        g: Math.round(mix(baseColor.g, 255 - baseColor.g, invertMix)),
+        b: Math.round(mix(baseColor.b, 255 - baseColor.b, invertMix)),
+      };
+    }
+
+    function getShadedColor(
+      baseColor: {r: number, g: number, b: number} | null | undefined,
+      brightness: number,
+      modeMix: number,
+    ): string {
+      const adjustedBase = getModeAdjustedColor(baseColor, modeMix);
+      if (!adjustedBase) return grayscale(brightness);
       
       const factor = brightness / 255;
-      const r = Math.min(255, Math.max(0, Math.round(baseColor.r * factor)));
-      const g = Math.min(255, Math.max(0, Math.round(baseColor.g * factor)));
-      const b = Math.min(255, Math.max(0, Math.round(baseColor.b * factor)));
+      const r = Math.min(255, Math.max(0, Math.round(adjustedBase.r * factor)));
+      const g = Math.min(255, Math.max(0, Math.round(adjustedBase.g * factor)));
+      const b = Math.min(255, Math.max(0, Math.round(adjustedBase.b * factor)));
       return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    function getTextureStrokeColor(
+      baseColor: {r: number, g: number, b: number} | null | undefined,
+      brightness: number,
+      modeMix: number,
+    ): string {
+      const adjustedBase = getModeAdjustedColor(baseColor, modeMix);
+
+      if (!adjustedBase) {
+        return brightness > (120 + 80 * modeMix)
+          ? `rgba(0,0,0,${mix(0.18, 0.08, modeMix).toFixed(3)})`
+          : `rgba(255,255,255,${mix(0.04, 0.44, modeMix).toFixed(3)})`;
+      }
+
+      const isLightFace = brightness > (120 + 80 * modeMix);
+      const target = isLightFace ? 14 : 245;
+      const blend = isLightFace ? mix(0.55, 0.42, modeMix) : mix(0.35, 0.62, modeMix);
+      const r = Math.round(mix(adjustedBase.r, target, blend));
+      const g = Math.round(mix(adjustedBase.g, target, blend));
+      const b = Math.round(mix(adjustedBase.b, target, blend));
+      const alpha = isLightFace ? mix(0.28, 0.2, modeMix) : mix(0.2, 0.5, modeMix);
+
+      return `rgba(${r},${g},${b},${alpha.toFixed(3)})`;
+    }
+
+    function interpolate2D(a: Point2D, b: Point2D, t: number): Point2D {
+      return {
+        x: mix(a.x, b.x, t),
+        y: mix(a.y, b.y, t),
+      };
+    }
+
+    function drawFaceTexture(pts: Point2D[], cubeX: number, cubeY: number, divisions: number) {
+      for (let i = 1; i < divisions; i++) {
+        const t = i / divisions;
+
+        const left = interpolate2D(pts[0], pts[3], t);
+        const right = interpolate2D(pts[1], pts[2], t);
+        drawingContext.beginPath();
+        drawingContext.moveTo(cubeX + left.x, cubeY + left.y);
+        drawingContext.lineTo(cubeX + right.x, cubeY + right.y);
+        drawingContext.stroke();
+
+        const top = interpolate2D(pts[0], pts[1], t);
+        const bottom = interpolate2D(pts[3], pts[2], t);
+        drawingContext.beginPath();
+        drawingContext.moveTo(cubeX + top.x, cubeY + top.y);
+        drawingContext.lineTo(cubeX + bottom.x, cubeY + bottom.y);
+        drawingContext.stroke();
+      }
     }
 
     function easeInOut(t: number): number {
@@ -207,12 +298,10 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
       return from + (to - from) * amount;
     }
 
-    function hexToRgb(hex: string | undefined): {r: number, g: number, b: number} | null {
-      if (!hex) return null;
-      hex = hex.replace(/^#/, '');
-      if (hex.length === 3) hex = hex.split('').map(x => x + x).join('');
-      if (hex.length !== 6) return null;
-      const num = parseInt(hex, 16);
+    function colorToRgb(colorName: WaveTileColor | undefined): {r: number, g: number, b: number} | null {
+      if (!colorName) return null;
+      const hex = WAVE_TILE_COLOR_HEX[colorName];
+      const num = parseInt(hex.slice(1), 16);
       return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
     }
 
@@ -346,34 +435,17 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
         drawingContext.globalAlpha = cubeOpacity;
 
         tracePath();
-        drawingContext.fillStyle = getShadedColor(cube.color, brightness);
+        drawingContext.fillStyle = getShadedColor(cube.color, brightness, modeMix);
         drawingContext.fill();
 
         drawingContext.save();
         tracePath();
         drawingContext.clip();
         const avgSize = (cube.width + cube.height) / 2;
-        const step = Math.max(5, avgSize / 4);
+        const divisions = Math.max(3, Math.round(avgSize / 7));
         drawingContext.lineWidth = 0.5;
-        drawingContext.strokeStyle = brightness > (120 + 80 * modeMix)
-          ? `rgba(0,0,0,${mix(0.18, 0.08, modeMix).toFixed(3)})`
-          : `rgba(255,255,255,${mix(0.04, 0.44, modeMix).toFixed(3)})`;
-        const minX = Math.min(...pts.map((p) => cube.cx + p.x));
-        const maxX = Math.max(...pts.map((p) => cube.cx + p.x));
-        const minY = Math.min(...pts.map((p) => cube.cy + p.y));
-        const maxY = Math.max(...pts.map((p) => cube.cy + p.y));
-        for (let lx = Math.floor(minX / step) * step; lx <= maxX; lx += step) {
-          drawingContext.beginPath();
-          drawingContext.moveTo(lx, minY);
-          drawingContext.lineTo(lx, maxY);
-          drawingContext.stroke();
-        }
-        for (let ly = Math.floor(minY / step) * step; ly <= maxY; ly += step) {
-          drawingContext.beginPath();
-          drawingContext.moveTo(minX, ly);
-          drawingContext.lineTo(maxX, ly);
-          drawingContext.stroke();
-        }
+        drawingContext.strokeStyle = getTextureStrokeColor(cube.color, brightness, modeMix);
+        drawFaceTexture(pts, cube.cx, cube.cy, divisions);
         drawingContext.restore();
 
         tracePath();
@@ -421,7 +493,7 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
     function buildGrid() {
       cubes = [];
 
-      const parsedGlobalColor = hexToRgb(globalColor);
+      const parsedGlobalColor = colorToRgb(globalColor);
       // Preserve the current mode when rebuilding (e.g. after resize).
       // In light mode all cubes are light except the trigger cube, and vice versa in dark mode.
       const defaultAngle = isLightMode ? 0 : Math.PI;
@@ -456,8 +528,8 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
             colSpan: 1,
             cx: _cx1,
             cy: _cy1,
-            width: size,
-            height: size,
+            width: size - GRID_GAP_SIZE,
+            height: size - GRID_GAP_SIZE,
             angle: defaultAngle,
             startAngle: defaultAngle,
             targetAngle: defaultAngle,
@@ -467,8 +539,8 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
             depthBias: (row / Math.max(1, rows - 1) - 0.5) * 10 + (col / Math.max(1, cols - 1) - 0.5) * 10,
             color: parsedGlobalColor,
             frontFacePath: undefined,
-            startCx: _cx1, startCy: _cy1, startWidth: size, startHeight: size,
-            targetCx: _cx1, targetCy: _cy1, targetWidth: size, targetHeight: size,
+            startCx: _cx1, startCy: _cy1, startWidth: size - GRID_GAP_SIZE, startHeight: size - GRID_GAP_SIZE,
+            targetCx: _cx1, targetCy: _cy1, targetWidth: size - GRID_GAP_SIZE, targetHeight: size - GRID_GAP_SIZE,
             posAnimStart: 0, posAnimDuration: 0,
           });
         }
@@ -477,10 +549,10 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
       // Add custom cubes
       if (cubeLayout && cubeLayout.length > 0) {
         cubeLayout.forEach((def) => {
-          const cubeWidth = def.colSpan * size;
-          const cubeHeight = def.rowSpan * size;
-          const centerX = def.col * size + cubeWidth / 2;
-          const centerY = def.row * size + cubeHeight / 2;
+          const cubeWidth = def.colSpan * size - CUSTOM_CUBE_GAP_SIZE;
+          const cubeHeight = def.rowSpan * size - CUSTOM_CUBE_GAP_SIZE;
+          const centerX = def.col * size + def.colSpan * size / 2;
+          const centerY = def.row * size + def.rowSpan * size / 2;
 
           cubes.push({
             row: def.row,
@@ -499,12 +571,11 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
             highlightUntil: 0,
             depthBias: (def.row / Math.max(1, rows - 1) - 0.5) * 10 + (def.col / Math.max(1, cols - 1) - 0.5) * 10,
             content: def.content,
-            color: def.color ? hexToRgb(def.color) : parsedGlobalColor,
+            color: def.color ? colorToRgb(def.color) : parsedGlobalColor,
             onClick: def.onClick,
             nextLayout: def.nextLayout,
             frontFacePath: undefined,
-            startCx: centerX, startCy: centerY, startWidth: cubeWidth, startHeight: cubeHeight,
-            targetCx: centerX, targetCy: centerY, targetWidth: cubeWidth, targetHeight: cubeHeight,
+            startCx: centerX, startCy: centerY, startWidth: cubeWidth, startHeight: cubeHeight, targetCx: centerX, targetCy: centerY, targetWidth: cubeWidth, targetHeight: cubeHeight,
             posAnimStart: 0, posAnimDuration: 0,
           });
         });
@@ -582,7 +653,7 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
      * perfectly still while the changing tiles transition.
      */
     function cubeWillChange(cube: Cube, newLayout: CubeDefinition[]): boolean {
-      // Exact structural match → nothing to animate
+       // Exact structural match → nothing to animate
       if (newLayout.some(d =>
         d.row === cube.row && d.col === cube.col &&
         d.rowSpan === cube.rowSpan && d.colSpan === cube.colSpan
@@ -641,7 +712,7 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
     function applyNewLayoutCubes() {
       if (!pendingLayout) return;
       const now = performance.now();
-      const parsedGlobalColor = hexToRgb(globalColor);
+      const parsedGlobalColor = colorToRgb(globalColor);
       const defaultAngle = isLightMode ? 0 : Math.PI;
       const nextLayout = pendingLayout;
 
@@ -702,7 +773,7 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
             color: parsedGlobalColor, // FIX: never inherit previous color for a newly exposed grey sub-cell
             frontFacePath: undefined,
             startCx: centerX, startCy: centerY, startWidth: 2, startHeight: 2,
-            targetCx: centerX, targetCy: centerY, targetWidth: size, targetHeight: size,
+            targetCx: centerX, targetCy: centerY, targetWidth: size - GRID_GAP_SIZE, targetHeight: size - GRID_GAP_SIZE,
             posAnimStart: now + distance * LAYOUT_SHRINK_STAGGER,
             posAnimDuration: LAYOUT_GROW_DURATION,
           });
@@ -713,8 +784,8 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
       nextLayout.forEach(def => {
         const targetCx = def.col * size + def.colSpan * size / 2;
         const targetCy = def.row * size + def.rowSpan * size / 2;
-        const targetW  = def.colSpan * size;
-        const targetH  = def.rowSpan * size;
+        const targetW  = def.colSpan * size - CUSTOM_CUBE_GAP_SIZE;
+        const targetH  = def.rowSpan * size - CUSTOM_CUBE_GAP_SIZE;
         const existing = previousByCell.get(`${def.row},${def.col}`);
 
         // Exact structural match → transfer unchanged (no animation).
@@ -726,7 +797,7 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
           newCubes.push({
             ...existing,
             content: def.content,
-            color: def.color ? hexToRgb(def.color) : existing.color,
+            color: def.color ? colorToRgb(def.color) : existing.color,
             onClick: def.onClick,
             nextLayout: def.nextLayout,
           });
@@ -746,7 +817,7 @@ export function WaveTiles({ className = "", cubeLayout, globalColor }: WaveTiles
           animationStart: 0, animationDuration: 0, highlightUntil: 0,
           depthBias: (def.row / Math.max(1, rows - 1) - 0.5) * 10 + (def.col / Math.max(1, cols - 1) - 0.5) * 10,
           content: def.content,
-          color: def.color ? hexToRgb(def.color) : parsedGlobalColor,
+          color: def.color ? colorToRgb(def.color) : parsedGlobalColor,
           onClick: def.onClick,
           nextLayout: def.nextLayout,
           frontFacePath: undefined,
