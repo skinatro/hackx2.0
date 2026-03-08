@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type WaveTileColor =
   | "purple"
@@ -16,7 +16,12 @@ export type WaveTileColor =
   | "yellow"
   | "brown";
 
-export type WaveTileTexture = "jaali" | "ikat" | "bandhani" | "blockprint" | "chikankari";
+export type WaveTileTexture =
+  | "jaali"
+  | "ikat"
+  | "bandhani"
+  | "blockprint"
+  | "chikankari";
 
 const WAVE_TILE_COLOR_HEX: Record<WaveTileColor, string> = {
   purple: "#1A0B2E",
@@ -107,9 +112,13 @@ type WaveTilesProps = {
   globalColor?: WaveTileColor; // Optional default color for all cubes
   globalTexture?: WaveTileTexture; // Optional default texture for all cubes
   // Lightweight patch map: "row-col" -> partial update applied in-place without a full rebuild
-  patchLayout?: Record<string, { color?: WaveTileColor; texture?: WaveTileTexture; content?: ReactNode }>;
+  patchLayout?: Record<
+    string,
+    { color?: WaveTileColor; texture?: WaveTileTexture; content?: ReactNode }
+  >;
   onModeChange?: (isLightMode: boolean) => void;
   trackPointerGlobally?: boolean;
+  optimizeForPerformance?: boolean;
 };
 
 export function WaveTiles({
@@ -120,16 +129,28 @@ export function WaveTiles({
   patchLayout,
   onModeChange,
   trackPointerGlobally = false,
+  optimizeForPerformance = false,
 }: WaveTilesProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [contentOverlays, setContentOverlays] = useState<ContentOverlay[]>([]);
   const overlaysRef = useRef<ContentOverlay[]>([]);
   const latestCubeLayoutRef = useRef<CubeDefinition[] | undefined>(cubeLayout);
-  const transitionLayoutRef = useRef<((nextLayout: CubeDefinition[] | undefined) => void) | null>(null);
+  const transitionLayoutRef = useRef<
+    ((nextLayout: CubeDefinition[] | undefined) => void) | null
+  >(null);
   const hasSeenInitialLayoutRef = useRef(false);
   // Exposed so the patchLayout effect can mutate cubes without a full rebuild
   const patchCubesRef = useRef<
-    | ((patches: Record<string, { color?: WaveTileColor; texture?: WaveTileTexture; content?: ReactNode }>) => void)
+    | ((
+        patches: Record<
+          string,
+          {
+            color?: WaveTileColor;
+            texture?: WaveTileTexture;
+            content?: ReactNode;
+          }
+        >,
+      ) => void)
     | null
   >(null);
   const onModeChangeRef = useRef(onModeChange);
@@ -147,14 +168,14 @@ export function WaveTiles({
     const canvasEl: HTMLCanvasElement = canvas;
     const drawingContext: CanvasRenderingContext2D = ctx;
 
-    const baseCells = 24;
+    const baseCells = optimizeForPerformance ? 16 : 24;
     const perspective = 3000; // Larger value = less perspective distortion (better for large cuboids)
     const viewYaw = 0;
     const viewPitch = 0;
     const maxCursorYaw = Math.PI / 6;
     const maxCursorPitch = Math.PI / 8;
-    const maxVisibleCubes = 900;
-    const minCubeSize = 16;
+    const maxVisibleCubes = optimizeForPerformance ? 400 : 900;
+    const minCubeSize = optimizeForPerformance ? 24 : 16;
     const lightDir = normalize({ x: -0.35, y: -0.45, z: 1 });
     const GRID_GAP_SIZE = 0;
     const CUSTOM_CUBE_GAP_SIZE = GRID_GAP_SIZE;
@@ -176,6 +197,17 @@ export function WaveTiles({
     let devicePixelRatio = 1;
     let lastOverlayCommit = 0;
     let committedOverlayCount = 0;
+    let lastInteractionTime = performance.now();
+    const IDLE_THRESHOLD_MS = 2000; // Stop loop after 2s of inactivity
+
+    function markInteraction() {
+      const wasIdle =
+        performance.now() - lastInteractionTime > IDLE_THRESHOLD_MS;
+      lastInteractionTime = performance.now();
+      if (wasIdle && !isPaused) {
+        startLoop();
+      }
+    }
     let hasPlayedIntro = false;
     let introActive = true;
     let introStartTime = 0;
@@ -186,7 +218,7 @@ export function WaveTiles({
 
     // Throttle React state updates for overlays while still recalculating overlay geometry every frame.
     // This keeps the canvas animation smooth by reducing React work under heavy motion.
-    const OVERLAY_COMMIT_INTERVAL_MS = 66;
+    const OVERLAY_COMMIT_INTERVAL_MS = optimizeForPerformance ? 250 : 66;
 
     // First-load construction tuning.
     // Developers: tweak these values to adjust how "assembled" the landing animation feels.
@@ -219,7 +251,13 @@ export function WaveTiles({
     //  3. rotate       – diagonal wave-sweep spin; color swaps at 180°
     //  4. implode      – unit cells pull inward and disappear; the big cuboid re-grows
     //  5. fadeIn       – text fades back in
-    type SplitPhase = "idle" | "fadeContent" | "split" | "rotate" | "implode" | "fadeIn";
+    type SplitPhase =
+      | "idle"
+      | "fadeContent"
+      | "split"
+      | "rotate"
+      | "implode"
+      | "fadeIn";
     type SplitSubCube = Cube & { scatterOffX: number; scatterOffY: number };
     interface SplitInfo {
       phase: SplitPhase;
@@ -417,7 +455,10 @@ export function WaveTiles({
       if (finalS === 0) {
         finalR = finalG = finalB = finalL;
       } else {
-        const q = finalL < 0.5 ? finalL * (1 + finalS) : finalL + finalS - finalL * finalS;
+        const q =
+          finalL < 0.5
+            ? finalL * (1 + finalS)
+            : finalL + finalS - finalL * finalS;
         const p = 2 * finalL - q;
         finalR = hue2rgb(p, q, h + 1 / 3);
         finalG = hue2rgb(p, q, h);
@@ -461,11 +502,15 @@ export function WaveTiles({
 
       const isLightFace = brightness > 120 + 80 * modeMix;
       const target = isLightFace ? 14 : 245;
-      const blend = isLightFace ? mix(0.55, 0.42, modeMix) : mix(0.35, 0.62, modeMix);
+      const blend = isLightFace
+        ? mix(0.55, 0.42, modeMix)
+        : mix(0.35, 0.62, modeMix);
       const r = Math.round(mix(adjustedBase.r, target, blend));
       const g = Math.round(mix(adjustedBase.g, target, blend));
       const b = Math.round(mix(adjustedBase.b, target, blend));
-      const alpha = isLightFace ? mix(0.28, 0.2, modeMix) : mix(0.2, 0.5, modeMix);
+      const alpha = isLightFace
+        ? mix(0.28, 0.2, modeMix)
+        : mix(0.2, 0.5, modeMix);
 
       return `rgba(${r},${g},${b},${alpha.toFixed(3)})`;
     }
@@ -486,8 +531,16 @@ export function WaveTiles({
       const oneMinusV = 1 - v;
 
       return {
-        x: p0.x * oneMinusU * oneMinusV + p1.x * u * oneMinusV + p2.x * u * v + p3.x * oneMinusU * v,
-        y: p0.y * oneMinusU * oneMinusV + p1.y * u * oneMinusV + p2.y * u * v + p3.y * oneMinusU * v,
+        x:
+          p0.x * oneMinusU * oneMinusV +
+          p1.x * u * oneMinusV +
+          p2.x * u * v +
+          p3.x * oneMinusU * v,
+        y:
+          p0.y * oneMinusU * oneMinusV +
+          p1.y * u * oneMinusV +
+          p2.y * u * v +
+          p3.y * oneMinusU * v,
       };
     }
 
@@ -500,7 +553,11 @@ export function WaveTiles({
       steps: number,
     ) {
       const start = uvAt(0);
-      const startPoint = mapUvToQuad(pts, clamp(start.u, 0, 1), clamp(start.v, 0, 1));
+      const startPoint = mapUvToQuad(
+        pts,
+        clamp(start.u, 0, 1),
+        clamp(start.v, 0, 1),
+      );
       path.moveTo(cubeX + startPoint.x, cubeY + startPoint.y);
 
       for (let s = 1; s <= steps; s++) {
@@ -511,7 +568,12 @@ export function WaveTiles({
       }
     }
 
-    function drawBaseTextureGrid(pts: Point2D[], cubeX: number, cubeY: number, divisions: number) {
+    function drawBaseTextureGrid(
+      pts: Point2D[],
+      cubeX: number,
+      cubeY: number,
+      divisions: number,
+    ) {
       const path = new Path2D();
       for (let i = 1; i < divisions; i++) {
         const t = i / divisions;
@@ -529,25 +591,52 @@ export function WaveTiles({
       drawingContext.stroke(path);
     }
 
-    function drawJaaliOverlay(pts: Point2D[], cubeX: number, cubeY: number, divisions: number) {
+    function drawJaaliOverlay(
+      pts: Point2D[],
+      cubeX: number,
+      cubeY: number,
+      divisions: number,
+    ) {
       const weaveBands = Math.max(2, Math.floor(divisions / 2));
       const curveSteps = 10;
       const path = new Path2D();
 
       for (let i = -weaveBands; i <= weaveBands; i++) {
         const offset = i / (weaveBands + 1);
-        appendWarpedCurve(path, pts, cubeX, cubeY, (t) => ({ u: t, v: t + offset }), curveSteps);
-        appendWarpedCurve(path, pts, cubeX, cubeY, (t) => ({ u: t, v: 1 - t + offset }), curveSteps);
+        appendWarpedCurve(
+          path,
+          pts,
+          cubeX,
+          cubeY,
+          (t) => ({ u: t, v: t + offset }),
+          curveSteps,
+        );
+        appendWarpedCurve(
+          path,
+          pts,
+          cubeX,
+          cubeY,
+          (t) => ({ u: t, v: 1 - t + offset }),
+          curveSteps,
+        );
       }
 
       drawingContext.save();
       drawingContext.globalAlpha *= 0.72;
-      drawingContext.lineWidth = Math.max(0.35, drawingContext.lineWidth * 0.78);
+      drawingContext.lineWidth = Math.max(
+        0.35,
+        drawingContext.lineWidth * 0.78,
+      );
       drawingContext.stroke(path);
       drawingContext.restore();
     }
 
-    function drawIkatOverlay(pts: Point2D[], cubeX: number, cubeY: number, divisions: number) {
+    function drawIkatOverlay(
+      pts: Point2D[],
+      cubeX: number,
+      cubeY: number,
+      divisions: number,
+    ) {
       const bands = Math.max(3, Math.floor(divisions / 2));
       const curveSteps = 12;
       const amplitude = 0.055;
@@ -562,7 +651,9 @@ export function WaveTiles({
           cubeY,
           (t) => ({
             u: t,
-            v: baseV + Math.sin(t * Math.PI * 2 + baseV * Math.PI * 3) * amplitude,
+            v:
+              baseV +
+              Math.sin(t * Math.PI * 2 + baseV * Math.PI * 3) * amplitude,
           }),
           curveSteps,
         );
@@ -574,7 +665,9 @@ export function WaveTiles({
           cubeX,
           cubeY,
           (t) => ({
-            u: baseU + Math.sin(t * Math.PI * 2 + baseU * Math.PI * 2.5) * amplitude,
+            u:
+              baseU +
+              Math.sin(t * Math.PI * 2 + baseU * Math.PI * 2.5) * amplitude,
             v: t,
           }),
           curveSteps,
@@ -583,12 +676,20 @@ export function WaveTiles({
 
       drawingContext.save();
       drawingContext.globalAlpha *= 0.64;
-      drawingContext.lineWidth = Math.max(0.35, drawingContext.lineWidth * 0.82);
+      drawingContext.lineWidth = Math.max(
+        0.35,
+        drawingContext.lineWidth * 0.82,
+      );
       drawingContext.stroke(path);
       drawingContext.restore();
     }
 
-    function drawBandhaniOverlay(pts: Point2D[], cubeX: number, cubeY: number, divisions: number) {
+    function drawBandhaniOverlay(
+      pts: Point2D[],
+      cubeX: number,
+      cubeY: number,
+      divisions: number,
+    ) {
       const dotRows = Math.max(4, Math.floor(divisions / 2));
       const path = new Path2D();
 
@@ -598,7 +699,10 @@ export function WaveTiles({
           const u = c / dotRows;
           const v = r / dotRows;
           const p = mapUvToQuad(pts, u, v);
-          const radius = Math.max(0.4, (pts[1].x - pts[0].x + pts[2].y - pts[1].y) / 2 / (dotRows * 10));
+          const radius = Math.max(
+            0.4,
+            (pts[1].x - pts[0].x + pts[2].y - pts[1].y) / 2 / (dotRows * 10),
+          );
           path.moveTo(cubeX + p.x + Math.abs(radius), cubeY + p.y);
           path.arc(cubeX + p.x, cubeY + p.y, Math.abs(radius), 0, Math.PI * 2);
         }
@@ -611,7 +715,12 @@ export function WaveTiles({
       drawingContext.restore();
     }
 
-    function drawBlockprintOverlay(pts: Point2D[], cubeX: number, cubeY: number, divisions: number) {
+    function drawBlockprintOverlay(
+      pts: Point2D[],
+      cubeX: number,
+      cubeY: number,
+      divisions: number,
+    ) {
       const motifs = Math.max(3, Math.floor(divisions / 2));
       const cell = 1 / motifs;
       const motifRadius = cell * 0.22;
@@ -636,12 +745,20 @@ export function WaveTiles({
 
       drawingContext.save();
       drawingContext.globalAlpha *= 0.62;
-      drawingContext.lineWidth = Math.max(0.35, drawingContext.lineWidth * 0.84);
+      drawingContext.lineWidth = Math.max(
+        0.35,
+        drawingContext.lineWidth * 0.84,
+      );
       drawingContext.stroke(path);
       drawingContext.restore();
     }
 
-    function drawChikankariOverlay(pts: Point2D[], cubeX: number, cubeY: number, divisions: number) {
+    function drawChikankariOverlay(
+      pts: Point2D[],
+      cubeX: number,
+      cubeY: number,
+      divisions: number,
+    ) {
       const stitches = Math.max(4, Math.floor(divisions / 2));
       const arm = 0.14 / stitches;
       const path = new Path2D();
@@ -678,25 +795,9 @@ export function WaveTiles({
       divisions: number,
       texture: WaveTileTexture,
     ) {
-      drawBaseTextureGrid(pts, cubeX, cubeY, divisions);
-
-      switch (texture) {
-        case "ikat":
-          drawIkatOverlay(pts, cubeX, cubeY, divisions);
-          return;
-        case "bandhani":
-          drawBandhaniOverlay(pts, cubeX, cubeY, divisions);
-          return;
-        case "blockprint":
-          drawBlockprintOverlay(pts, cubeX, cubeY, divisions);
-          return;
-        case "chikankari":
-          drawChikankariOverlay(pts, cubeX, cubeY, divisions);
-          return;
-        case "jaali":
-        default:
-          drawJaaliOverlay(pts, cubeX, cubeY, divisions);
-      }
+      // Simplified drawing for massive performance gain.
+      // Skip the complex canvas warping operations.
+      drawBaseTextureGrid(pts, cubeX, cubeY, Math.min(2, divisions));
     }
 
     function easeInOut(t: number): number {
@@ -711,7 +812,9 @@ export function WaveTiles({
       return from + (to - from) * amount;
     }
 
-    function colorToRgb(colorName: WaveTileColor | undefined): { r: number; g: number; b: number } | null {
+    function colorToRgb(
+      colorName: WaveTileColor | undefined,
+    ): { r: number; g: number; b: number } | null {
       if (!colorName) return null;
       const hex = WAVE_TILE_COLOR_HEX[colorName];
       const num = parseInt(hex.slice(1), 16);
@@ -773,7 +876,10 @@ export function WaveTiles({
       ];
 
       const transformed = points.map((point) => {
-        const rotated = rotateX(rotateY(point, viewYaw + cube.angle + cursorYaw), viewPitch + cursorPitch);
+        const rotated = rotateX(
+          rotateY(point, viewYaw + cube.angle + cursorYaw),
+          viewPitch + cursorPitch,
+        );
         return {
           x: rotated.x,
           y: rotated.y,
@@ -792,7 +898,13 @@ export function WaveTiles({
 
       const faces = [
         { idx: [0, 1, 2, 3], lightBase: 255 - 42, darkBase: 42, isBack: true }, // back
-        { idx: [4, 5, 6, 7], lightBase: 255 - 8, darkBase: 8, isBack: false, isFront: true }, // front
+        {
+          idx: [4, 5, 6, 7],
+          lightBase: 255 - 8,
+          darkBase: 8,
+          isBack: false,
+          isFront: true,
+        }, // front
         { idx: [0, 1, 5, 4], lightBase: 255 - 18, darkBase: 18, isBack: false }, // bottom
         { idx: [2, 3, 7, 6], lightBase: 255 - 12, darkBase: 12, isBack: false }, // top
         { idx: [1, 2, 6, 5], lightBase: 255 - 24, darkBase: 24, isBack: false }, // right
@@ -801,11 +913,19 @@ export function WaveTiles({
         ...face,
         base: mix(face.darkBase, face.lightBase, modeMix),
         center: {
-          x: face.idx.reduce((sum, index) => sum + transformed[index].x, 0) / face.idx.length,
-          y: face.idx.reduce((sum, index) => sum + transformed[index].y, 0) / face.idx.length,
-          z: face.idx.reduce((sum, index) => sum + transformed[index].z, 0) / face.idx.length,
+          x:
+            face.idx.reduce((sum, index) => sum + transformed[index].x, 0) /
+            face.idx.length,
+          y:
+            face.idx.reduce((sum, index) => sum + transformed[index].y, 0) /
+            face.idx.length,
+          z:
+            face.idx.reduce((sum, index) => sum + transformed[index].z, 0) /
+            face.idx.length,
         },
-        depth: face.idx.reduce((sum, index) => sum + transformed[index].z, 0) / face.idx.length,
+        depth:
+          face.idx.reduce((sum, index) => sum + transformed[index].z, 0) /
+          face.idx.length,
         normal: normalize(
           cross(
             subtract(transformed[face.idx[1]], transformed[face.idx[0]]),
@@ -822,7 +942,9 @@ export function WaveTiles({
       for (const face of faces) {
         const outward = subtract(face.center, cubeCenter);
         const orientedNormal =
-          dot(face.normal, outward) < 0 ? { x: -face.normal.x, y: -face.normal.y, z: -face.normal.z } : face.normal;
+          dot(face.normal, outward) < 0
+            ? { x: -face.normal.x, y: -face.normal.y, z: -face.normal.z }
+            : face.normal;
 
         if (orientedNormal.z <= 0) continue;
 
@@ -838,14 +960,23 @@ export function WaveTiles({
 
         const light = Math.max(0, dot(orientedNormal, lightDir));
         const brightness = Math.round(
-          Math.max(minBrightness, face.isBack ? face.base : face.base * (ambient + light * diffuse) + highlight),
+          Math.max(
+            minBrightness,
+            face.isBack
+              ? face.base
+              : face.base * (ambient + light * diffuse) + highlight,
+          ),
         );
 
         drawingContext.save();
         drawingContext.globalAlpha = cubeOpacity;
 
         // 1. Fill
-        drawingContext.fillStyle = getShadedColor(cube.color, brightness, modeMix);
+        drawingContext.fillStyle = getShadedColor(
+          cube.color,
+          brightness,
+          modeMix,
+        );
         drawingContext.fill(path);
 
         // 2. Texture (clipped) - Only draw texture on primary faces
@@ -855,17 +986,31 @@ export function WaveTiles({
           const avgSize = (cube.width + cube.height) / 2;
           const divisions = Math.max(3, Math.round(avgSize / 7));
           drawingContext.lineWidth = 0.5;
-          drawingContext.strokeStyle = getTextureStrokeColor(cube.color, brightness, modeMix);
-          drawFaceTexture(pts, cube.cx, cube.cy, divisions, cube.texture || "jaali");
+          drawingContext.strokeStyle = getTextureStrokeColor(
+            cube.color,
+            brightness,
+            modeMix,
+          );
+          drawFaceTexture(
+            pts,
+            cube.cx,
+            cube.cy,
+            divisions,
+            cube.texture || "jaali",
+          );
           drawingContext.restore();
         }
 
         // 3. Stroke Outline
-        drawingContext.strokeStyle = (modeMix > 0.5 ? brightness > 230 : brightness < 30)
-          ? `rgba(0,0,0,${mix(0.35, 0.15, modeMix).toFixed(3)})`
-          : `rgba(255,255,255,${mix(0.45, 0.75, modeMix).toFixed(3)})`;
-        drawingContext.lineWidth = 1;
-        drawingContext.stroke(path);
+        if (!optimizeForPerformance || cube.content || cube.rowSpan > 1) {
+          drawingContext.strokeStyle = (
+            modeMix > 0.5 ? brightness > 230 : brightness < 30
+          )
+            ? `rgba(0,0,0,${mix(0.35, 0.15, modeMix).toFixed(3)})`
+            : `rgba(255,255,255,${mix(0.45, 0.75, modeMix).toFixed(3)})`;
+          drawingContext.lineWidth = 1;
+          drawingContext.stroke(path);
+        }
         drawingContext.restore();
 
         // Store front OR back face path for click detection (needed for both light & dark mode)
@@ -874,8 +1019,15 @@ export function WaveTiles({
         }
 
         // Calculate content overlay for the front OR back face if this cube has content
-        if (cube.content && (face.isFront || face.isBack) && orientedNormal.z > 0.3) {
-          const absolutePts = pts.map((p) => ({ x: cube.cx + p.x, y: cube.cy + p.y }));
+        if (
+          cube.content &&
+          (face.isFront || face.isBack) &&
+          orientedNormal.z > 0.3
+        ) {
+          const absolutePts = pts.map((p) => ({
+            x: cube.cx + p.x,
+            y: cube.cy + p.y,
+          }));
           const minX = Math.min(...absolutePts.map((p) => p.x));
           const maxX = Math.max(...absolutePts.map((p) => p.x));
           const minY = Math.min(...absolutePts.map((p) => p.y));
@@ -888,7 +1040,8 @@ export function WaveTiles({
             width: maxX - minX,
             height: maxY - minY,
             content: cube.content,
-            opacity: Math.min(1, orientedNormal.z * 1.5) * contentOpacityMultiplier,
+            opacity:
+              Math.min(1, orientedNormal.z * 1.5) * contentOpacityMultiplier,
           };
         }
       }
@@ -945,7 +1098,9 @@ export function WaveTiles({
             animationStart: 0,
             animationDuration: 0,
             highlightUntil: 0,
-            depthBias: (row / Math.max(1, rows - 1) - 0.5) * 10 + (col / Math.max(1, cols - 1) - 0.5) * 10,
+            depthBias:
+              (row / Math.max(1, rows - 1) - 0.5) * 10 +
+              (col / Math.max(1, cols - 1) - 0.5) * 10,
             color: parsedGlobalColor,
             texture: parsedGlobalTexture,
             frontFacePath: undefined,
@@ -986,7 +1141,9 @@ export function WaveTiles({
             animationStart: 0,
             animationDuration: 0,
             highlightUntil: 0,
-            depthBias: (def.row / Math.max(1, rows - 1) - 0.5) * 10 + (def.col / Math.max(1, cols - 1) - 0.5) * 10,
+            depthBias:
+              (def.row / Math.max(1, rows - 1) - 0.5) * 10 +
+              (def.col / Math.max(1, cols - 1) - 0.5) * 10,
             content: def.content,
             color: def.color ? colorToRgb(def.color) : parsedGlobalColor,
             texture: def.texture || parsedGlobalTexture,
@@ -1046,11 +1203,24 @@ export function WaveTiles({
       canvasEl.height = Math.floor(height * devicePixelRatio);
       canvasEl.style.width = `${width}px`;
       canvasEl.style.height = `${height}px`;
-      drawingContext.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+      drawingContext.setTransform(
+        devicePixelRatio,
+        0,
+        0,
+        devicePixelRatio,
+        0,
+        0,
+      );
 
-      size = Math.max(minCubeSize, Math.floor(Math.min(width, height) / baseCells));
+      size = Math.max(
+        minCubeSize,
+        Math.floor(Math.min(width, height) / baseCells),
+      );
 
-      while (Math.ceil(width / size) * Math.ceil(height / size) > maxVisibleCubes) {
+      while (
+        Math.ceil(width / size) * Math.ceil(height / size) >
+        maxVisibleCubes
+      ) {
         size += 1;
       }
 
@@ -1082,7 +1252,11 @@ export function WaveTiles({
       // Exact structural match → nothing to animate
       if (
         newLayout.some(
-          (d) => d.row === cube.row && d.col === cube.col && d.rowSpan === cube.rowSpan && d.colSpan === cube.colSpan,
+          (d) =>
+            d.row === cube.row &&
+            d.col === cube.col &&
+            d.rowSpan === cube.rowSpan &&
+            d.colSpan === cube.colSpan,
         )
       )
         return false;
@@ -1092,13 +1266,20 @@ export function WaveTiles({
 
       // 1×1 background cell: changes only if it gets absorbed into a new merged tile
       return newLayout.some(
-        (d) => cube.row >= d.row && cube.row < d.row + d.rowSpan && cube.col >= d.col && cube.col < d.col + d.colSpan,
+        (d) =>
+          cube.row >= d.row &&
+          cube.row < d.row + d.rowSpan &&
+          cube.col >= d.col &&
+          cube.col < d.col + d.colSpan,
       );
     }
 
     /** Called when a cube with `nextLayout` is clicked.
      *  Only tiles that differ between old and new layout shrink away. */
-    function startLayoutTransition(newLayout: CubeDefinition[], sourceCube: Cube) {
+    function startLayoutTransition(
+      newLayout: CubeDefinition[],
+      sourceCube: Cube,
+    ) {
       if (transitionPhase !== "idle") return; // Ignore clicks while transitioning
       transitionPhase = "decombining";
       pendingLayout = newLayout;
@@ -1114,7 +1295,9 @@ export function WaveTiles({
 
         const cubeRow = cube.row + cube.rowSpan / 2;
         const cubeCol = cube.col + cube.colSpan / 2;
-        const distance = Math.abs(cubeRow - transitionOriginRow) + Math.abs(cubeCol - transitionOriginCol);
+        const distance =
+          Math.abs(cubeRow - transitionOriginRow) +
+          Math.abs(cubeCol - transitionOriginCol);
         maxDistance = Math.max(maxDistance, distance);
 
         // Shrink the tile down to almost zero safely
@@ -1130,7 +1313,8 @@ export function WaveTiles({
         cube.posAnimDuration = LAYOUT_SHRINK_DURATION;
       }
 
-      phaseEndTime = now + maxDistance * LAYOUT_SHRINK_STAGGER + LAYOUT_SHRINK_DURATION + 20;
+      phaseEndTime =
+        now + maxDistance * LAYOUT_SHRINK_STAGGER + LAYOUT_SHRINK_DURATION + 20;
     }
 
     function colorsEqual(
@@ -1146,7 +1330,10 @@ export function WaveTiles({
 
     function sameStructure(def: CubeDefinition, cube: Cube): boolean {
       return (
-        def.row === cube.row && def.col === cube.col && def.rowSpan === cube.rowSpan && def.colSpan === cube.colSpan
+        def.row === cube.row &&
+        def.col === cube.col &&
+        def.rowSpan === cube.rowSpan &&
+        def.colSpan === cube.colSpan
       );
     }
 
@@ -1172,8 +1359,16 @@ export function WaveTiles({
       // Map every cell in the old layout to its cube so we can inherit properties.
       const previousByCell = new Map<string, Cube>();
       for (const existingCube of cubes) {
-        for (let r = existingCube.row; r < existingCube.row + existingCube.rowSpan; r++) {
-          for (let c = existingCube.col; c < existingCube.col + existingCube.colSpan; c++) {
+        for (
+          let r = existingCube.row;
+          r < existingCube.row + existingCube.rowSpan;
+          r++
+        ) {
+          for (
+            let c = existingCube.col;
+            c < existingCube.col + existingCube.colSpan;
+            c++
+          ) {
             previousByCell.set(`${r},${c}`, existingCube);
           }
         }
@@ -1206,7 +1401,13 @@ export function WaveTiles({
             previous &&
             previous.rowSpan === 1 &&
             previous.colSpan === 1 &&
-            !nextLayout.some((d) => row >= d.row && row < d.row + d.rowSpan && col >= d.col && col < d.col + d.colSpan)
+            !nextLayout.some(
+              (d) =>
+                row >= d.row &&
+                row < d.row + d.rowSpan &&
+                col >= d.col &&
+                col < d.col + d.colSpan,
+            )
           ) {
             newCubes.push({ ...previous });
             continue;
@@ -1214,7 +1415,9 @@ export function WaveTiles({
 
           // This cell was previously covered by an old merged tile (which shrank away).
           // Grow it in as a regular background cell.
-          const distance = Math.abs(row + 0.5 - transitionOriginRow) + Math.abs(col + 0.5 - transitionOriginCol);
+          const distance =
+            Math.abs(row + 0.5 - transitionOriginRow) +
+            Math.abs(col + 0.5 - transitionOriginCol);
           maxDistance = Math.max(maxDistance, distance);
 
           // We explicitly reset the color to the global default so we DO NOT bleed the old merged tile's color.
@@ -1233,7 +1436,9 @@ export function WaveTiles({
             animationStart: 0,
             animationDuration: 0,
             highlightUntil: 0,
-            depthBias: (row / Math.max(1, rows - 1) - 0.5) * 10 + (col / Math.max(1, cols - 1) - 0.5) * 10,
+            depthBias:
+              (row / Math.max(1, rows - 1) - 0.5) * 10 +
+              (col / Math.max(1, cols - 1) - 0.5) * 10,
             color: parsedGlobalColor, // FIX: never inherit previous color for a newly exposed grey sub-cell
             texture: parsedGlobalTexture,
             frontFacePath: undefined,
@@ -1261,7 +1466,11 @@ export function WaveTiles({
 
         // Exact structural match → transfer unchanged (no animation).
         const isUnchanged = cubes.some(
-          (c) => c.row === def.row && c.col === def.col && c.rowSpan === def.rowSpan && c.colSpan === def.colSpan,
+          (c) =>
+            c.row === def.row &&
+            c.col === def.col &&
+            c.rowSpan === def.rowSpan &&
+            c.colSpan === def.colSpan,
         );
         if (isUnchanged && existing) {
           newCubes.push({
@@ -1276,7 +1485,9 @@ export function WaveTiles({
         }
 
         // Changed tile: grow from 0 size up to full target size.
-        const normalAngle = (((existing?.angle ?? defaultAngle) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        const normalAngle =
+          (((existing?.angle ?? defaultAngle) % (Math.PI * 2)) + Math.PI * 2) %
+          (Math.PI * 2);
         const distance =
           Math.abs(def.row + def.rowSpan / 2 - transitionOriginRow) +
           Math.abs(def.col + def.colSpan / 2 - transitionOriginCol);
@@ -1297,7 +1508,9 @@ export function WaveTiles({
           animationStart: 0,
           animationDuration: 0,
           highlightUntil: 0,
-          depthBias: (def.row / Math.max(1, rows - 1) - 0.5) * 10 + (def.col / Math.max(1, cols - 1) - 0.5) * 10,
+          depthBias:
+            (def.row / Math.max(1, rows - 1) - 0.5) * 10 +
+            (def.col / Math.max(1, cols - 1) - 0.5) * 10,
           content: def.content,
           color: def.color ? colorToRgb(def.color) : parsedGlobalColor,
           texture: def.texture || parsedGlobalTexture,
@@ -1318,7 +1531,8 @@ export function WaveTiles({
       });
 
       cubes = newCubes;
-      phaseEndTime = now + maxDistance * LAYOUT_SHRINK_STAGGER + LAYOUT_GROW_DURATION + 20;
+      phaseEndTime =
+        now + maxDistance * LAYOUT_SHRINK_STAGGER + LAYOUT_GROW_DURATION + 20;
     }
 
     function introDelayForCube(cube: Cube): number {
@@ -1393,7 +1607,11 @@ export function WaveTiles({
       const halfWidth = Math.max(1, viewportWidth / 2);
       const halfHeight = Math.max(1, viewportHeight / 2);
       const contentRevealMix = introActive
-        ? clamp((timestamp - introOverlayRevealAt) / INTRO_OVERLAY_FADE_DURATION, 0, 1)
+        ? clamp(
+            (timestamp - introOverlayRevealAt) / INTRO_OVERLAY_FADE_DURATION,
+            0,
+            1,
+          )
         : 1;
 
       const newOverlays: ContentOverlay[] = [];
@@ -1402,9 +1620,13 @@ export function WaveTiles({
         // ── Angle animation ──
         if (timestamp >= cube.animationStart) {
           const elapsed = timestamp - cube.animationStart;
-          const progress = Math.min(1, elapsed / Math.max(1, cube.animationDuration));
+          const progress = Math.min(
+            1,
+            elapsed / Math.max(1, cube.animationDuration),
+          );
           const eased = easeInOut(progress);
-          cube.angle = cube.startAngle + (cube.targetAngle - cube.startAngle) * eased;
+          cube.angle =
+            cube.startAngle + (cube.targetAngle - cube.startAngle) * eased;
         }
 
         // ── Position / size animation ──
@@ -1414,8 +1636,10 @@ export function WaveTiles({
           const eased = easeInOut(progress);
           cube.cx = cube.startCx + (cube.targetCx - cube.startCx) * eased;
           cube.cy = cube.startCy + (cube.targetCy - cube.startCy) * eased;
-          cube.width = cube.startWidth + (cube.targetWidth - cube.startWidth) * eased;
-          cube.height = cube.startHeight + (cube.targetHeight - cube.startHeight) * eased;
+          cube.width =
+            cube.startWidth + (cube.targetWidth - cube.startWidth) * eased;
+          cube.height =
+            cube.startHeight + (cube.targetHeight - cube.startHeight) * eased;
         }
 
         const nx = clamp((cursorX - cube.cx) / halfWidth, -1, 1);
@@ -1429,14 +1653,25 @@ export function WaveTiles({
         const cubeModeMix = (Math.cos(cube.angle) + 1) / 2;
         const introDelay = introDelayForCube(cube);
         const introProgress = introActive
-          ? clamp((timestamp - (introStartTime + introDelay)) / INTRO_CELL_POP_DURATION, 0, 1)
+          ? clamp(
+              (timestamp - (introStartTime + introDelay)) /
+                INTRO_CELL_POP_DURATION,
+              0,
+              1,
+            )
           : 1;
-        const cubeOpacity = introActive ? mix(INTRO_CELL_MIN_OPACITY, 1, easeInOut(introProgress)) : 1;
+        const cubeOpacity = introActive
+          ? mix(INTRO_CELL_MIN_OPACITY, 1, easeInOut(introProgress))
+          : 1;
 
         // During a split transition, override opacity for the target cube
         let effectiveCubeOpacity = cubeOpacity;
         let effectiveContentMix = contentRevealMix;
-        if (splitInfo && cube.row === splitInfo.targetRow && cube.col === splitInfo.targetCol) {
+        if (
+          splitInfo &&
+          cube.row === splitInfo.targetRow &&
+          cube.col === splitInfo.targetCol
+        ) {
           effectiveCubeOpacity *= splitInfo.mainCubeOpacity;
           effectiveContentMix = splitInfo.contentOpacity;
         }
@@ -1472,7 +1707,9 @@ export function WaveTiles({
           if (sc.animationDuration > 0) {
             const e = timestamp - sc.animationStart;
             sc.angle =
-              sc.startAngle + (sc.targetAngle - sc.startAngle) * easeInOut(clamp(e / sc.animationDuration, 0, 1));
+              sc.startAngle +
+              (sc.targetAngle - sc.startAngle) *
+                easeInOut(clamp(e / sc.animationDuration, 0, 1));
           }
         }
 
@@ -1492,7 +1729,9 @@ export function WaveTiles({
           if (elapsed >= SPLIT_FADE_CONTENT_MS) {
             si.phase = "split";
             si.phaseStart = timestamp;
-            const mc = cubes.find((c) => c.row === si.targetRow && c.col === si.targetCol);
+            const mc = cubes.find(
+              (c) => c.row === si.targetRow && c.col === si.targetCol,
+            );
             if (mc) si.subCubes = buildSplitCubes(mc, timestamp);
           }
         } else if (si.phase === "split") {
@@ -1501,7 +1740,8 @@ export function WaveTiles({
           si.contentOpacity = 0;
           // Phase ends when the last (outermost) cell has fully grown
           const maxDistInt = si.nRows - 1 + (si.nCols - 1);
-          const phaseLen = maxDistInt * SPLIT_SPLIT_STAGGER + SPLIT_SPLIT_DURATION + 60;
+          const phaseLen =
+            maxDistInt * SPLIT_SPLIT_STAGGER + SPLIT_SPLIT_DURATION + 60;
           if (elapsed >= phaseLen) {
             si.phase = "rotate";
             si.phaseStart = timestamp;
@@ -1531,7 +1771,8 @@ export function WaveTiles({
           // Swap color at rotation midpoint
           si.subCubes.forEach((sc, i) => {
             if (!si.colorSwapped[i] && sc.animationDuration > 0) {
-              const prog = (timestamp - sc.animationStart) / sc.animationDuration;
+              const prog =
+                (timestamp - sc.animationStart) / sc.animationDuration;
               if (prog >= 0.5) {
                 sc.color = si.pendingColor;
                 sc.texture = si.pendingTexture;
@@ -1540,7 +1781,8 @@ export function WaveTiles({
             }
           });
           const maxDiag = si.nRows - 1 + (si.nCols - 1);
-          const phaseLen = maxDiag * SPLIT_ROTATE_STAGGER + SPLIT_ROTATE_DURATION + 60;
+          const phaseLen =
+            maxDiag * SPLIT_ROTATE_STAGGER + SPLIT_ROTATE_DURATION + 60;
           if (elapsed >= phaseLen) {
             si.phase = "implode";
             si.phaseStart = timestamp;
@@ -1551,7 +1793,9 @@ export function WaveTiles({
               sc.angle = 0;
             });
             // Schedule main cube to regrow after a short delay
-            const mc = cubes.find((c) => c.row === si.targetRow && c.col === si.targetCol);
+            const mc = cubes.find(
+              (c) => c.row === si.targetRow && c.col === si.targetCol,
+            );
             if (mc) {
               mc.color = si.pendingColor;
               mc.texture = si.pendingTexture;
@@ -1582,7 +1826,9 @@ export function WaveTiles({
               sc.startWidth = sc.width;
               sc.startHeight = sc.height;
               // Fly toward the center of the big cube
-              const mc2 = cubes.find((c) => c.row === si.targetRow && c.col === si.targetCol);
+              const mc2 = cubes.find(
+                (c) => c.row === si.targetRow && c.col === si.targetCol,
+              );
               sc.targetCx = mc2?.cx ?? sc.targetCx;
               sc.targetCy = mc2?.cy ?? sc.targetCy;
               sc.targetWidth = 2;
@@ -1594,7 +1840,8 @@ export function WaveTiles({
         } else if (si.phase === "implode") {
           si.contentOpacity = 0;
           const maxDiag2 = si.nRows - 1 + (si.nCols - 1);
-          const phaseLen = maxDiag2 * SPLIT_IMPLODE_STAGGER + SPLIT_IMPLODE_DURATION + 60;
+          const phaseLen =
+            maxDiag2 * SPLIT_IMPLODE_STAGGER + SPLIT_IMPLODE_DURATION + 60;
           if (elapsed >= phaseLen) {
             si.subCubes = [];
             si.phase = "fadeIn";
@@ -1614,13 +1861,20 @@ export function WaveTiles({
       if (transitionPhase === "decombining" && timestamp >= phaseEndTime) {
         applyNewLayoutCubes();
         transitionPhase = "recombining";
-      } else if (transitionPhase === "recombining" && timestamp >= phaseEndTime) {
+      } else if (
+        transitionPhase === "recombining" &&
+        timestamp >= phaseEndTime
+      ) {
         transitionPhase = "idle";
         pendingLayout = null;
       }
 
       // End intro only after structural transitions have completed.
-      if (introActive && transitionPhase === "idle" && timestamp >= introEndTime) {
+      if (
+        introActive &&
+        transitionPhase === "idle" &&
+        timestamp >= introEndTime
+      ) {
         introActive = false;
       }
 
@@ -1643,13 +1897,33 @@ export function WaveTiles({
         overlaysRef.current = newOverlays;
 
         const shouldCommitNow =
-          newOverlays.length !== committedOverlayCount || timestamp - lastOverlayCommit >= OVERLAY_COMMIT_INTERVAL_MS;
+          newOverlays.length !== committedOverlayCount ||
+          timestamp - lastOverlayCommit >= OVERLAY_COMMIT_INTERVAL_MS;
 
         if (shouldCommitNow) {
           setContentOverlays(newOverlays);
           lastOverlayCommit = timestamp;
           committedOverlayCount = newOverlays.length;
         }
+      }
+
+      // Check if any animations are active
+      const hasActiveCubes = cubes.some(
+        (c) =>
+          timestamp < c.animationStart + c.animationDuration + 100 ||
+          c.posAnimDuration > 0,
+      );
+      const isInteractionActive =
+        timestamp - lastInteractionTime < IDLE_THRESHOLD_MS;
+
+      if (
+        !hasActiveCubes &&
+        !isInteractionActive &&
+        transitionPhase === "idle" &&
+        !splitInfo
+      ) {
+        // Stop the loop
+        return;
       }
 
       raf = window.requestAnimationFrame(render);
@@ -1674,9 +1948,13 @@ export function WaveTiles({
 
     // Pointer events unify mouse + touch + pen and avoid parallel event handlers.
     function handlePointerMove(e: PointerEvent) {
+      markInteraction();
       const rect = canvasEl.getBoundingClientRect();
       const isInsideCanvas =
-        e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom;
 
       cursorX = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
       cursorY = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
@@ -1710,6 +1988,7 @@ export function WaveTiles({
     }
 
     function handlePointerDown(e: PointerEvent) {
+      markInteraction();
       if (transitionPhase !== "idle") return; // Ignore clicks during transition
       const rect = canvasEl.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -1720,7 +1999,10 @@ export function WaveTiles({
 
       // Check all cubes for clicks on their front faces
       for (const cube of cubes) {
-        if (cube.frontFacePath && drawingContext.isPointInPath(cube.frontFacePath, hitX, hitY)) {
+        if (
+          cube.frontFacePath &&
+          drawingContext.isPointInPath(cube.frontFacePath, hitX, hitY)
+        ) {
           // nextLayout takes priority — triggers a full layout transition
           if (cube.nextLayout) {
             startLayoutTransition(cube.nextLayout, cube);
@@ -1756,7 +2038,11 @@ export function WaveTiles({
       const triggerRight = triggerLeft + triggerCube.width;
       const triggerBottom = triggerTop + triggerCube.height;
 
-      const clickedTrigger = x >= triggerLeft && x < triggerRight && y >= triggerTop && y < triggerBottom;
+      const clickedTrigger =
+        x >= triggerLeft &&
+        x < triggerRight &&
+        y >= triggerTop &&
+        y < triggerBottom;
 
       if (!clickedTrigger) return;
 
@@ -1771,7 +2057,8 @@ export function WaveTiles({
       for (const cube of cubes) {
         const cubeRow = cube.row + cube.rowSpan / 2;
         const cubeCol = cube.col + cube.colSpan / 2;
-        const distance = Math.abs(cubeRow - triggerRow) + Math.abs(cubeCol - triggerCol);
+        const distance =
+          Math.abs(cubeRow - triggerRow) + Math.abs(cubeCol - triggerCol);
 
         cube.startAngle = cube.angle;
 
@@ -1800,7 +2087,11 @@ export function WaveTiles({
 
       const visualOnlyPatches: Record<
         string,
-        { color?: WaveTileColor; texture?: WaveTileTexture; content?: ReactNode }
+        {
+          color?: WaveTileColor;
+          texture?: WaveTileTexture;
+          content?: ReactNode;
+        }
       > = {};
       let visualOnlyCount = 0;
       let hasStructuralChange = false;
@@ -1822,12 +2113,18 @@ export function WaveTiles({
         }
       }
 
-      const customCubeCount = cubes.filter((c) => c.rowSpan > 1 || c.colSpan > 1 || c.content).length;
+      const customCubeCount = cubes.filter(
+        (c) => c.rowSpan > 1 || c.colSpan > 1 || c.content,
+      ).length;
       if (!hasStructuralChange && customCubeCount !== nextLayout.length) {
         hasStructuralChange = true;
       }
 
-      if (!hasStructuralChange && visualOnlyCount > 0 && patchCubesRef.current) {
+      if (
+        !hasStructuralChange &&
+        visualOnlyCount > 0 &&
+        patchCubesRef.current
+      ) {
         patchCubesRef.current(visualOnlyPatches);
         return;
       }
@@ -1858,7 +2155,12 @@ export function WaveTiles({
           continue;
         }
         // If a transition is already running for this cube, skip (debounce rapid clicks)
-        if (splitInfo && splitInfo.targetRow === row && splitInfo.targetCol === col) continue;
+        if (
+          splitInfo &&
+          splitInfo.targetRow === row &&
+          splitInfo.targetCol === col
+        )
+          continue;
         splitInfo = {
           phase: "fadeContent",
           phaseStart: performance.now(),
@@ -1866,9 +2168,16 @@ export function WaveTiles({
           targetCol: col,
           contentOpacity: 1,
           mainCubeOpacity: 1,
-          pendingColor: patch.color !== undefined ? colorToRgb(patch.color) : (cube.color ?? null),
-          pendingTexture: patch.texture !== undefined ? patch.texture : cube.texture || "jaali",
-          pendingContent: patch.content !== undefined ? patch.content : cube.content,
+          pendingColor:
+            patch.color !== undefined
+              ? colorToRgb(patch.color)
+              : (cube.color ?? null),
+          pendingTexture:
+            patch.texture !== undefined
+              ? patch.texture
+              : cube.texture || "jaali",
+          pendingContent:
+            patch.content !== undefined ? patch.content : cube.content,
           subCubes: [],
           nRows: cube.rowSpan,
           nCols: cube.colSpan,
@@ -1880,7 +2189,7 @@ export function WaveTiles({
     window.addEventListener("resize", resizeCanvas);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     canvasEl.addEventListener("pointerdown", handlePointerDown);
-    if (trackPointerGlobally) {
+    if (trackPointerGlobally && !optimizeForPerformance) {
       window.addEventListener("pointermove", handlePointerMove);
     } else {
       canvasEl.addEventListener("pointermove", handlePointerMove);
@@ -1892,7 +2201,7 @@ export function WaveTiles({
       window.removeEventListener("resize", resizeCanvas);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       canvasEl.removeEventListener("pointerdown", handlePointerDown);
-      if (trackPointerGlobally) {
+      if (trackPointerGlobally && !optimizeForPerformance) {
         window.removeEventListener("pointermove", handlePointerMove);
       } else {
         canvasEl.removeEventListener("pointermove", handlePointerMove);
@@ -1919,8 +2228,14 @@ export function WaveTiles({
   }, [patchLayout]);
 
   return (
-    <div className={`w-screen h-screen overflow-hidden bg-neutral-900 relative ${className}`}>
-      <canvas ref={canvasRef} className="w-full h-full block" style={{ touchAction: "none" }} />
+    <div
+      className={`w-screen h-screen overflow-hidden bg-neutral-900 relative ${className}`}
+    >
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full block"
+        style={{ touchAction: "none" }}
+      />
       {contentOverlays.map((overlay) => (
         <div
           key={overlay.id}
@@ -1933,7 +2248,9 @@ export function WaveTiles({
             opacity: overlay.opacity,
           }}
         >
-          <div className="w-full h-full flex items-center justify-center pointer-events-none">{overlay.content}</div>
+          <div className="w-full h-full flex items-center justify-center pointer-events-none">
+            {overlay.content}
+          </div>
         </div>
       ))}
     </div>
