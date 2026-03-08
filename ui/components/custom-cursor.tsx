@@ -70,7 +70,7 @@ export default function CustomCursor() {
       if (isHoveringElement) {
         // Snap directly to nearest multiple of 180 so the brackets form a straight border
         const nearest180 = Math.round(rotation.current / 180) * 180;
-        rotation.current += (nearest180 - rotation.current) * 0.2;
+        rotation.current += (nearest180 - rotation.current) * 0.3;
       } else {
         // Continuous slow spin when wandering
         rotation.current += 1.5;

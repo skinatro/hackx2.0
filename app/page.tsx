@@ -474,30 +474,65 @@ export default function Home() {
             ref={scrollContainerRef}
             className="h-[600vh] w-full relative z-20 pointer-events-auto"
           >
+            {/* Hacking Begins Counter - Minimal */}
+            <motion.div
+              style={{ opacity: introOpacity, y: introY }}
+              className=" absolute top-5 left-5 px-4 py-2 mx-auto max-w-xs bg-white/60 dark:bg-black/40 backdrop-blur-sm rounded-lg cursor-target"
+            >
+              <span className="text-base sm:text-lg font-bold uppercase tracking-tight text-black dark:text-white opacity-80">
+                Hacking Begins In
+              </span>
+              <div className="mt-2 flex flex-wrap items-center justify-center gap-2 sm:gap-3 ">
+                <span className="text-xl sm:text-2xl font-black text-[#ff00a0]">
+                  32
+                </span>
+                <span className="text-xs font-semibold text-black/60 dark:text-white/60">
+                  Days
+                </span>
+                <span className="text-xl font-black text-black/40 dark:text-white/40">
+                  :
+                </span>
+                <span className="text-xl sm:text-2xl font-black text-[#00f0ff]">
+                  10
+                </span>
+                <span className="text-xs font-semibold text-black/60 dark:text-white/60">
+                  Hours
+                </span>
+                <span className="text-xl font-black text-black/40 dark:text-white/40">
+                  :
+                </span>
+                <span className="text-xl sm:text-2xl font-black text-[#ff00a0]">
+                  57
+                </span>
+                <span className="text-xs font-semibold text-black/60 dark:text-white/60">
+                  Minutes
+                </span>
+              </div>
+            </motion.div>
             {/* Sticky pin wrap so text stays fixed while scrolling the background frames */}
-            <div className="sticky top-29 h-[calc(100vh-150px)] w-full flex flex-col overflow-hidden">
-              <div className="relative w-full mx-auto flex-1 flex flex-col justify-between px-6 sm:px-12 pointer-events-none">
-                {/* GIANT BACKGROUND TITLE */}
+            <div className="sticky  top-29 h-[calc(100vh-150px)] w-full flex flex-col overflow-hidden">
+              <div className="relative w-full mx-auto flex-1 flex flex-col justify-between px-6 sm:px-12">
+                {/* GIANT BACKGROUND TITLE + Hacking Begins Counter (Glassmorphism) */}
                 <motion.div
                   style={{ opacity: introOpacity, y: introY }}
-                  className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center flex flex-col items-center justify-center pointer-events-none z-0"
+                  className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center flex flex-col items-center justify-center z-999"
                 >
-                  <h1 className="font-black text-[clamp(4rem,16vw,200px)] leading-[0.85] tracking-tighter opacity-90 mix-blend-overlay">
-                    <span className={`text-[#ff00a0]`}>HACKX</span>
-                    <span
-                      className="text-transparent ml-4 sm:ml-8"
+                  <div className="flex font-black text-[clamp(4rem,16vw,200px)] leading-36 tracking-tighter  mix-blend-overlay">
+                    <h1 className={`text-[#ff00a0] cursor-target`}>HACKX</h1>
+                    <h1
+                      className="text-transparent ml-4 sm:ml-8 cursor-target"
                       style={{ WebkitTextStroke: "3px white" }}
                     >
                       2.0
-                    </span>
-                  </h1>
+                    </h1>
+                  </div>
                 </motion.div>
 
                 {/* Floating Badges */}
                 <motion.div style={{ opacity: introOpacity }}>
                   <FloatingBadge
                     isLightMode={isLightMode}
-                    styleName="pointer-events-none absolute left-[2%] top-[45%] hidden md:flex"
+                    styleName="cursor-target absolute left-[2%] top-[45%] hidden md:flex"
                     delay={0.5}
                     floatRev
                   >
@@ -514,7 +549,7 @@ export default function Home() {
 
                   <FloatingBadge
                     isLightMode={isLightMode}
-                    styleName="pointer-events-none absolute right-[10%] top-[10%] hidden md:flex"
+                    styleName="cursor-target absolute right-[10%] top-[10%] hidden md:flex"
                     delay={1.2}
                   >
                     <span
@@ -527,7 +562,7 @@ export default function Home() {
 
                   <FloatingBadge
                     isLightMode={isLightMode}
-                    styleName="pointer-events-none absolute left-[10%] top-[10%] hidden lg:flex"
+                    styleName="cursor-target absolute left-[10%] top-[10%] hidden lg:flex"
                     delay={0.8}
                   >
                     <span className="text-xl sm:text-2xl drop-shadow-[2px_2px_0_#ff00a0]">
@@ -563,12 +598,12 @@ export default function Home() {
                   <div className="relative z-10 w-full flex flex-col items-center lg:flex-row lg:items-end justify-between text-center lg:text-left mt-auto pb-8">
                     <div className="flex flex-col items-center lg:items-start gap-4 sm:gap-6 max-w-xl">
                       <div
-                        className={`inline-block w-max font-black uppercase tracking-widest text-xs sm:text-sm whitespace-nowrap border-[3px] px-4 py-2 ${isLightMode ? "border-black bg-white text-black shadow-[4px_4px_0_#000]" : "border-white bg-black text-white shadow-[4px_4px_0_#c0ff00]"}`}
+                        className={`cursor-target inline-block w-max font-black uppercase tracking-widest text-xs sm:text-sm whitespace-nowrap border-[3px] px-4 py-2 ${isLightMode ? "border-black bg-white text-black shadow-[4px_4px_0_#000]" : "border-white bg-black text-white shadow-[4px_4px_0_#c0ff00]"}`}
                       >
                         — CODE FOR BHARAT 5.0 —
                       </div>
                       <p
-                        className={`text-sm sm:text-base font-bold leading-relaxed tracking-wide ${isLightMode ? "text-black p-4 sm:p-5 border-[3px] border-black bg-white/70 backdrop-blur-md shadow-[4px_4px_0_#000]" : "text-white p-4 sm:p-5 border-[3px] border-white/30 bg-black/50 backdrop-blur-md shadow-[4px_4px_0_#fff]"}`}
+                        className={`cursor-target text-sm sm:text-base font-bold leading-relaxed tracking-wide ${isLightMode ? "text-black p-4 sm:p-5 border-[3px] border-black bg-white/70 backdrop-blur-md shadow-[4px_4px_0_#000]" : "text-white p-4 sm:p-5 border-[3px] border-white/30 bg-black/50 backdrop-blur-md shadow-[4px_4px_0_#fff]"}`}
                       >
                         A national-level 24-hour student hackathon hosted at St.
                         Francis Institute of Technology, Mumbai. Join 10,000+
@@ -831,27 +866,6 @@ export default function Home() {
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-20">
             <div className="pb-10 relative z-20">
-              {/* Countdown */}
-              <div
-                className={`pointer-events-auto relative px-8 py-10 sm:py-14 text-center mx-auto max-w-4xl mt-32 border-[3px] ${isLightMode ? "border-black bg-[#c0ff00] shadow-[12px_12px_0_#000]" : "border-white/30 bg-[#c0ff00] shadow-[12px_12px_0_#fff]"}`}
-              >
-                <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tighter text-black">
-                  Hacking Begins In
-                </h2>
-
-                <div className="mt-10 flex flex-wrap items-center justify-center gap-6 sm:gap-8 cursor-target">
-                  <CountdownItem value="32" label="Days" color="#ff00a0" />
-                  <div className="text-4xl font-black text-black hidden sm:block">
-                    :
-                  </div>
-                  <CountdownItem value="10" label="Hours" color="#00f0ff" />
-                  <div className="text-4xl font-black text-black hidden sm:block">
-                    :
-                  </div>
-                  <CountdownItem value="57" label="Minutes" color="#ff00a0" />
-                </div>
-              </div>
-
               {/* RESOURCES & TEAM SECTION */}
               <div className="mt-20 grid grid-cols-1 lg:grid-cols-2 gap-12 w-full relative z-20 pointer-events-auto">
                 <div
