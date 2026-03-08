@@ -5,6 +5,7 @@ import ScrollSequence from "@/ui/components/scroll-sequence";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
 import React, { useRef, useState } from "react";
+import { Nvbar } from "./components/nvbar";
 
 const STYLES = `
   @keyframes float {
@@ -405,6 +406,10 @@ export default function Home() {
   );
   const pillarsY = useTransform(scrollYProgress, [0.92, 0.96], [30, 0]);
 
+  // Navbar Animation: Appears at the very end
+  const navbarOpacity = useTransform(scrollYProgress, [0.97, 0.99], [0, 1]);
+  const navbarX = useTransform(scrollYProgress, [0.97, 0.99], [60, 0]);
+
   // The original useEffect for isModeAnimating is removed as per instructions.
 
   return (
@@ -435,7 +440,7 @@ export default function Home() {
         <ScrollSequence
           frameCount={192}
           padLength={3}
-          fileExtension=".png"
+          fileExtension=".webp"
           filePrefix="frame-"
           isLightMode={isLightMode}
           height="h-[600vh]"
@@ -470,7 +475,7 @@ export default function Home() {
             className="h-[600vh] w-full relative z-20 pointer-events-auto"
           >
             {/* Sticky pin wrap so text stays fixed while scrolling the background frames */}
-            <div className="sticky top-0 h-[calc(100vh-150px)] w-full flex flex-col overflow-hidden">
+            <div className="sticky top-29 h-[calc(100vh-150px)] w-full flex flex-col overflow-hidden">
               <div className="relative w-full mx-auto flex-1 flex flex-col justify-between px-6 sm:px-12 pointer-events-none">
                 {/* GIANT BACKGROUND TITLE */}
                 <motion.div
@@ -509,12 +514,12 @@ export default function Home() {
 
                   <FloatingBadge
                     isLightMode={isLightMode}
-                    styleName="pointer-events-none absolute right-[2%] top-[35%] hidden md:flex"
+                    styleName="pointer-events-none absolute right-[10%] top-[10%] hidden md:flex"
                     delay={1.2}
                   >
                     <span
-                      className="text-2xl sm:text-3xl font-black text-white"
-                      style={{ WebkitTextStroke: "2px white" }}
+                      className="text-2xl sm:text-3xl font-black text-black"
+                      style={{ WebkitTextStroke: "2px black" }}
                     >
                       {"< />"}
                     </span>
@@ -522,7 +527,7 @@ export default function Home() {
 
                   <FloatingBadge
                     isLightMode={isLightMode}
-                    styleName="pointer-events-none absolute left-[10%] top-[10%] hidden lg:flex rounded-full"
+                    styleName="pointer-events-none absolute left-[10%] top-[10%] hidden lg:flex"
                     delay={0.8}
                   >
                     <span className="text-xl sm:text-2xl drop-shadow-[2px_2px_0_#ff00a0]">
@@ -536,7 +541,7 @@ export default function Home() {
                   style={{ opacity: introOpacity, y: introY }}
                   className="flex-1 flex flex-col justify-between"
                 >
-                  <div className="relative z-10 w-full flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 pt-36">
+                  <div className="relative z-10 w-full flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 pt-42">
                     <div
                       className={`inline-block border-[3px] px-6 py-2 text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] transition-transform hover:scale-105 ${isLightMode ? "border-black bg-[#ff00a0] text-white shadow-[4px_4px_0_#000]" : "border-white bg-[#ff00a0] text-white shadow-[4px_4px_0_#fff]"}`}
                     >
@@ -592,7 +597,7 @@ export default function Home() {
                         </span>
                       </Link>
                       <Link
-                        href="#about"
+                        href="about"
                         className="cursor-target group relative inline-flex items-center justify-center px-6 py-4 sm:px-8 sm:py-5 font-black uppercase tracking-widest transition-all hover:-translate-y-1 w-full sm:w-auto"
                       >
                         <div
@@ -654,7 +659,7 @@ export default function Home() {
                 >
                   <div className="text-center w-full max-w-5xl pointer-events-auto">
                     <h2
-                      className={`font-black uppercase tracking-tighter text-5xl sm:text-7xl mb-4 ${isLightMode ? "text-black" : "text-white"}`}
+                      className={`font-black uppercase tracking-tighter text-4xl sm:text-7xl mb-8 drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] text-zinc-100`}
                     >
                       The Loot
                     </h2>
@@ -714,12 +719,12 @@ export default function Home() {
                 >
                   <div className="w-full max-w-6xl pointer-events-auto">
                     <h2
-                      className={`font-black uppercase tracking-tighter text-5xl sm:text-7xl mb-4 text-center ${isLightMode ? "text-black" : "text-white"}`}
+                      className={`font-black uppercase tracking-tighter text-center text-4xl sm:text-7xl mb-8 drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] text-zinc-100`}
                     >
                       The Domains
                     </h2>
                     <p
-                      className={`mb-12 text-sm sm:text-base font-bold uppercase tracking-widest text-center ${isLightMode ? "text-black/60" : "text-white/60"}`}
+                      className={`mb-12 text-sm tracking-tighter sm:text-base font-bold uppercase tracking-widest text-center text-white drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]`}
                     >
                       Choose a challenge or pitch your own initiative.
                     </p>
@@ -778,22 +783,22 @@ export default function Home() {
                 </motion.div>
                 <motion.div
                   style={{ opacity: pillarsOpacity, y: pillarsY }}
-                  className="absolute inset-0 flex flex-col justify-between pt-32 pb-16 px-6 pointer-events-none"
+                  className="absolute inset-0 flex flex-col justify-between pt-32 pb-48 px-6 pointer-events-none"
                 >
-                  <div className="text-center mb-auto">
+                  <div className="text-center">
                     <h2
-                      className={`font-black uppercase tracking-tighter text-5xl sm:text-7xl ${isLightMode ? "text-black" : "text-white"}`}
+                      className={`font-black uppercase tracking-tighter text-4xl sm:text-7xl mb-8 drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] text-zinc-100`}
                     >
                       Event Highlights
                     </h2>
                     <p
-                      className={`mt-4 text-sm sm:text-base font-bold uppercase tracking-widest ${isLightMode ? "text-[#ff00a0]" : "text-[#c0ff00]"}`}
+                      className={`mt-4 text-sm sm:text-md font-bold uppercase tracking-widest ${isLightMode ? "text-[#ff00a0]" : "text-[#c0ff00]"}`}
                     >
                       Scale • Mentorship • Prizes
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mt-auto pointer-events-auto max-w-7xl mx-auto w-full px-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pointer-events-auto max-w-7xl mx-auto w-full px-4">
                     <HighlightCard
                       title="Scale"
                       description="Connect with 10,000+ participants and builders across India."
@@ -826,8 +831,29 @@ export default function Home() {
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-20">
             <div className="pb-10 relative z-20">
+              {/* Countdown */}
+              <div
+                className={`pointer-events-auto relative px-8 py-10 sm:py-14 text-center mx-auto max-w-4xl mt-32 border-[3px] ${isLightMode ? "border-black bg-[#c0ff00] shadow-[12px_12px_0_#000]" : "border-white/30 bg-[#c0ff00] shadow-[12px_12px_0_#fff]"}`}
+              >
+                <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tighter text-black">
+                  Hacking Begins In
+                </h2>
+
+                <div className="mt-10 flex flex-wrap items-center justify-center gap-6 sm:gap-8 cursor-target">
+                  <CountdownItem value="32" label="Days" color="#ff00a0" />
+                  <div className="text-4xl font-black text-black hidden sm:block">
+                    :
+                  </div>
+                  <CountdownItem value="10" label="Hours" color="#00f0ff" />
+                  <div className="text-4xl font-black text-black hidden sm:block">
+                    :
+                  </div>
+                  <CountdownItem value="57" label="Minutes" color="#ff00a0" />
+                </div>
+              </div>
+
               {/* RESOURCES & TEAM SECTION */}
-              <div className="mt-40 grid grid-cols-1 lg:grid-cols-2 gap-12 w-full relative z-20 pointer-events-auto">
+              <div className="mt-20 grid grid-cols-1 lg:grid-cols-2 gap-12 w-full relative z-20 pointer-events-auto">
                 <div
                   className={`p-8 border-[3px] ${isLightMode ? "border-black bg-white shadow-[8px_8px_0_#000]" : "border-white/30 bg-[#111] shadow-[8px_8px_0_#fff]"}`}
                 >
@@ -894,44 +920,17 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-
-              {/* Countdown */}
-              <div
-                className={`pointer-events-auto relative px-8 py-10 sm:py-14 text-center mx-auto max-w-4xl mt-32 border-[3px] ${isLightMode ? "border-black bg-[#c0ff00] shadow-[12px_12px_0_#000]" : "border-white/30 bg-[#c0ff00] shadow-[12px_12px_0_#fff]"}`}
-              >
-                <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tighter text-black">
-                  Hacking Begins In
-                </h2>
-
-                <div className="mt-10 flex flex-wrap items-center justify-center gap-6 sm:gap-8 cursor-target">
-                  <CountdownItem value="32" label="Days" color="#ff00a0" />
-                  <div className="text-4xl font-black text-black hidden sm:block">
-                    :
-                  </div>
-                  <CountdownItem value="10" label="Hours" color="#00f0ff" />
-                  <div className="text-4xl font-black text-black hidden sm:block">
-                    :
-                  </div>
-                  <CountdownItem value="57" label="Minutes" color="#ff00a0" />
-                </div>
-              </div>
             </div>
           </div>
         </main>
 
-        {/* FOOTER */}
-        <footer className="relative z-50 pointer-events-auto w-full border-t-[3px] py-12 px-6 sm:px-12 mt-20 flex flex-col sm:flex-row items-center justify-between gap-6 transition-colors duration-500 border-black/20 bg-black/5 backdrop-blur-sm">
-          <div
-            className={`text-2xl font-black uppercase tracking-tighter ${isLightMode ? "text-black" : "text-white"}`}
-          >
-            HACKX <span className="text-[#ff00a0]">2.0</span>
-          </div>
-          <div
-            className={`text-sm font-bold uppercase tracking-widest ${isLightMode ? "text-black/60" : "text-white/60"}`}
-          >
-            By CSI and GDG at SFIT • 2026
-          </div>
-        </footer>
+        {/* Animated Navbar Reveal */}
+        <motion.div
+          style={{ opacity: navbarOpacity, x: navbarX }}
+          className="fixed inset-y-0 right-0 z-50 pointer-events-none flex items-center"
+        >
+          <Nvbar />
+        </motion.div>
       </div>
     </div>
   );
