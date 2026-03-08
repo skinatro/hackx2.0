@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { WaveTiles } from "@/ui/components/basic/wave-tiles";
@@ -148,31 +149,30 @@ function ContactCard({ eyebrow, title, value, href, cta, accent, isLightMode }: 
     const content = (
         <>
             <div
-                className={`flex items-center justify-between border-t-2 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] ${
-                    isLightMode ? "text-black/40" : "text-white/35"
+                className={`flex h-10 items-center justify-between border-2 px-3 text-[10px] font-bold uppercase tracking-widest xl:h-12 xl:text-xs ${
+                    isLightMode ? "border-black/10 bg-black/5 text-black/40" : "border-white/10 bg-white/5 text-white/30"
                 }`}
                 style={{ borderTopColor: accent }}
             >
                 <span>{eyebrow}</span>
                 <span style={{ color: accent }}>{cta ? "↗" : "·"}</span>
             </div>
-            <div className="px-4 pb-4 pt-2">
-                <p className={`text-sm font-black uppercase tracking-widest ${isLightMode ? "text-black" : "text-white"}`}>{title}</p>
-                <p className={`mt-1 text-xs leading-5 ${isLightMode ? "text-black/60" : "text-white/60"}`}>{value}</p>
-                {cta && (
-                    <span className="mt-2 block text-[10px] font-black uppercase tracking-widest" style={{ color: accent }}>
-                        {cta}
-                    </span>
-                )}
+            <div>
+                <p className={`text-xs font-black uppercase tracking-widest xl:text-sm ${isLightMode ? "text-black" : "text-white"}`}>{title}</p>
+                <p className={`mt-1 text-[10px] leading-4 xl:text-xs xl:leading-5 ${isLightMode ? "text-black/65" : "text-white/65"}`}>{value}</p>
             </div>
+            {cta && (
+                <span className="mt-auto text-[10px] font-black uppercase tracking-widest xl:text-[11px]" style={{ color: accent }}>
+                    {cta}
+                </span>
+            )}
         </>
     );
 
-    const className = `pointer-events-auto flex flex-col border-2 backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 ${
-        isLightMode
-            ? "border-black/15 bg-white/72 text-black shadow-[6px_6px_0_rgba(255,255,255,0.15)] hover:border-black/35 hover:bg-white/85"
-            : "border-white/20 bg-black/55 text-white shadow-[6px_6px_0_rgba(0,0,0,0.35)] hover:border-white/50 hover:bg-black/70"
-    }`;
+    const className = `pointer-events-auto group flex h-full flex-col gap-2 border-2 p-3 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 xl:gap-3 xl:p-4 ${isLightMode
+            ? "border-black/15 bg-white/72 text-black shadow-[8px_8px_0_rgba(255,255,255,0.15)] hover:border-black/35 hover:bg-white/85"
+            : "border-white/20 bg-black/55 text-white shadow-[8px_8px_0_rgba(0,0,0,0.35)] hover:border-white/50 hover:bg-black/70"
+        }`;
 
     if (href) {
         return (
@@ -211,19 +211,16 @@ export default function ContactPage() {
             </div>
             <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
                 <div
-                    className={`absolute left-[6%] top-[8%] h-44 w-44 rounded-full blur-3xl transition-all duration-700 ${
-                        isLightMode ? "bg-[#5ce1e6]/38 opacity-100 scale-110" : "bg-[#5ce1e6]/18 opacity-55 scale-100"
-                    } ${isModeAnimating ? "animate-pulse" : ""}`}
+                    className={`absolute left-[6%] top-[8%] h-44 w-44 rounded-full blur-3xl transition-all duration-700 ${isLightMode ? "bg-[#5ce1e6]/38 opacity-100 scale-110" : "bg-[#5ce1e6]/18 opacity-55 scale-100"
+                        } ${isModeAnimating ? "animate-pulse" : ""}`}
                 />
                 <div
-                    className={`absolute bottom-[10%] right-[8%] h-56 w-56 rounded-full blur-3xl transition-all duration-700 ${
-                        isLightMode ? "bg-[#ff6b8a]/24 opacity-80 scale-110" : "bg-[#ff6b8a]/15 opacity-45 scale-100"
-                    } ${isModeAnimating ? "animate-pulse" : ""}`}
+                    className={`absolute bottom-[10%] right-[8%] h-56 w-56 rounded-full blur-3xl transition-all duration-700 ${isLightMode ? "bg-[#ff6b8a]/24 opacity-80 scale-110" : "bg-[#ff6b8a]/15 opacity-45 scale-100"
+                        } ${isModeAnimating ? "animate-pulse" : ""}`}
                 />
                 <div
-                    className={`absolute right-[18%] top-[14%] h-28 w-28 rounded-full blur-2xl transition-all duration-700 ${
-                        isLightMode ? "bg-[#7ddc7a]/28 opacity-90" : "bg-[#7ddc7a]/10 opacity-25"
-                    }`}
+                    className={`absolute right-[18%] top-[14%] h-28 w-28 rounded-full blur-2xl transition-all duration-700 ${isLightMode ? "bg-[#7ddc7a]/28 opacity-90" : "bg-[#7ddc7a]/10 opacity-25"
+                        }`}
                 />
             </div>
             <div
@@ -235,35 +232,36 @@ export default function ContactPage() {
                 }}
             />
 
-            <main className="pointer-events-none relative z-10 mx-auto flex h-screen w-full max-w-6xl flex-col overflow-hidden pl-4 pr-20 py-4 sm:pl-6 sm:pr-24 sm:py-6 lg:pl-8 lg:pr-28 xl:max-w-360 xl:pl-10 xl:pr-32 xl:py-8">
+            <main className="pointer-events-none relative z-10 mx-auto flex h-screen w-full max-w-6xl flex-col overflow-hidden px-4 py-4 sm:px-6 sm:py-6 lg:px-8 xl:max-w-360 xl:px-10 xl:py-8">
                 <header className="shrink-0 text-center">
                     <p className={`text-[10px] font-black uppercase tracking-[0.4em] xl:text-xs ${isLightMode ? "text-black/55" : "text-white/50"}`}>Hack X 2.0</p>
                     <h1
-                        className={`navbar-font mt-3 text-4xl uppercase leading-none transition-all duration-500 sm:text-6xl xl:text-[4.8rem] ${isModeAnimating ? "scale-[1.02]" : "scale-100"}`}
-                        style={{ textShadow: `4px 4px 0 ${accent}` }}
+                        className={`navbar-font mt-2 text-3xl uppercase leading-none transition-all duration-500 sm:text-5xl xl:text-[3.8rem] ${isModeAnimating ? "scale-[1.02]" : "scale-100"}`}
+                        style={{ textShadow: `3px 3px 0 ${accent}` }}
                     >
                         Contact The Team
                     </h1>
-
+                    <p className={`mx-auto mt-2 max-w-2xl text-xs leading-5 sm:text-sm xl:max-w-3xl xl:text-[0.875rem] xl:leading-relaxed ${isLightMode ? "text-black/65" : "text-white/65"}`}>
+                        Get in touch with us for sponsorships, technical support, or any other inquiries related to the hackathon.
+                    </p>
                 </header>
 
                 <section
-                    className={`mt-6 shrink-0 overflow-visible border-[3px] transition-all duration-500 backdrop-blur-md ${
-                        isLightMode
+                    className={`mt-6 min-h-0 flex-1 overflow-hidden border-[3px] transition-all duration-500 backdrop-blur-md ${isLightMode
                             ? "border-black/85 bg-[#eefcff]/72 shadow-[14px_14px_0_rgba(92,225,230,0.22)]"
                             : "border-black bg-black/38 shadow-[10px_10px_0_rgba(0,0,0,0.9)]"
-                    } ${isModeAnimating ? (isLightMode ? "scale-[1.01]" : "scale-[0.99]") : "scale-100"}`}
+                        } ${isModeAnimating ? (isLightMode ? "scale-[1.01]" : "scale-[0.99]") : "scale-100"}`}
                 >
-                    <div className="flex flex-col overflow-hidden">
-                        <div className={`shrink-0 border-b px-5 py-3 sm:px-6 xl:px-7 xl:py-4 ${isLightMode ? "border-black/10" : "border-white/10"}`}>
+                    <div className="flex h-full flex-col overflow-hidden">
+                        <div className={`shrink-0 border-b px-4 py-2 sm:px-5 xl:px-6 xl:py-3 ${isLightMode ? "border-black/10" : "border-white/10"}`}>
                             <div className="flex items-center justify-between gap-4">
                                 <div>
                                     <p className={`text-[10px] font-black uppercase tracking-[0.34em] xl:text-xs ${isLightMode ? "text-black/50" : "text-white/55"}`}>Contact info</p>
                                     <h2
-                                        className={`navbar-font mt-2 text-3xl uppercase leading-none transition-all duration-300 sm:text-4xl xl:text-[2.9rem] ${
+                                        className={`navbar-font text-2xl uppercase leading-none transition-all duration-300 sm:text-3xl xl:text-[2.2rem] ${
                                             isLightMode ? "text-black" : "text-white"
                                         }`}
-                                        style={{ textShadow: `3px 3px 0 ${accent}` }}
+                                        style={{ textShadow: `2px 2px 0 ${accent}` }}
                                     >
                                         Reach Us
                                     </h2>
@@ -278,13 +276,13 @@ export default function ContactPage() {
 
                         </div>
 
-                        <div className="overflow-hidden px-5 py-4 sm:px-6 sm:py-5 xl:px-7 xl:py-6">
-                            <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)] xl:gap-6">
-                                <div className="grid auto-rows-auto gap-3 sm:grid-cols-2 xl:gap-3">
+                        <div className="min-h-0 flex-1 overflow-hidden px-3 py-3 sm:px-4 sm:py-4 xl:px-5 xl:py-5">
+                            <div className="grid h-full items-stretch gap-3 xl:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)] xl:gap-4">
+                                <div className="grid h-full auto-rows-fr gap-2 sm:grid-cols-2 xl:gap-3">
                                     {contactCards.map((card, index) => (
                                         <div
                                             key={card.title}
-                                            className={`transition-all duration-500 ${isModeAnimating ? (isLightMode ? "scale-[1.02]" : "scale-[0.98]") : "scale-100"}`}
+                                            className={`h-full transition-all duration-500 ${isModeAnimating ? (isLightMode ? "scale-[1.02]" : "scale-[0.98]") : "scale-100"}`}
                                             style={{ transitionDelay: `${80 + index * 50}ms` }}
                                         >
                                             <ContactCard {...card} accent={accent} isLightMode={isLightMode} />
@@ -293,34 +291,34 @@ export default function ContactPage() {
                                 </div>
 
                                 <aside
-                                    className={`pointer-events-auto flex flex-col gap-3 border-2 p-4 backdrop-blur-md transition-all duration-500 xl:p-5 ${
+                                    className={`pointer-events-auto group flex h-full flex-col gap-2 border-2 p-3 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 xl:gap-3 xl:p-4 ${
                                         isLightMode
-                                            ? "border-black/15 bg-white/74 text-black shadow-[10px_10px_0_rgba(255,255,255,0.18)]"
-                                            : "border-white/20 bg-black/55 text-white shadow-[10px_10px_0_rgba(0,0,0,0.35)]"
+                                            ? "border-black/15 bg-white/72 text-black shadow-[8px_8px_0_rgba(255,255,255,0.15)] hover:border-black/35 hover:bg-white/85"
+                                            : "border-white/20 bg-black/55 text-white shadow-[8px_8px_0_rgba(0,0,0,0.35)] hover:border-white/50 hover:bg-black/70"
                                     } ${isModeAnimating ? (isLightMode ? "scale-[1.01]" : "scale-[0.99]") : "scale-100"}`}
                                 >
-                                    <div className={`border-b pb-3 ${isLightMode ? "border-black/10" : "border-white/10"}`}>
-                                        <p className={`text-[10px] font-black uppercase tracking-[0.32em] ${isLightMode ? "text-black/50" : "text-white/55"}`}>Socials</p>
-                                        <h3 className={`navbar-font mt-1.5 text-2xl uppercase leading-none sm:text-3xl ${isLightMode ? "text-black" : "text-white"}`} style={{ textShadow: `2px 2px 0 ${accent}` }}>
+                                    <div className={`border-b pb-2 ${isLightMode ? "border-black/10" : "border-white/10"}`}>
+                                        <p className={`text-[10px] font-black uppercase tracking-[0.34em] xl:text-[11px] ${isLightMode ? "text-black/50" : "text-white/55"}`}>Socials</p>
+                                        <h3 className={`navbar-font mt-1 text-xl uppercase leading-none sm:text-2xl xl:text-[1.5rem] ${isLightMode ? "text-black" : "text-white"}`} style={{ textShadow: `2px 2px 0 ${accent}` }}>
                                             Follow Along
                                         </h3>
                                     </div>
 
-                                    <div className="grid gap-2">
+                                    <div className="grid gap-2 flex-1">
                                         {socialLinks.map((social) => (
                                             <a
                                                 key={social.label}
                                                 href={social.href}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className={`flex items-center gap-3 border-2 py-2 px-3 transition-all duration-300 hover:-translate-y-0.5 ${
+                                                className={`flex items-center justify-center gap-3 border-2 h-full min-h-0 transition-all duration-300 hover:-translate-y-0.5 ${
                                                     isLightMode
                                                         ? "border-black/10 bg-black/5 text-black hover:border-black/35"
                                                         : "border-white/10 bg-white/5 text-white hover:border-white/35"
                                                 }`}
                                             >
                                                 {social.icon}
-                                                <p className="text-sm font-black uppercase tracking-[0.18em]">{social.label}</p>
+                                                <p className="text-[11px] font-black uppercase tracking-[0.18em] xl:text-xs">{social.label}</p>
                                             </a>
                                         ))}
                                     </div>
@@ -329,6 +327,19 @@ export default function ContactPage() {
                         </div>
                     </div>
                 </section>
+
+                <footer className="mt-3 flex shrink-0 flex-col items-center justify-between gap-3 sm:flex-row xl:mt-4">
+                    <p className={`text-center text-xs sm:text-left xl:text-sm ${isLightMode ? "text-black/55" : "text-white/50"}`}>
+                        For urgent matters, feel free to contact us through any of our channels.
+                    </p>
+                    <Link
+                        href="/"
+                        className="pointer-events-auto inline-flex items-center gap-2 border-2 border-black px-4 py-2.5 text-xs font-black uppercase tracking-[0.22em] text-black shadow-[4px_4px_0_#000] transition-transform hover:-translate-y-0.5 xl:px-5 xl:py-3 xl:text-sm"
+                        style={{ backgroundColor: accent }}
+                    >
+                        Back to Home →
+                    </Link>
+                </footer>
             </main>
         </div>
     );
