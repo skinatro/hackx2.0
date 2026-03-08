@@ -3,7 +3,7 @@
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
 
-import { WaveTiles } from "@/ui/components/basic/wave-tiles";
+import { useTheme } from "@/app/providers/theme-provider";
 
 type AboutCard = {
   title: string;
@@ -238,9 +238,11 @@ export default function AboutPage() {
   const [activeSection, setActiveSection] = useState<SectionKey>("mission");
   const [displaySection, setDisplaySection] = useState<SectionKey>("mission");
   const [isSectionVisible, setIsSectionVisible] = useState(true);
-  const [isLightMode, setIsLightMode] = useState(true);
+  const { isLightMode, setWaveTilesOpacity } = useTheme();
   const [isModeAnimating, setIsModeAnimating] = useState(false);
   const hasMountedRef = useRef(false);
+
+  useEffect(() => setWaveTilesOpacity("opacity-95", "opacity-60"), [setWaveTilesOpacity]);
 
   useEffect(() => {
     if (activeSection === displaySection) {
@@ -283,16 +285,7 @@ export default function AboutPage() {
   const rootTone = isLightMode ? "text-black" : "text-white";
 
   return (
-    <div
-      className={`relative h-screen overflow-hidden bg-black transition-colors duration-500 ${rootTone}`}
-    >
-      <div className="fixed inset-0 z-0">
-        <WaveTiles
-          className={isLightMode ? "opacity-95" : "opacity-60"}
-          onModeChange={setIsLightMode}
-          trackPointerGlobally
-        />
-      </div>
+    <div className={`relative h-screen overflow-hidden bg-black transition-colors duration-500 ${rootTone}`}>
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div
           className={`absolute left-[6%] top-[8%] h-44 w-44 rounded-full blur-3xl transition-all duration-700 ${

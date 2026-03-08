@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-import { WaveTiles } from "@/ui/components/basic/wave-tiles";
+import { useTheme } from "@/app/providers/theme-provider";
 
 type ContactCardData = {
     eyebrow: string;
@@ -186,9 +186,11 @@ function ContactCard({ eyebrow, title, value, href, cta, accent, isLightMode }: 
 }
 
 export default function ContactPage() {
-    const [isLightMode, setIsLightMode] = useState(true);
+    const { isLightMode, setWaveTilesOpacity } = useTheme();
     const [isModeAnimating, setIsModeAnimating] = useState(false);
     const hasMountedRef = useRef(false);
+
+    useEffect(() => setWaveTilesOpacity("opacity-95", "opacity-60"), [setWaveTilesOpacity]);
 
     useEffect(() => {
         if (!hasMountedRef.current) {
@@ -206,9 +208,6 @@ export default function ContactPage() {
 
     return (
         <div className={`relative h-screen overflow-hidden bg-black transition-colors duration-500 ${rootTone}`}>
-            <div className="fixed inset-0 z-0">
-                <WaveTiles className={isLightMode ? "opacity-95" : "opacity-60"} onModeChange={setIsLightMode} trackPointerGlobally />
-            </div>
             <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
                 <div
                     className={`absolute left-[6%] top-[8%] h-44 w-44 rounded-full blur-3xl transition-all duration-700 ${isLightMode ? "bg-[#5ce1e6]/38 opacity-100 scale-110" : "bg-[#5ce1e6]/18 opacity-55 scale-100"

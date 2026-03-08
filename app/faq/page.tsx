@@ -1,7 +1,6 @@
 "use client";
 
-import { WaveTiles } from "@/ui/components/basic/wave-tiles";
-import { useState } from "react";
+import { useTheme } from "@/app/providers/theme-provider";
 
 const STYLES = `
   @keyframes float {
@@ -87,24 +86,13 @@ const ThemeToggle = ({
 };
 
 export default function FAQPage() {
-  const [isLightMode, setIsLightMode] = useState(false);
-  const [forceTheme, setForceTheme] = useState(false);
+  const { isLightMode } = useTheme();
 
   return (
     <div
       className={`relative min-h-screen font-sans selection:bg-[#ff00a0] selection:text-white transition-colors duration-500 ${isLightMode ? "bg-[#f5f5f5]" : "bg-black"}`}
     >
       <style dangerouslySetInnerHTML={{ __html: STYLES }} />
-
-      {/* Background */}
-      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <WaveTiles
-          className={isLightMode ? "opacity-40" : "opacity-30"}
-          onModeChange={setIsLightMode}
-          trackPointerGlobally={true}
-          forceTheme={forceTheme}
-        />
-      </div>
 
       <div className="relative z-10 flex min-h-screen flex-col">
         {/* Navigation */}

@@ -1,8 +1,8 @@
 "use client";
 
-import { WaveTiles } from "@/ui/components/basic/wave-tiles";
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
+import { useTheme } from "@/app/providers/theme-provider";
 
 const STYLES = `
   @keyframes float {
@@ -149,9 +149,11 @@ function CountdownItem({
 }
 
 export default function Home() {
-  const [isLightMode, setIsLightMode] = useState(false);
+  const { isLightMode, setWaveTilesOpacity } = useTheme();
   const [isModeAnimating, setIsModeAnimating] = useState(false);
   const hasMountedRef = useRef(false);
+
+  useEffect(() => setWaveTilesOpacity("opacity-75", "opacity-30"), [setWaveTilesOpacity]);
 
   useEffect(() => {
     if (!hasMountedRef.current) {
@@ -175,15 +177,6 @@ export default function Home() {
       <div
         className={`fixed inset-0 z-0 opacity-50 ${isLightMode ? "bg-grid-light" : "bg-grid-dark"}`}
       />
-
-      <div className="fixed inset-0 z-0 grayscale contrast-125">
-        <WaveTiles
-          className={isLightMode ? "opacity-75" : "opacity-30"}
-          onModeChange={setIsLightMode}
-          trackPointerGlobally={true}
-          optimizeForPerformance={true}
-        />
-      </div>
 
       {/* Pop-art geometric background shapes */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden opacity-60">
