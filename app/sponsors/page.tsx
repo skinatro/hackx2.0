@@ -73,14 +73,14 @@ function SponsorCard({ name, logo, description, website, accent, isLightMode }: 
       href={website}
       target="_blank"
       rel="noopener noreferrer"
-      className={`pointer-events-auto group flex h-full flex-col gap-4 border-2 p-6 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 ${
+      className={`pointer-events-auto group flex h-full flex-col gap-4 border-2 p-6 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 xl:gap-5 xl:p-7 ${
         isLightMode
           ? "border-black/15 bg-white/72 text-black shadow-[8px_8px_0_rgba(255,255,255,0.15)] hover:border-black/35 hover:bg-white/85"
           : "border-white/20 bg-black/55 text-white shadow-[8px_8px_0_rgba(0,0,0,0.35)] hover:border-white/50 hover:bg-black/70"
       }`}
     >
       <div
-        className={`flex h-20 items-center justify-center border-2 text-sm font-bold uppercase tracking-widest ${
+        className={`flex h-20 items-center justify-center border-2 text-sm font-bold uppercase tracking-widest xl:h-24 xl:text-base ${
           isLightMode ? "border-black/10 bg-black/5 text-black/35" : "border-white/10 bg-white/5 text-white/30"
         }`}
         style={{ borderTopColor: accent }}
@@ -88,10 +88,10 @@ function SponsorCard({ name, logo, description, website, accent, isLightMode }: 
         {logo ?? name}
       </div>
       <div>
-        <p className={`text-base font-black uppercase tracking-widest ${isLightMode ? "text-black" : "text-white"}`}>{name}</p>
-        <p className={`mt-2 text-sm leading-6 ${isLightMode ? "text-black/65" : "text-white/65"}`}>{description}</p>
+        <p className={`text-base font-black uppercase tracking-widest xl:text-lg ${isLightMode ? "text-black" : "text-white"}`}>{name}</p>
+        <p className={`mt-2 text-sm leading-6 xl:text-base xl:leading-7 ${isLightMode ? "text-black/65" : "text-white/65"}`}>{description}</p>
       </div>
-      <span className="mt-auto text-[11px] font-black uppercase tracking-widest" style={{ color: accent }}>
+      <span className="mt-auto text-[11px] font-black uppercase tracking-widest xl:text-xs" style={{ color: accent }}>
         Visit →
       </span>
     </a>
@@ -115,7 +115,7 @@ function TierButton({
     <button
       type="button"
       onClick={onClick}
-      className={`pointer-events-auto border-2 px-4 py-3 text-xs font-black uppercase tracking-[0.24em] transition-all duration-300 sm:text-sm ${
+      className={`pointer-events-auto border-2 px-4 py-3 text-xs font-black uppercase tracking-[0.24em] transition-all duration-300 sm:text-sm xl:px-5 xl:py-3.5 xl:text-base ${
         active
           ? isLightMode
             ? "border-black bg-[#fff7d6] text-black shadow-[5px_5px_0_#000]"
@@ -203,21 +203,21 @@ export default function Page() {
         }}
       />
 
-      <main className="pointer-events-none relative z-10 mx-auto flex h-screen w-full max-w-6xl flex-col overflow-hidden px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+      <main className="pointer-events-none relative z-10 mx-auto flex h-screen w-full max-w-6xl flex-col overflow-hidden px-4 py-4 sm:px-6 sm:py-6 lg:px-8 xl:max-w-360 xl:px-10 xl:py-8">
         <header className="shrink-0 text-center">
-          <p className={`text-[10px] font-black uppercase tracking-[0.4em] ${isLightMode ? "text-black/55" : "text-white/50"}`}>Hack X 2.0</p>
+          <p className={`text-[10px] font-black uppercase tracking-[0.4em] xl:text-xs ${isLightMode ? "text-black/55" : "text-white/50"}`}>Hack X 2.0</p>
           <h1
-            className={`navbar-font mt-3 text-4xl uppercase leading-none transition-all duration-500 sm:text-6xl ${isModeAnimating ? "scale-[1.02]" : "scale-100"}`}
+            className={`navbar-font mt-3 text-4xl uppercase leading-none transition-all duration-500 sm:text-6xl xl:text-7xl 2xl:text-[5.5rem] ${isModeAnimating ? "scale-[1.02]" : "scale-100"}`}
             style={{ textShadow: `4px 4px 0 ${activeTierMeta.accent}` }}
           >
             Our Sponsors
           </h1>
-          <p className={`mx-auto mt-4 max-w-2xl text-sm leading-6 sm:text-base ${isLightMode ? "text-black/65" : "text-white/65"}`}>
+          <p className={`mx-auto mt-4 max-w-2xl text-sm leading-6 sm:text-base xl:max-w-3xl xl:text-lg xl:leading-7 ${isLightMode ? "text-black/65" : "text-white/65"}`}>
             A clean one-screen view of the brands and communities supporting Hack X 2.0.
           </p>
         </header>
 
-        <div className="pointer-events-none mt-6 flex flex-wrap items-center justify-center gap-3">
+        <div className="pointer-events-none mt-6 flex flex-wrap items-center justify-center gap-3 xl:mt-7 xl:gap-4">
           {tiers.map((tier) => (
             <TierButton
               key={tier.key}
@@ -238,16 +238,16 @@ export default function Page() {
           } ${isModeAnimating ? (isLightMode ? "scale-[1.01]" : "scale-[0.99]") : "scale-100"}`}
         >
           <div className="flex h-full flex-col overflow-hidden">
-            <div className={`shrink-0 border-b px-5 py-4 sm:px-6 ${isLightMode ? "border-black/10" : "border-white/10"}`}>
+            <div className={`shrink-0 border-b px-5 py-4 sm:px-6 xl:px-7 xl:py-5 ${isLightMode ? "border-black/10" : "border-white/10"}`}>
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className={`text-[10px] font-black uppercase tracking-[0.34em] ${isLightMode ? "text-black/50" : "text-white/55"}`}>Sponsor tier</p>
-                  <h2 className={`navbar-font mt-2 text-3xl uppercase leading-none transition-all duration-300 sm:text-4xl ${isLightMode ? "text-black" : "text-white"}`} style={{ textShadow: `3px 3px 0 ${displayTierMeta.accent}` }}>
+                  <p className={`text-[10px] font-black uppercase tracking-[0.34em] xl:text-xs ${isLightMode ? "text-black/50" : "text-white/55"}`}>Sponsor tier</p>
+                  <h2 className={`navbar-font mt-2 text-3xl uppercase leading-none transition-all duration-300 sm:text-4xl xl:text-5xl ${isLightMode ? "text-black" : "text-white"}`} style={{ textShadow: `3px 3px 0 ${displayTierMeta.accent}` }}>
                     {displayTierMeta.label}
                   </h2>
                 </div>
                 <span
-                  className="pointer-events-auto inline-flex border-2 border-black px-3 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-black sm:px-4"
+                  className="pointer-events-auto inline-flex border-2 border-black px-3 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-black sm:px-4 xl:px-5 xl:py-2.5 xl:text-xs"
                   style={{ backgroundColor: displayTierMeta.accent }}
                 >
                   {String(displaySponsors.length).padStart(2, "0")} sponsors
@@ -255,9 +255,9 @@ export default function Page() {
               </div>
             </div>
 
-            <div className="min-h-0 flex-1 px-5 py-5 sm:px-6 sm:py-6">
+            <div className="min-h-0 flex-1 px-5 py-5 sm:px-6 sm:py-6 xl:px-7 xl:py-7">
               <div
-                className={`grid h-full auto-rows-fr gap-4 transition-all duration-300 ${displayTierMeta.colClass} ${
+                className={`grid h-full auto-rows-fr gap-4 transition-all duration-300 xl:gap-5 ${displayTierMeta.colClass} ${
                   isTierVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
                 }`}
               >
@@ -277,11 +277,11 @@ export default function Page() {
           </div>
         </section>
 
-        <footer className="mt-5 flex shrink-0 flex-col items-center justify-between gap-3 sm:flex-row">
-          <p className={`text-center text-sm sm:text-left ${isLightMode ? "text-black/55" : "text-white/50"}`}>Click the tier buttons to reveal sponsors. The background cubes stay interactive.</p>
+        <footer className="mt-5 flex shrink-0 flex-col items-center justify-between gap-3 sm:flex-row xl:mt-6">
+          <p className={`text-center text-sm sm:text-left xl:text-base ${isLightMode ? "text-black/55" : "text-white/50"}`}>Click the tier buttons to reveal sponsors. The background cubes stay interactive.</p>
           <Link
             href="/contact"
-            className="pointer-events-auto inline-flex items-center gap-2 border-2 border-black bg-[#ffd23f] px-5 py-3 text-sm font-black uppercase tracking-[0.22em] text-black shadow-[5px_5px_0_#000] transition-transform hover:-translate-y-0.5"
+            className="pointer-events-auto inline-flex items-center gap-2 border-2 border-black bg-[#ffd23f] px-5 py-3 text-sm font-black uppercase tracking-[0.22em] text-black shadow-[5px_5px_0_#000] transition-transform hover:-translate-y-0.5 xl:px-6 xl:py-3.5 xl:text-base"
           >
             Get in touch →
           </Link>
