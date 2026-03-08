@@ -235,7 +235,7 @@ export default function ContactPage() {
                 }}
             />
 
-            <main className="pointer-events-none relative z-10 mx-auto flex h-screen w-full max-w-6xl flex-col overflow-hidden px-4 py-4 sm:px-6 sm:py-6 lg:px-8 xl:max-w-360 xl:px-10 xl:py-8">
+            <main className="pointer-events-none relative z-10 mx-auto flex h-screen w-full max-w-6xl flex-col overflow-hidden pl-4 pr-20 py-4 sm:pl-6 sm:pr-24 sm:py-6 lg:pl-8 lg:pr-28 xl:max-w-360 xl:pl-10 xl:pr-32 xl:py-8">
                 <header className="shrink-0 text-center">
                     <p className={`text-[10px] font-black uppercase tracking-[0.4em] xl:text-xs ${isLightMode ? "text-black/55" : "text-white/50"}`}>Hack X 2.0</p>
                     <h1
