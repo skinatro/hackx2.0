@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect } from "react";
 
 import { useTheme } from "@/app/providers/theme-provider";
@@ -313,18 +312,6 @@ export default function ContactPage() {
                     </div>
                 </section>
 
-                <footer className="mt-3 flex shrink-0 flex-col items-center justify-between gap-3 sm:flex-row xl:mt-4">
-                    <p className={`text-center text-xs sm:text-left xl:text-sm ${isLightMode ? "text-black/55" : "text-white/50"}`}>
-                        For urgent matters, feel free to contact us through any of our channels.
-                    </p>
-                    <Link
-                        href="/"
-                        className="pointer-events-auto inline-flex items-center gap-2 border-2 border-black px-4 py-2.5 text-xs font-black uppercase tracking-[0.22em] text-black shadow-[4px_4px_0_#000] transition-transform hover:-translate-y-0.5 xl:px-5 xl:py-3 xl:text-sm"
-                        style={{ backgroundColor: accent }}
-                    >
-                        Back to Home →
-                    </Link>
-                </footer>
             </main>
         </div>
     );

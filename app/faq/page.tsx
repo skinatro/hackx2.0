@@ -144,18 +144,6 @@ export default function FAQPage() {
           </div>
         </main>
 
-        <footer className="relative z-50 pointer-events-auto w-full border-t-[3px] py-12 px-6 sm:px-12 mt-20 flex flex-col sm:flex-row items-center justify-between gap-6 transition-colors duration-500 border-black/20 bg-black/5 backdrop-blur-sm">
-          <div
-            className={`text-2xl font-black uppercase tracking-tighter ${isLightMode ? "text-black" : "text-white"}`}
-          >
-            HACKX <span className="text-[#ff00a0]">2.0</span>
-          </div>
-          <div
-            className={`text-sm font-bold uppercase tracking-widest ${isLightMode ? "text-black/60" : "text-white/60"}`}
-          >
-            By CSI and GDG at SFIT • 2026
-          </div>
-        </footer>
       </div>
     </div>
   );

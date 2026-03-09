@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
 
 import { useTheme } from "@/app/providers/theme-provider";
@@ -273,15 +272,6 @@ export default function Page() {
           </div>
         </section>
 
-        <footer className="mt-5 flex shrink-0 flex-col items-center justify-between gap-3 sm:flex-row xl:mt-6">
-          <p className={`text-center text-sm sm:text-left xl:text-base ${isLightMode ? "text-black/55" : "text-white/50"}`}>Click the tier buttons to reveal sponsors. The background cubes stay interactive.</p>
-          <Link
-            href="/contact"
-            className="pointer-events-auto inline-flex items-center gap-2 border-2 border-black bg-[#ffd23f] px-5 py-3 text-sm font-black uppercase tracking-[0.22em] text-black shadow-[5px_5px_0_#000] transition-transform hover:-translate-y-0.5 xl:px-6 xl:py-3.5 xl:text-base"
-          >
-            Get in touch →
-          </Link>
-        </footer>
       </main>
     </div>
   );
