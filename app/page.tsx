@@ -1,12 +1,13 @@
 "use client";
 
-import { WaveTiles } from "@/ui/components/basic/wave-tiles";
-import ScrollSequence from "@/ui/components/scroll-sequence";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
-import Link from "next/link";
-import React, { useRef } from "react";
-import { Nvbar } from "./components/nvbar";
 import { useTheme } from "@/app/providers/theme-provider";
+import { WaveTiles } from "@/ui/components/basic/wave-tiles";
+import Preloader from "@/ui/components/preloader";
+import ScrollSequence from "@/ui/components/scroll-sequence";
+import { motion, useScroll, useSpring, useTransform } from "framer-motion";
+import Link from "next/link";
+import React, { useRef, useState } from "react";
+import { Nvbar } from "./components/nvbar";
 
 const STYLES = `
   @keyframes float {
@@ -45,6 +46,31 @@ const STYLES = `
   }
 `;
 
+function CountdownItem({
+  value,
+  label,
+  color,
+}: {
+  value: string;
+  label: string;
+  color: string;
+}) {
+  return (
+    <div className="relative flex w-24 flex-col items-center justify-center p-4 sm:w-32 sm:p-6 group overflow-hidden border-[3px] border-black bg-white shadow-[6px_6px_0_#000] transition-transform hover:-translate-y-1 hover:shadow-[8px_8px_0_#000]">
+      <div
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        style={{ backgroundColor: color, zIndex: 0 }}
+      />
+      <span className="relative z-10 navbar-font text-5xl font-black sm:text-6xl text-black">
+        {value}
+      </span>
+      <span className="relative z-10 mt-2 text-[10px] font-black uppercase tracking-[0.3em] text-black/70 group-hover:text-black">
+        {label}
+      </span>
+    </div>
+  );
+}
+
 function FloatingBadge({
   children,
   delay = 0,
@@ -60,10 +86,11 @@ function FloatingBadge({
 }) {
   return (
     <div
-      className={`absolute z-20 flex items-center justify-center p-3 transition-all duration-500 ${isLightMode
+      className={`absolute z-20 flex items-center justify-center p-3 transition-all duration-500 ${
+        isLightMode
           ? "border-[3px] border-black bg-white/80 shadow-[6px_6px_0_#000]"
           : "border-[3px] border-white/50 bg-[#111]/80 shadow-[6px_6px_0_#c0ff00]"
-        } ${styleName}`}
+      } ${styleName}`}
       style={{
         animation: `${floatRev ? "float-reverse" : "float"} 6s ease-in-out infinite`,
         animationDelay: `${delay}s`,
@@ -91,10 +118,11 @@ function HighlightCard({
 }) {
   return (
     <div
-      className={`cursor-target group relative flex flex-col p-8 transition-transform duration-500 hover:-translate-y-2 ${isLightMode
+      className={`cursor-target group relative flex flex-col p-8 transition-transform duration-500 hover:-translate-y-2 ${
+        isLightMode
           ? "border-[3px] border-black bg-white shadow-[8px_8px_0_#000]"
           : "border-[3px] border-white/30 bg-[#0a0a0a] shadow-[8px_8px_0_#fff]"
-        }`}
+      }`}
       style={{
         animation: `float-reverse 8s ease-in-out infinite`,
         animationDelay: `${delay}s`,
@@ -242,10 +270,10 @@ const TrophyIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-
 export default function Home() {
   const { isLightMode } = useTheme();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [preloaderComplete, setPreloaderComplete] = useState(false);
 
   const { scrollYProgress } = useScroll({
     target: scrollContainerRef,
@@ -255,7 +283,7 @@ export default function Home() {
   const smoothProgress = useSpring(scrollYProgress, {
     stiffness: 100,
     damping: 30,
-    restDelta: 0.001
+    restDelta: 0.001,
   });
 
   // Phase 1: Intro (HACKX 2.0 reveal)
@@ -314,6 +342,10 @@ export default function Home() {
     <div
       className={`relative min-h-screen font-sans selection:bg-[#ff00a0] selection:text-white ${isLightMode ? "bg-[#f5f5f5]" : "bg-black"}`}
     >
+      <Preloader
+        onComplete={() => setPreloaderComplete(true)}
+        optimizeForPerformance
+      />
       <style dangerouslySetInnerHTML={{ __html: STYLES }} />
       {/* Grid Pattern Background - Keeping this for texture */}
       <div
@@ -328,7 +360,7 @@ export default function Home() {
         <WaveTiles
           className={isLightMode ? "opacity-40" : "opacity-30"}
           optimizeForPerformance
-          onModeChange={() => { }}
+          onModeChange={() => {}}
         />
       </div>
 
@@ -341,6 +373,7 @@ export default function Home() {
           filePrefix="frame-"
           isLightMode={isLightMode}
           height="h-[600vh]"
+          optimizeForPerformance
         />
         {/* Soft bottom blend mask to merge video to solid body section smoothly */}
         <div
@@ -439,7 +472,8 @@ export default function Home() {
                         {"{"} future {"}"}
                       </span>
                       <span style={{ color: isLightMode ? "#000" : "#fff" }}>
-                        from <span style={{ color: "#c0ff00" }}>{"'now';"}</span>
+                        from{" "}
+                        <span style={{ color: "#c0ff00" }}>{"'now';"}</span>
                       </span>
                     </div>
                   </FloatingBadge>
@@ -621,11 +655,13 @@ export default function Home() {
                       ].map((prize, idx) => (
                         <div
                           key={idx}
-                          className={`cursor-target p-8 sm:p-10 flex flex-col items-center justify-center border-[3px] transition-transform hover:-translate-y-2 duration-300 ${idx === 1 ? "sm:-mt-4 scale-105" : ""
-                            } ${isLightMode
+                          className={`cursor-target p-8 sm:p-10 flex flex-col items-center justify-center border-[3px] transition-transform hover:-translate-y-2 duration-300 ${
+                            idx === 1 ? "sm:-mt-4 scale-105" : ""
+                          } ${
+                            isLightMode
                               ? "border-black bg-white shadow-[8px_8px_0_#000]"
                               : "border-white/30 bg-[#111] shadow-[8px_8px_0_#fff]"
-                            }`}
+                          }`}
                         >
                           <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">
                             {prize.place}
@@ -684,10 +720,11 @@ export default function Home() {
                       ].map((track, i) => (
                         <div
                           key={i}
-                          className={`cursor-target group relative flex flex-col items-center justify-center p-6 sm:p-8 transition-transform duration-500 hover:-translate-y-2 ${isLightMode
+                          className={`cursor-target group relative flex flex-col items-center justify-center p-6 sm:p-8 transition-transform duration-500 hover:-translate-y-2 ${
+                            isLightMode
                               ? "border-[3px] border-black bg-white shadow-[6px_6px_0_#000]"
                               : "border-[3px] border-white/30 bg-[#111] shadow-[6px_6px_0_#fff]"
-                            }`}
+                          }`}
                         >
                           <div
                             className="absolute inset-0 z-0 origin-bottom scale-y-0 transition-transform duration-300 ease-out group-hover:scale-y-100"
@@ -699,8 +736,9 @@ export default function Home() {
                             {track.icon}
                           </div>
                           <h3
-                            className={`relative z-10 text-sm sm:text-base font-black uppercase tracking-widest text-center transition-colors duration-300 ${isLightMode ? "text-black" : "text-white"
-                              } group-hover:text-black`}
+                            className={`relative z-10 text-sm sm:text-base font-black uppercase tracking-widest text-center transition-colors duration-300 ${
+                              isLightMode ? "text-black" : "text-white"
+                            } group-hover:text-black`}
                           >
                             {track.name}
                           </h3>
@@ -758,10 +796,33 @@ export default function Home() {
           </div>
 
           <div
-            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-20"
-            style={{ contentVisibility: "auto", containIntrinsicSize: "1200px" }}
+            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full"
+            style={{
+              contentVisibility: "auto",
+              containIntrinsicSize: "1200px",
+            }}
           >
             <div className="pb-10 relative z-20">
+              {/* Countdown */}
+              <div
+                className={`pointer-events-auto relative px-8 py-10 sm:py-14 text-center mx-auto max-w-4xl mt-32 border-[3px] ${isLightMode ? "border-black bg-[#c0ff00] shadow-[12px_12px_0_#000]" : "border-white/30 bg-[#c0ff00] shadow-[12px_12px_0_#fff]"}`}
+              >
+                <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tighter text-black">
+                  Hacking Begins In
+                </h2>
+
+                <div className="mt-10 flex flex-wrap items-center justify-center gap-6 sm:gap-8 cursor-target">
+                  <CountdownItem value="32" label="Days" color="#ff00a0" />
+                  <div className="text-4xl font-black text-black hidden sm:block">
+                    :
+                  </div>
+                  <CountdownItem value="10" label="Hours" color="#00f0ff" />
+                  <div className="text-4xl font-black text-black hidden sm:block">
+                    :
+                  </div>
+                  <CountdownItem value="57" label="Minutes" color="#ff00a0" />
+                </div>
+              </div>
               {/* RESOURCES & TEAM SECTION */}
               <div className="mt-20 grid grid-cols-1 lg:grid-cols-2 gap-12 w-full relative z-20 pointer-events-auto">
                 <div
@@ -807,11 +868,7 @@ export default function Home() {
                     Powered by CSI SFIT and GDG SFIT.
                   </p>
                   <div className="grid grid-cols-2 gap-4">
-                    {[
-                      "Shahiil",
-                      "Roen",
-                      "Aryan",
-                    ].map((name, i) => (
+                    {["Shahiil", "Roen", "Aryan"].map((name, i) => (
                       <div
                         key={i}
                         className="flex flex-col border-b-[3px] border-black/20 pb-2"

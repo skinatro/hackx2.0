@@ -1,6 +1,6 @@
 "use client";
 
-import { useScroll, useTransform, useSpring } from "framer-motion";
+import { useScroll, useSpring, useTransform } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
 interface ScrollSequenceProps {
@@ -12,6 +12,7 @@ interface ScrollSequenceProps {
   className?: string;
   isLightMode?: boolean;
   height?: string;
+  optimizeForPerformance?: boolean;
 }
 
 export default function ScrollSequence({
@@ -23,6 +24,7 @@ export default function ScrollSequence({
   className = "",
   isLightMode = true,
   height = "h-[300vh]",
+  optimizeForPerformance = false,
 }: ScrollSequenceProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -42,9 +44,9 @@ export default function ScrollSequence({
   });
 
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001
+    stiffness: optimizeForPerformance ? 250 : 100,
+    damping: optimizeForPerformance ? 50 : 30,
+    restDelta: optimizeForPerformance ? 0.01 : 0.001,
   });
 
   // Map scroll progress (0 to 1) to a frame index (1 to frameCount)
@@ -114,8 +116,10 @@ export default function ScrollSequence({
             const hRatio = displayWidth / currentImage.width;
             const vRatio = displayHeight / currentImage.height;
             const ratio = Math.max(hRatio, vRatio);
-            const centerShiftX = (displayWidth - currentImage.width * ratio) / 2;
-            const centerShiftY = (displayHeight - currentImage.height * ratio) / 2;
+            const centerShiftX =
+              (displayWidth - currentImage.width * ratio) / 2;
+            const centerShiftY =
+              (displayHeight - currentImage.height * ratio) / 2;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = isLightModeRef.current ? "#ffffff" : "#000000";
@@ -200,8 +204,7 @@ export default function ScrollSequence({
   // Handle Canvas Drawing when the scroll/frame changes
   useEffect(() => {
     // If the canvas or first frame isn't loaded yet, skip
-    if (!canvasRef.current || !hasLoadedFirst)
-      return;
+    if (!canvasRef.current || !hasLoadedFirst) return;
 
     const ctx = canvasRef.current.getContext("2d");
     if (!ctx) return;
@@ -247,10 +250,17 @@ export default function ScrollSequence({
       renderedFrameRef.current = index;
     };
 
+    let lastRenderTime = 0;
     const renderFrameThrottled = (index: number) => {
       if (renderRafRef.current !== null) return;
+
+      const now = performance.now();
+      const interval = optimizeForPerformance ? 33 : 16; // ~30fps vs ~60fps
+      if (now - lastRenderTime < interval) return;
+
       renderRafRef.current = window.requestAnimationFrame(() => {
         renderFrame(index);
+        lastRenderTime = performance.now();
         renderRafRef.current = null;
       });
     };
@@ -259,7 +269,10 @@ export default function ScrollSequence({
     const handleResize = () => {
       const displayWidth = window.innerWidth;
       const displayHeight = window.innerHeight;
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const targetDpr = window.devicePixelRatio || 1;
+      const dpr = optimizeForPerformance
+        ? Math.min(targetDpr, 1.0)
+        : Math.min(targetDpr, 1.5);
 
       canvas.width = Math.floor(displayWidth * dpr);
       canvas.height = Math.floor(displayHeight * dpr);

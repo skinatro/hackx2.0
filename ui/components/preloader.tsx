@@ -4,18 +4,25 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { WaveTiles } from "./basic/wave-tiles";
 
-export default function Preloader({ onComplete }: { onComplete: () => void }) {
-  const [isFirstLoad] = useState(() => {
-    if (typeof window === "undefined") {
-      return false;
-    }
-
-    return !localStorage.getItem("hackx_visited");
-  });
-  const [isVisible, setIsVisible] = useState(isFirstLoad);
+export default function Preloader({
+  onComplete,
+  optimizeForPerformance = false,
+}: {
+  onComplete: () => void;
+  optimizeForPerformance?: boolean;
+}) {
+  const [hasMounted, setHasMounted] = useState(false);
+  const [isFirstLoad, setIsFirstLoad] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    if (isFirstLoad) {
+    setHasMounted(true);
+    const visited = localStorage.getItem("hackx_visited");
+
+    if (!visited) {
+      setIsFirstLoad(true);
+      setIsVisible(true);
+
       // Play animation for a fixed duration then complete
       const timer = setTimeout(() => {
         setIsVisible(false);
@@ -26,9 +33,9 @@ export default function Preloader({ onComplete }: { onComplete: () => void }) {
     } else {
       onComplete();
     }
-  }, [isFirstLoad, onComplete]);
+  }, [onComplete]);
 
-  if (!isFirstLoad) return null;
+  if (!hasMounted || !isFirstLoad) return null;
 
   return (
     <AnimatePresence>
@@ -55,8 +62,10 @@ export default function Preloader({ onComplete }: { onComplete: () => void }) {
               className="absolute! overflow-hidden!"
             />
 
-            {/* Grain Overlay */}
-            <div className="absolute inset-0 z-0 opacity-20 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] " />
+            {/* Grain Overlay - CPU intensive on some browsers */}
+            {!optimizeForPerformance && (
+              <div className="absolute inset-0 z-0 opacity-20 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] " />
+            )}
 
             <div className="relative z-10 flex flex-col justify-center items-center bg-black/90 w-full h-full">
               {/* Main Logo Reveal */}
@@ -101,23 +110,27 @@ export default function Preloader({ onComplete }: { onComplete: () => void }) {
                   </motion.span>
                 </h1>
 
-                {/* Glitch Slices */}
-                <motion.div
-                  animate={{
-                    x: [0, -5, 5, -5, 0],
-                    opacity: [0, 1, 0, 1, 0],
-                  }}
-                  transition={{
-                    duration: 0.2,
-                    repeat: Infinity,
-                    repeatType: "mirror",
-                    repeatDelay: 2,
-                  }}
-                  className="absolute inset-0 text-6xl md:text-8xl font-black tracking-tighter text-[#00f0ff] uppercase italic mix-blend-screen"
-                  style={{ clipPath: "polygon(0 0, 100% 0, 100% 30%, 0 30%)" }}
-                >
-                  HackX
-                </motion.div>
+                {/* Glitch Slices - CPU intensive mix-blend-mode */}
+                {!optimizeForPerformance && (
+                  <motion.div
+                    animate={{
+                      x: [0, -5, 5, -5, 0],
+                      opacity: [0, 1, 0, 1, 0],
+                    }}
+                    transition={{
+                      duration: 0.2,
+                      repeat: Infinity,
+                      repeatType: "mirror",
+                      repeatDelay: 2,
+                    }}
+                    className="absolute inset-0 text-6xl md:text-8xl font-black tracking-tighter text-[#00f0ff] uppercase italic mix-blend-screen"
+                    style={{
+                      clipPath: "polygon(0 0, 100% 0, 100% 30%, 0 30%)",
+                    }}
+                  >
+                    HackX
+                  </motion.div>
+                )}
               </motion.div>
 
               {/* Status Bar */}
@@ -140,7 +153,7 @@ export default function Preloader({ onComplete }: { onComplete: () => void }) {
               </motion.p>
             </div>
 
-            {/* Decorative Elements */}
+            {/* Decorative Elements - Limit to one in performance mode */}
             <motion.div
               animate={{
                 rotate: 360,
@@ -152,17 +165,19 @@ export default function Preloader({ onComplete }: { onComplete: () => void }) {
               }}
               className="absolute top-1/2 left-1/2 h-125 w-125 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/5 pointer-events-none"
             />
-            <motion.div
-              animate={{
-                rotate: -360,
-              }}
-              transition={{
-                duration: 15,
-                repeat: Infinity,
-                ease: "linear",
-              }}
-              className="absolute top-1/2 left-1/2 h-75 w-75 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10 pointer-events-none"
-            />
+            {!optimizeForPerformance && (
+              <motion.div
+                animate={{
+                  rotate: -360,
+                }}
+                transition={{
+                  duration: 15,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+                className="absolute top-1/2 left-1/2 h-75 w-75 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10 pointer-events-none"
+              />
+            )}
           </motion.div>
         </>
       )}

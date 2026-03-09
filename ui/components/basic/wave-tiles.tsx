@@ -984,7 +984,14 @@ export function WaveTiles({
         drawingContext.fill(path);
 
         // 2. Texture (clipped) - Only draw texture on primary faces
-        if (face.isFront || face.isBack) {
+        const isCustomCube = !!(
+          cube.content ||
+          cube.rowSpan > 1 ||
+          cube.colSpan > 1
+        );
+        const shouldDrawTexture = !optimizeForPerformance || isCustomCube;
+
+        if ((face.isFront || face.isBack) && shouldDrawTexture) {
           drawingContext.save();
           drawingContext.clip(path);
           const avgSize = (cube.width + cube.height) / 2;
@@ -1200,7 +1207,11 @@ export function WaveTiles({
       cursorY = height / 2;
 
       // HiDPI/Retina support: render at physical pixels while keeping math in CSS pixels.
-      devicePixelRatio = Math.max(1, window.devicePixelRatio || 1);
+      const targetDpr = window.devicePixelRatio || 1;
+      devicePixelRatio = optimizeForPerformance
+        ? Math.min(targetDpr, 1.25)
+        : Math.max(1, targetDpr);
+
       canvasEl.width = Math.floor(width * devicePixelRatio);
       canvasEl.height = Math.floor(height * devicePixelRatio);
       canvasEl.style.width = `${width}px`;
@@ -1597,9 +1608,21 @@ export function WaveTiles({
     // ─────────────────────────────────────────────────────────────────────────
 
     function render(timestamp: number) {
-      if (!lastTime) lastTime = timestamp;
-      const delta = Math.min(0.05, (timestamp - lastTime) / 1000);
-      lastTime = timestamp;
+      const now = timestamp;
+      if (!lastTime) lastTime = now;
+      const elapsed = now - lastTime;
+
+      // Frame rate cap: 30 FPS for low power/performance mode, ~60 FPS otherwise.
+      const targetFps = optimizeForPerformance ? 30 : 62;
+      const frameInterval = 1000 / targetFps;
+
+      if (elapsed < frameInterval && elapsed >= 0) {
+        raf = window.requestAnimationFrame(render);
+        return;
+      }
+
+      const delta = Math.min(0.05, elapsed / 1000);
+      lastTime = now;
 
       const fadeAmount = 1 - Math.exp(-delta * 1.5);
       bgCurrent = mix(bgCurrent, bgTarget, fadeAmount);
@@ -1928,6 +1951,11 @@ export function WaveTiles({
         return;
       }
 
+      if (!isVisibleOnScreen) {
+        // Just wait for next visibility event to restart from startLoop
+        return;
+      }
+
       raf = window.requestAnimationFrame(render);
     }
 
@@ -2223,8 +2251,22 @@ export function WaveTiles({
     }
     canvasEl.addEventListener("pointerleave", handlePointerLeave);
 
+    // Visibility culling: pause the loop when the canvas is not visible.
+    let isVisibleOnScreen = true;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisibleOnScreen = entry.isIntersecting;
+        if (isVisibleOnScreen && !isPaused) {
+          startLoop();
+        }
+      },
+      { threshold: 0.05 },
+    );
+    observer.observe(canvasEl);
+
     return () => {
       window.cancelAnimationFrame(raf);
+      observer.disconnect();
       window.removeEventListener("resize", resizeCanvas);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       canvasEl.removeEventListener("pointerdown", handlePointerDown);
@@ -2235,7 +2277,12 @@ export function WaveTiles({
       }
       canvasEl.removeEventListener("pointerleave", handlePointerLeave);
     };
-  }, [globalColor, globalTexture, optimizeForPerformance, trackPointerGlobally]);
+  }, [
+    globalColor,
+    globalTexture,
+    optimizeForPerformance,
+    trackPointerGlobally,
+  ]);
 
   useEffect(() => {
     if (!transitionLayoutRef.current) return;
