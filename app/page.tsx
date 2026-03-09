@@ -808,12 +808,9 @@ export default function Home() {
                   </p>
                   <div className="grid grid-cols-2 gap-4">
                     {[
-                      "Ananya",
-                      "Brijesh",
-                      "Shobhit",
-                      "Harsh",
-                      "Rushit",
-                      "Pallavi",
+                      "Shahiil",
+                      "Roen",
+                      "Aryan",
                     ].map((name, i) => (
                       <div
                         key={i}
