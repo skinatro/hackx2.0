@@ -27,63 +27,68 @@ const STYLES = `
   }
 `;
 
-const ThemeToggle = ({
-  isLightMode,
-  toggle,
-}: {
-  isLightMode: boolean;
-  toggle: () => void;
-}) => {
-  return (
-    <button
-      onClick={toggle}
-      className={`pointer-events-auto group relative flex h-14 w-14 items-center justify-center border-[3px] transition-all duration-300 hover:scale-105 active:scale-95 ${
-        isLightMode
-          ? "border-black bg-white shadow-[4px_4px_0_#000]"
-          : "border-white bg-[#111] shadow-[4px_4px_0_#fff]"
-      }`}
-      aria-label="Toggle theme"
-    >
-      <div
-        className={`relative h-8 w-8 transition-transform duration-500 ${isLightMode ? "rotate-0" : "rotate-360"}`}
-      >
-        {isLightMode ? (
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-full w-full text-[#ff00a0]"
-          >
-            <circle cx="12" cy="12" r="5" />
-            <line x1="12" y1="1" x2="12" y2="3" />
-            <line x1="12" y1="21" x2="12" y2="23" />
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-            <line x1="1" y1="12" x2="3" y2="12" />
-            <line x1="21" y1="12" x2="23" y2="12" />
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-          </svg>
-        ) : (
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-full w-full text-[#c0ff00]"
-          >
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-          </svg>
-        )}
-      </div>
-    </button>
-  );
-};
+const FAQ_ITEMS = [
+  {
+    q: "What is HackX 2.0?",
+    a: "HackX 2.0 is a 24-hour national-level hackathon aimed at solving real-world challenges to shape the future of Digital Bharat. It brings together over 10,000 developers, designers, and innovators.",
+  },
+  {
+    q: "Who can participate?",
+    a: "Any student enrolled in a recognized university or college can participate. Whether you are a first-year student or a final-year expert, you are welcome to build with us!",
+  },
+  {
+    q: "What is the team size?",
+    a: "Teams can have 2 to 4 members. You can either form a team beforehand or find teammates during the registration phase.",
+  },
+  {
+    q: "Is there a registration fee?",
+    a: "Details regarding the registration fee and process are updated on the registration portal. Check out the portal for the most recent timeline and fees!",
+  },
+  {
+    q: "Will the problem statements be given in advance?",
+    a: "The broad domains (Cyber Defence, FinTech, Smart Cities, Future Mobility) are known, but the exact problem statements are revealed during the opening ceremony to maintain equal footing.",
+  },
+  {
+    q: "Is accommodation provided for outstation participants?",
+    a: "Yes! Accommodation will be arranged for outstation participants on a first-come, first-served basis. Make sure to indicate your requirement during registration so we can plan accordingly.",
+  },
+  {
+    q: "What should I bring to the hackathon?",
+    a: "Bring your laptop, charger, any hardware you plan to use, a valid college ID, and your energy! We will provide food, internet, and a fully equipped hacking space for the duration of the event.",
+  },
+  {
+    q: "Are there any prizes?",
+    a: "Yes! HackX 2.0 features exciting cash prizes, goodies, and recognition across multiple tracks. Top teams may also get opportunities for mentorship and incubation support. Full prize details will be announced soon.",
+  },
+  {
+    q: "Do I need to have a fully built project before the event?",
+    a: "No. All projects must be built from scratch during the 24-hour hackathon window. You may brainstorm and research beforehand, but no pre-built code or existing projects are allowed.",
+  },
+  {
+    q: "What technologies or tools can I use?",
+    a: "You are free to use any programming language, framework, or tool. Open-source libraries are allowed. If you use any third-party APIs or services, make sure to disclose them during your final submission.",
+  },
+  {
+    q: "Will there be mentors available during the hackathon?",
+    a: "Absolutely! Industry professionals and domain experts will be available throughout the event to guide your team, review your ideas, and help you navigate technical challenges.",
+  },
+  {
+    q: "How will projects be judged?",
+    a: "Projects will be evaluated on innovation, technical complexity, real-world impact, design, and presentation. A panel of judges from industry and academia will score each submission at the end of the hackathon.",
+  },
+  {
+    q: "Can I participate if I don't have a team yet?",
+    a: "Yes! We will host a team-formation session before the hackathon begins. You can connect with other solo participants and form a team on the spot. No one has to hack alone.",
+  },
+  {
+    q: "Where will HackX 2.0 be held?",
+    a: "HackX 2.0 will be held at St. Francis Institute of Technology (SFIT), Mumbai. Detailed venue and logistics information will be shared with registered participants closer to the event date.",
+  },
+  {
+    q: "How do I stay updated about HackX 2.0?",
+    a: "Follow our official social media handles and keep an eye on the registration portal for announcements, schedule updates, and sponsor reveals. You can also subscribe to our newsletter for direct updates.",
+  },
+] as const;
 
 export default function FAQPage() {
   const { isLightMode } = useTheme();
@@ -105,69 +110,11 @@ export default function FAQPage() {
               FAQ
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {[
-                {
-                  q: "What is HackX 2.0?",
-                  a: "HackX 2.0 is a 24-hour national-level hackathon aimed at solving real-world challenges to shape the future of Digital Bharat. It brings together over 10,000 developers, designers, and innovators.",
-                },
-                {
-                  q: "Who can participate?",
-                  a: "Any student enrolled in a recognized university or college can participate. Whether you are a first-year student or a final-year expert, you are welcome to build with us!",
-                },
-                {
-                  q: "What is the team size?",
-                  a: "Teams can have 2 to 4 members. You can either form a team beforehand or find teammates during the registration phase.",
-                },
-                {
-                  q: "Is there a registration fee?",
-                  a: "Details regarding the registration fee and process are updated on the registration portal. Check out the portal for the most recent timeline and fees!",
-                },
-                {
-                  q: "Will the problem statements be given in advance?",
-                  a: "The broad domains (Cyber Defence, FinTech, Smart Cities, Future Mobility) are known, but the exact problem statements are revealed during the opening ceremony to maintain equal footing.",
-                },
-                {
-                  q: "Is accommodation provided for outstation participants?",
-                  a: "Yes! Accommodation will be arranged for outstation participants on a first-come, first-served basis. Make sure to indicate your requirement during registration so we can plan accordingly.",
-                },
-                {
-                  q: "What should I bring to the hackathon?",
-                  a: "Bring your laptop, charger, any hardware you plan to use, a valid college ID, and your energy! We will provide food, internet, and a fully equipped hacking space for the duration of the event.",
-                },
-                {
-                  q: "Are there any prizes?",
-                  a: "Yes! HackX 2.0 features exciting cash prizes, goodies, and recognition across multiple tracks. Top teams may also get opportunities for mentorship and incubation support. Full prize details will be announced soon.",
-                },
-                {
-                  q: "Do I need to have a fully built project before the event?",
-                  a: "No. All projects must be built from scratch during the 24-hour hackathon window. You may brainstorm and research beforehand, but no pre-built code or existing projects are allowed.",
-                },
-                {
-                  q: "What technologies or tools can I use?",
-                  a: "You are free to use any programming language, framework, or tool. Open-source libraries are allowed. If you use any third-party APIs or services, make sure to disclose them during your final submission.",
-                },
-                {
-                  q: "Will there be mentors available during the hackathon?",
-                  a: "Absolutely! Industry professionals and domain experts will be available throughout the event to guide your team, review your ideas, and help you navigate technical challenges.",
-                },
-                {
-                  q: "How will projects be judged?",
-                  a: "Projects will be evaluated on innovation, technical complexity, real-world impact, design, and presentation. A panel of judges from industry and academia will score each submission at the end of the hackathon.",
-                },
-                {
-                  q: "Can I participate if I don't have a team yet?",
-                  a: "Yes! We will host a team-formation session before the hackathon begins. You can connect with other solo participants and form a team on the spot. No one has to hack alone.",
-                },
-                {
-                  q: "Where will HackX 2.0 be held?",
-                  a: "HackX 2.0 will be held at St. Francis Institute of Technology (SFIT), Mumbai. Detailed venue and logistics information will be shared with registered participants closer to the event date.",
-                },
-                {
-                  q: "How do I stay updated about HackX 2.0?",
-                  a: "Follow our official social media handles and keep an eye on the registration portal for announcements, schedule updates, and sponsor reveals. You can also subscribe to our newsletter for direct updates.",
-                },
-              ].map((faq, i) => (
+            <div
+              className="grid grid-cols-1 sm:grid-cols-2 gap-6"
+              style={{ contentVisibility: "auto", containIntrinsicSize: "1400px" }}
+            >
+              {FAQ_ITEMS.map((faq, i) => (
                 <details
                   key={i}
                   className={`cursor-target group border-[3px] [&_summary::-webkit-details-marker]:hidden ${

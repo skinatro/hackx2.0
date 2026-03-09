@@ -1,6 +1,6 @@
 "use client";
 
-import { useScroll, useTransform } from "framer-motion";
+import { useScroll, useTransform, useSpring } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
 interface ScrollSequenceProps {
@@ -26,9 +26,13 @@ export default function ScrollSequence({
 }: ScrollSequenceProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const imagesRef = useRef<(HTMLImageElement | undefined)[]>([]);
+  const renderRafRef = useRef<number | null>(null);
+  const resizeRafRef = useRef<number | null>(null);
+  const renderedFrameRef = useRef(-1);
+  const latestFrameIndexRef = useRef(0);
+  const isLightModeRef = useRef(isLightMode);
 
-  // Create an array to hold all the Image objects in memory
-  const [images, setImages] = useState<HTMLImageElement[]>([]);
   const [hasLoadedFirst, setHasLoadedFirst] = useState(false);
 
   // We track the scroll progress of the specific container
@@ -37,42 +41,166 @@ export default function ScrollSequence({
     offset: ["start start", "end end"],
   });
 
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
+
   // Map scroll progress (0 to 1) to a frame index (1 to frameCount)
   // useTransform produces a floating point number, we round it down later
-  const frameIndex = useTransform(scrollYProgress, [0, 1], [0, frameCount - 1]);
+  const frameIndex = useTransform(smoothProgress, [0, 1], [0, frameCount - 1]);
 
   useEffect(() => {
-    const loadedImages: HTMLImageElement[] = [];
-    let loadedCount = 0;
+    isLightModeRef.current = isLightMode;
+  }, [isLightMode]);
 
-    for (let i = 0; i < frameCount; i++) {
-      const img = new Image();
+  useEffect(() => {
+    let cancelled = false;
+    let idleHandle: number | null = null;
+    let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
 
-      // The frames are 1-indexed (frame-001.jpg), not 0-indexed
-      const fileNumber = i + 1;
+    imagesRef.current = new Array(frameCount);
+    renderedFrameRef.current = -1;
+
+    const buildSrc = (index: number) => {
+      const fileNumber = index + 1;
       const id = fileNumber.toString().padStart(padLength, "0");
-      const src = `${folderPath}/${filePrefix}${id}${fileExtension}`;
 
-      img.src = src;
+      return `${folderPath}/${filePrefix}${id}${fileExtension}`;
+    };
+
+    const loadFrame = (index: number) => {
+      if (cancelled || imagesRef.current[index]) {
+        return;
+      }
+
+      const img = new Image();
+      img.decoding = "async";
+      img.src = buildSrc(index);
       img.onload = () => {
-        loadedCount++;
-        if (fileNumber === 1) {
+        if (cancelled) {
+          return;
+        }
+
+        imagesRef.current[index] = img;
+
+        if (index === 0) {
           setHasLoadedFirst(true);
         }
+
+        if (index === latestFrameIndexRef.current && canvasRef.current) {
+          renderedFrameRef.current = -1;
+          renderRafRef.current = window.requestAnimationFrame(() => {
+            renderRafRef.current = null;
+            const currentFrame = latestFrameIndexRef.current;
+            const currentImage = imagesRef.current[currentFrame];
+            if (!currentImage || !currentImage.complete) {
+              return;
+            }
+
+            const canvas = canvasRef.current;
+            if (!canvas) {
+              return;
+            }
+
+            const ctx = canvas.getContext("2d");
+            if (!ctx) {
+              return;
+            }
+
+            const displayWidth = window.innerWidth;
+            const displayHeight = window.innerHeight;
+            const hRatio = displayWidth / currentImage.width;
+            const vRatio = displayHeight / currentImage.height;
+            const ratio = Math.max(hRatio, vRatio);
+            const centerShiftX = (displayWidth - currentImage.width * ratio) / 2;
+            const centerShiftY = (displayHeight - currentImage.height * ratio) / 2;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = isLightModeRef.current ? "#ffffff" : "#000000";
+            ctx.fillRect(0, 0, displayWidth, displayHeight);
+            ctx.drawImage(
+              currentImage,
+              0,
+              0,
+              currentImage.width,
+              currentImage.height,
+              centerShiftX,
+              centerShiftY,
+              currentImage.width * ratio,
+              currentImage.height * ratio,
+            );
+            renderedFrameRef.current = currentFrame;
+          });
+        }
+      };
+    };
+
+    loadFrame(0);
+
+    let nextFrameToLoad = 1;
+    const scheduleRemainingFrames = () => {
+      if (cancelled || nextFrameToLoad >= frameCount) {
+        return;
+      }
+
+      const loadBatch = (budget = 8) => {
+        let processed = 0;
+        while (nextFrameToLoad < frameCount && processed < budget) {
+          loadFrame(nextFrameToLoad);
+          nextFrameToLoad += 1;
+          processed += 1;
+        }
+
+        if (nextFrameToLoad >= frameCount || cancelled) {
+          return;
+        }
+
+        if ("requestIdleCallback" in window) {
+          idleHandle = window.requestIdleCallback(
+            () => {
+              loadBatch();
+            },
+            { timeout: 300 },
+          );
+          return;
+        }
+
+        fallbackTimer = globalThis.setTimeout(() => {
+          loadBatch(4);
+        }, 32);
       };
 
-      loadedImages.push(img);
-    }
+      loadBatch();
+    };
 
-    setImages(loadedImages);
-  }, [frameCount, folderPath, filePrefix, fileExtension, padLength]);
+    scheduleRemainingFrames();
 
-  const renderRafRef = useRef<number>(0);
+    return () => {
+      cancelled = true;
+      imagesRef.current = [];
+      if (idleHandle !== null && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleHandle);
+      }
+      if (fallbackTimer !== null) {
+        window.clearTimeout(fallbackTimer);
+      }
+      if (renderRafRef.current !== null) {
+        window.cancelAnimationFrame(renderRafRef.current);
+        renderRafRef.current = null;
+      }
+      if (resizeRafRef.current !== null) {
+        window.cancelAnimationFrame(resizeRafRef.current);
+        resizeRafRef.current = null;
+      }
+    };
+  }, [fileExtension, filePrefix, folderPath, frameCount, padLength]);
 
   // Handle Canvas Drawing when the scroll/frame changes
   useEffect(() => {
     // If the canvas or first frame isn't loaded yet, skip
-    if (!canvasRef.current || images.length === 0 || !images[0].complete)
+    if (!canvasRef.current || !hasLoadedFirst)
       return;
 
     const ctx = canvasRef.current.getContext("2d");
@@ -81,24 +209,28 @@ export default function ScrollSequence({
     const canvas = canvasRef.current;
 
     const renderFrame = (index: number) => {
-      const img = images[index];
+      const img = imagesRef.current[index];
 
       // Only attempt to draw if the image is actually fully downloaded by browser
       if (!img || !img.complete) return;
+      if (renderedFrameRef.current === index) return;
+
+      const displayWidth = window.innerWidth;
+      const displayHeight = window.innerHeight;
 
       // Handle the resize logic perfectly cover the canvas (like object-fit: cover)
-      const hRatio = canvas.width / img.width;
-      const vRatio = canvas.height / img.height;
+      const hRatio = displayWidth / img.width;
+      const vRatio = displayHeight / img.height;
       const ratio = Math.max(hRatio, vRatio);
 
-      const centerShift_x = (canvas.width - img.width * ratio) / 2;
-      const centerShift_y = (canvas.height - img.height * ratio) / 2;
+      const centerShiftX = (displayWidth - img.width * ratio) / 2;
+      const centerShiftY = (displayHeight - img.height * ratio) / 2;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Optional: fill background color depending on light/dark mode for the edges before the cover calculates
       ctx.fillStyle = isLightMode ? "#ffffff" : "#000000";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, displayWidth, displayHeight);
 
       ctx.drawImage(
         img,
@@ -106,44 +238,69 @@ export default function ScrollSequence({
         0,
         img.width,
         img.height,
-        centerShift_x,
-        centerShift_y,
+        centerShiftX,
+        centerShiftY,
         img.width * ratio,
         img.height * ratio,
       );
+
+      renderedFrameRef.current = index;
     };
 
     const renderFrameThrottled = (index: number) => {
-      if (renderRafRef.current) return;
+      if (renderRafRef.current !== null) return;
       renderRafRef.current = window.requestAnimationFrame(() => {
         renderFrame(index);
-        renderRafRef.current = 0;
+        renderRafRef.current = null;
       });
     };
 
     // Initialize Canvas width/height properly based on DPI boundaries
     const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      const displayWidth = window.innerWidth;
+      const displayHeight = window.innerHeight;
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+
+      canvas.width = Math.floor(displayWidth * dpr);
+      canvas.height = Math.floor(displayHeight * dpr);
+      canvas.style.width = `${displayWidth}px`;
+      canvas.style.height = `${displayHeight}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      renderedFrameRef.current = -1;
       const currentIdx = Math.floor(frameIndex.get());
       renderFrame(currentIdx);
     };
 
     handleResize(); // trigger immediately on mount
-    window.addEventListener("resize", handleResize);
+    const onResize = () => {
+      if (resizeRafRef.current !== null) {
+        return;
+      }
+
+      resizeRafRef.current = window.requestAnimationFrame(() => {
+        resizeRafRef.current = null;
+        handleResize();
+      });
+    };
+
+    window.addEventListener("resize", onResize, { passive: true });
 
     // Subscribe to framer motion changes
     const unsubscribe = frameIndex.on("change", (latestIdx: number) => {
-      renderFrameThrottled(Math.floor(latestIdx));
+      const nextIndex = Math.floor(latestIdx);
+      latestFrameIndexRef.current = nextIndex;
+      renderFrameThrottled(nextIndex);
     });
 
     return () => {
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("resize", onResize);
       unsubscribe();
-      if (renderRafRef.current)
+      if (renderRafRef.current !== null)
         window.cancelAnimationFrame(renderRafRef.current);
+      if (resizeRafRef.current !== null)
+        window.cancelAnimationFrame(resizeRafRef.current);
     };
-  }, [images, frameIndex, isLightMode, hasLoadedFirst]);
+  }, [frameIndex, hasLoadedFirst, isLightMode]);
 
   return (
     <div

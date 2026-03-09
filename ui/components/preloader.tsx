@@ -5,13 +5,17 @@ import { useEffect, useState } from "react";
 import { WaveTiles } from "./basic/wave-tiles";
 
 export default function Preloader({ onComplete }: { onComplete: () => void }) {
-  const [isVisible, setIsVisible] = useState(true);
-  const [isFirstLoad, setIsFirstLoad] = useState(false);
+  const [isFirstLoad] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return !localStorage.getItem("hackx_visited");
+  });
+  const [isVisible, setIsVisible] = useState(isFirstLoad);
 
   useEffect(() => {
-    const hasVisited = localStorage.getItem("hackx_visited");
-    if (!hasVisited) {
-      setIsFirstLoad(true);
+    if (isFirstLoad) {
       // Play animation for a fixed duration then complete
       const timer = setTimeout(() => {
         setIsVisible(false);
@@ -21,9 +25,8 @@ export default function Preloader({ onComplete }: { onComplete: () => void }) {
       return () => clearTimeout(timer);
     } else {
       onComplete();
-      setIsVisible(false);
     }
-  }, [onComplete]);
+  }, [isFirstLoad, onComplete]);
 
   if (!isFirstLoad) return null;
 
@@ -48,6 +51,7 @@ export default function Preloader({ onComplete }: { onComplete: () => void }) {
           >
             <WaveTiles
               forceTheme={true}
+              optimizeForPerformance
               className="absolute! overflow-hidden!"
             />
 
@@ -146,7 +150,7 @@ export default function Preloader({ onComplete }: { onComplete: () => void }) {
                 repeat: Infinity,
                 ease: "linear",
               }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] border border-white/5 rounded-full pointer-events-none"
+              className="absolute top-1/2 left-1/2 h-125 w-125 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/5 pointer-events-none"
             />
             <motion.div
               animate={{
@@ -157,7 +161,7 @@ export default function Preloader({ onComplete }: { onComplete: () => void }) {
                 repeat: Infinity,
                 ease: "linear",
               }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] border border-white/10 rounded-full pointer-events-none"
+              className="absolute top-1/2 left-1/2 h-75 w-75 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10 pointer-events-none"
             />
           </motion.div>
         </>

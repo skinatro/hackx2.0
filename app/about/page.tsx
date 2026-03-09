@@ -239,41 +239,35 @@ export default function AboutPage() {
   const [displaySection, setDisplaySection] = useState<SectionKey>("mission");
   const [isSectionVisible, setIsSectionVisible] = useState(true);
   const { isLightMode, setWaveTilesOpacity } = useTheme();
-  const [isModeAnimating, setIsModeAnimating] = useState(false);
-  const hasMountedRef = useRef(false);
+  const switchTimerRef = useRef<number | null>(null);
 
   useEffect(() => setWaveTilesOpacity("opacity-95", "opacity-60"), [setWaveTilesOpacity]);
 
   useEffect(() => {
-    if (activeSection === displaySection) {
-      setIsSectionVisible(true);
+    return () => {
+      if (switchTimerRef.current !== null) {
+        window.clearTimeout(switchTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleSectionChange = (nextSection: SectionKey) => {
+    if (nextSection === activeSection) {
       return;
     }
 
+    if (switchTimerRef.current !== null) {
+      window.clearTimeout(switchTimerRef.current);
+    }
+
+    setActiveSection(nextSection);
     setIsSectionVisible(false);
-
-    const switchTimer = window.setTimeout(() => {
-      setDisplaySection(activeSection);
+    switchTimerRef.current = window.setTimeout(() => {
+      setDisplaySection(nextSection);
       setIsSectionVisible(true);
+      switchTimerRef.current = null;
     }, 180);
-
-    return () => window.clearTimeout(switchTimer);
-  }, [activeSection, displaySection]);
-
-  useEffect(() => {
-    if (!hasMountedRef.current) {
-      hasMountedRef.current = true;
-      return;
-    }
-
-    setIsModeAnimating(true);
-    const animationTimer = window.setTimeout(
-      () => setIsModeAnimating(false),
-      520,
-    );
-
-    return () => window.clearTimeout(animationTimer);
-  }, [isLightMode]);
+  };
 
   const activeMeta =
     sectionOrder.find((section) => section.key === activeSection) ??
@@ -292,14 +286,14 @@ export default function AboutPage() {
             isLightMode
               ? "bg-[#ffd23f]/45 opacity-100 scale-110"
               : "bg-[#ffd23f]/18 opacity-50 scale-100"
-          } ${isModeAnimating ? "animate-pulse" : ""}`}
+          }`}
         />
         <div
           className={`absolute bottom-[12%] right-[8%] h-56 w-56 rounded-full blur-3xl transition-all duration-700 ${
             isLightMode
               ? "bg-[#1fe0ff]/28 opacity-80 scale-110"
               : "bg-[#1fe0ff]/16 opacity-45 scale-100"
-          } ${isModeAnimating ? "animate-pulse" : ""}`}
+          }`}
         />
         <div
           className={`absolute right-[18%] top-[14%] h-28 w-28 rounded-full blur-2xl transition-all duration-700 ${
@@ -324,7 +318,7 @@ export default function AboutPage() {
             Hack X 2.0
           </p>
           <h1
-            className={`navbar-font mt-3 text-4xl uppercase leading-none transition-all duration-500 sm:text-6xl xl:text-[4.25rem] ${isModeAnimating ? "scale-[1.02]" : "scale-100"}`}
+            className="navbar-font mt-3 text-4xl uppercase leading-none transition-all duration-500 sm:text-6xl xl:text-[4.25rem] scale-100"
             style={{ textShadow: `4px 4px 0 ${activeMeta.accent}` }}
           >
             About The Event
@@ -345,7 +339,7 @@ export default function AboutPage() {
               label={section.label}
               accent={section.accent}
               isLightMode={isLightMode}
-              onClick={() => setActiveSection(section.key)}
+              onClick={() => handleSectionChange(section.key)}
             />
           ))}
         </div>
@@ -355,7 +349,7 @@ export default function AboutPage() {
             isLightMode
               ? "border-black/85 bg-[#fff9e8]/72 shadow-[14px_14px_0_rgba(255,210,63,0.28)]"
               : "border-black bg-black/38 shadow-[10px_10px_0_rgba(0,0,0,0.9)]"
-          } ${isModeAnimating ? (isLightMode ? "scale-[1.01]" : "scale-[0.99]") : "scale-100"}`}
+          } scale-100`}
         >
           <div className="flex h-full flex-col overflow-hidden">
             <div
@@ -406,7 +400,7 @@ export default function AboutPage() {
                       isSectionVisible
                         ? "translate-y-0 opacity-100"
                         : "translate-y-6 opacity-0"
-                    } ${isModeAnimating ? (isLightMode ? "scale-[1.02]" : "scale-[0.98]") : "scale-100"}`}
+                    } scale-100`}
                     style={{
                       transitionDelay: `${isSectionVisible ? 80 + index * 70 : 0}ms`,
                     }}

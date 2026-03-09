@@ -1,8 +1,15 @@
 "use client";
-import { WaveTiles } from "@/ui/components/basic/wave-tiles";
 import { usePathname } from "next/navigation";
-import { createContext, useCallback, useContext, useState } from "react";
+import dynamic from "next/dynamic";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+
+const WaveTiles = dynamic(
+  () => import("@/ui/components/basic/wave-tiles").then((mod) => mod.WaveTiles),
+  {
+    ssr: false,
+  },
+);
 
 const DEFAULT_LIGHT = "opacity-40";
 const DEFAULT_DARK = "opacity-30";
@@ -48,8 +55,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const contextValue = useMemo(
+    () => ({ isLightMode, setWaveTilesOpacity, toggleTheme }),
+    [isLightMode, setWaveTilesOpacity, toggleTheme],
+  );
+
   return (
-    <ThemeContext.Provider value={{ isLightMode, setWaveTilesOpacity, toggleTheme }}>
+    <ThemeContext.Provider value={contextValue}>
       {showWaveTiles && (
         <div className="fixed inset-0 z-[1] overflow-hidden pointer-events-none">
           <WaveTiles
@@ -57,6 +69,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
             onModeChange={setIsLightMode}
             forceTheme={forceTheme}
             trackPointerGlobally
+            optimizeForPerformance
           />
         </div>
       )}
