@@ -13,18 +13,18 @@ type NavCube = {
 };
 
 const navCubes: NavCube[] = [
-  { label: "Home", shortLabel: "HM", href: "/", accent: "#ff6b6b" },
+  { label: "Home", shortLabel: "HM", href: "/", accent: "#ff00a0" },
   { label: "About", shortLabel: "AB", href: "/about", accent: "#ffd23f" },
   {
     label: "Problem Statement",
     shortLabel: "PS",
     href: "/ps",
-    accent: "#5ce1e6",
+    accent: "#00f0ff",
   },
-  { label: "Timeline", shortLabel: "TL", href: "/timeline", accent: "#5ce1e6" },
+  { label: "Timeline", shortLabel: "TL", href: "/timeline", accent: "#c0ff00" },
   { label: "Sponsors", shortLabel: "SP", href: "/sponsors", accent: "#ffd23f" },
-  { label: "F.A.Q", shortLabel: "FAQ", href: "/faq", accent: "#5ce1e6" },
-  { label: "Contact", shortLabel: "CT", href: "/contact", accent: "#5ce1e6" },
+  { label: "F.A.Q", shortLabel: "FAQ", href: "/faq", accent: "#00f0ff" },
+  { label: "Contact", shortLabel: "CT", href: "/contact", accent: "#c0ff00" },
 ];
 
 function isActivePath(pathname: string, href: string) {

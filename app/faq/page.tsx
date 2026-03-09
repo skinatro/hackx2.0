@@ -1,6 +1,8 @@
 "use client";
 
 import { useTheme } from "@/app/providers/theme-provider";
+import { AnimatePresence, motion } from "framer-motion";
+import React from "react";
 
 const STYLES = `
   @keyframes float {
@@ -90,6 +92,59 @@ const FAQ_ITEMS = [
   },
 ] as const;
 
+function AccordionItem({
+  question,
+  answer,
+  isLightMode,
+}: {
+  question: string;
+  answer: string;
+  isLightMode: boolean;
+}) {
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  return (
+    <div
+      className={`cursor-target group border-[3px] h-fit transition-all duration-300 ${
+        isLightMode
+          ? "border-black bg-white shadow-[4px_4px_0_#000]"
+          : "border-white/40 bg-[#111] shadow-[4px_4px_0_#c0ff00]"
+      } ${isOpen ? "-translate-y-1" : "hover:-translate-y-0.5"}`}
+    >
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex w-full cursor-pointer items-center justify-between p-6 text-left font-black uppercase tracking-wide text-lg sm:text-xl focus:outline-none ${isLightMode ? "text-black" : "text-white"}`}
+      >
+        {question}
+        <motion.span
+          animate={{ rotate: isOpen ? 45 : 0 }}
+          className={`ml-4 text-2xl transition-colors duration-300 ${isLightMode ? "text-[#ff00a0]" : "text-[#c0ff00]"}`}
+        >
+          +
+        </motion.span>
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div
+              className={`mx-6 pb-6 font-bold leading-relaxed border-t-[3px] mt-2 pt-4 ${isLightMode ? "text-black/80 border-black/10" : "text-white/80 border-white/10"}`}
+            >
+              {answer}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function FAQPage() {
   const { isLightMode } = useTheme();
 
@@ -111,39 +166,23 @@ export default function FAQPage() {
             </h2>
 
             <div
-              className="grid grid-cols-1 sm:grid-cols-2 gap-6"
-              style={{ contentVisibility: "auto", containIntrinsicSize: "1400px" }}
+              className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start"
+              style={{
+                contentVisibility: "auto",
+                containIntrinsicSize: "1400px",
+              }}
             >
               {FAQ_ITEMS.map((faq, i) => (
-                <details
+                <AccordionItem
                   key={i}
-                  className={`cursor-target group border-[3px] [&_summary::-webkit-details-marker]:hidden ${
-                    isLightMode
-                      ? "border-black bg-white shadow-[4px_4px_0_#000]"
-                      : "border-white/30 bg-[#111] shadow-[4px_4px_0_#fff]"
-                  }`}
-                >
-                  <summary
-                    className={`flex cursor-pointer items-center justify-between p-6 font-black uppercase tracking-wide text-lg sm:text-xl focus:outline-none ${isLightMode ? "text-black" : "text-white"}`}
-                  >
-                    {faq.q}
-                    <span
-                      className={`ml-4 text-2xl transition-transform duration-300 group-open:rotate-45 ${isLightMode ? "text-[#ff00a0]" : "text-[#c0ff00]"}`}
-                    >
-                      +
-                    </span>
-                  </summary>
-                  <div
-                    className={`px-6 pb-6 font-bold leading-relaxed border-t-[3px] mt-2 pt-4 ${isLightMode ? "text-black/80 border-black/10" : "text-white/80 border-white/10"}`}
-                  >
-                    {faq.a}
-                  </div>
-                </details>
+                  question={faq.q}
+                  answer={faq.a}
+                  isLightMode={isLightMode}
+                />
               ))}
             </div>
           </div>
         </main>
-
       </div>
     </div>
   );
