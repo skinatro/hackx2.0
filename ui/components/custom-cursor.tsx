@@ -5,10 +5,9 @@ import { useEffect, useRef, useState } from "react";
 export default function CustomCursor() {
   const cursorRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
-  const requestRef = useRef<number>(null);
+  const requestRef = useRef<number | null>(null);
 
-  // Use state only for mount check to avoid hydration error
-  const [isMounted, setIsMounted] = useState(false);
+  const [isEnabled, setIsEnabled] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -18,13 +17,27 @@ export default function CustomCursor() {
   const currentSize = useRef({ width: 32, height: 32 });
   const rotation = useRef(0);
   const hoveredElement = useRef<HTMLElement | null>(null);
+  const visibleRef = useRef(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    const mediaQuery = window.matchMedia(
+      "(pointer: fine) and (hover: hover) and (prefers-reduced-motion: no-preference)",
+    );
+
+    const updateEnabledState = () => {
+      setIsEnabled(mediaQuery.matches);
+    };
+
+    updateEnabledState();
+    mediaQuery.addEventListener("change", updateEnabledState);
+
+    return () => {
+      mediaQuery.removeEventListener("change", updateEnabledState);
+    };
   }, []);
 
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isEnabled) return;
 
     // Hide default cursor globally
     document.documentElement.style.cursor = "none";
@@ -34,7 +47,10 @@ export default function CustomCursor() {
 
     const onMouseMove = (e: MouseEvent) => {
       mouse.current = { x: e.clientX, y: e.clientY };
-      if (!isVisible) setIsVisible(true);
+      if (!visibleRef.current) {
+        visibleRef.current = true;
+        setIsVisible(true);
+      }
     };
 
     const updateCursor = () => {
@@ -114,6 +130,7 @@ export default function CustomCursor() {
     };
 
     const handleDocumentMouseLeave = () => {
+      visibleRef.current = false;
       setIsVisible(false);
     };
 
@@ -134,9 +151,9 @@ export default function CustomCursor() {
       document.documentElement.style.cursor = "auto";
       if (document.head.contains(style)) document.head.removeChild(style);
     };
-  }, [isMounted, isVisible]);
+  }, [isEnabled]);
 
-  if (!isMounted) return null;
+  if (!isEnabled) return null;
 
   return (
     <div

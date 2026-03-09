@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect } from "react";
 import { useTheme } from "@/app/providers/theme-provider";
 
 const STYLES = `
@@ -150,23 +150,8 @@ function CountdownItem({
 
 export default function Home() {
   const { isLightMode, setWaveTilesOpacity } = useTheme();
-  const [isModeAnimating, setIsModeAnimating] = useState(false);
-  const hasMountedRef = useRef(false);
 
   useEffect(() => setWaveTilesOpacity("opacity-75", "opacity-30"), [setWaveTilesOpacity]);
-
-  useEffect(() => {
-    if (!hasMountedRef.current) {
-      hasMountedRef.current = true;
-      return;
-    }
-    setIsModeAnimating(true);
-    const animationTimer = window.setTimeout(
-      () => setIsModeAnimating(false),
-      520,
-    );
-    return () => window.clearTimeout(animationTimer);
-  }, [isLightMode]);
 
   return (
     <div
@@ -224,7 +209,7 @@ export default function Home() {
                   {"{"} future {"}"}
                 </span>
                 <span style={{ color: isLightMode ? "#000" : "#fff" }}>
-                  from <span style={{ color: "#c0ff00" }}>'now';</span>
+                  from <span style={{ color: "#c0ff00" }}>{"'now';"}</span>
                 </span>
               </div>
             </FloatingBadge>
@@ -306,7 +291,7 @@ export default function Home() {
             >
               A national-level 24-hour student hackathon hosted at St. Francis
               Institute of Technology, Mumbai. Join 10,000+ top developers,
-              designers, and innovators shaping the future of India's digital
+              designers, and innovators shaping the future of India&apos;s digital
               infrastructure.
             </p>
 

@@ -1059,9 +1059,7 @@ export function WaveTiles({
       const parsedGlobalColor = colorToRgb(globalColor);
       const parsedGlobalTexture: WaveTileTexture = globalTexture || "jaali";
       // Preserve the current mode when rebuilding (e.g. after resize).
-      // In light mode all cubes are light except the trigger cube, and vice versa in dark mode.
       const defaultAngle = isLightMode ? 0 : Math.PI;
-      const triggerAngle = isLightMode ? Math.PI : 0;
 
       // Track which grid cells are covered by custom cubes
       const coveredCells = new Set<string>();
@@ -1184,11 +1182,11 @@ export function WaveTiles({
         }
       }
 
-      // Keep trigger cube opposite to the rest, matching current mode.
+      // Keep the trigger cube visually aligned with the rest of the grid.
       if (triggerCube) {
-        triggerCube.angle = triggerAngle;
-        triggerCube.startAngle = triggerAngle;
-        triggerCube.targetAngle = triggerAngle;
+        triggerCube.angle = defaultAngle;
+        triggerCube.startAngle = defaultAngle;
+        triggerCube.targetAngle = defaultAngle;
       }
     }
 
@@ -2070,10 +2068,8 @@ export function WaveTiles({
 
         cube.startAngle = cube.angle;
 
-        // Trigger cube flips opposite to others
-        const isTriggerCube = cube === triggerCube;
         const target = isLightMode ? 0 : Math.PI;
-        cube.targetAngle = isTriggerCube ? Math.PI - target : target;
+        cube.targetAngle = target;
 
         cube.animationStart = now + distance * 28;
         cube.animationDuration = 420;
@@ -2220,7 +2216,7 @@ export function WaveTiles({
     window.addEventListener("resize", resizeCanvas);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     canvasEl.addEventListener("pointerdown", handlePointerDown);
-    if (trackPointerGlobally && !optimizeForPerformance) {
+    if (trackPointerGlobally) {
       window.addEventListener("pointermove", handlePointerMove);
     } else {
       canvasEl.addEventListener("pointermove", handlePointerMove);
@@ -2232,14 +2228,14 @@ export function WaveTiles({
       window.removeEventListener("resize", resizeCanvas);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       canvasEl.removeEventListener("pointerdown", handlePointerDown);
-      if (trackPointerGlobally && !optimizeForPerformance) {
+      if (trackPointerGlobally) {
         window.removeEventListener("pointermove", handlePointerMove);
       } else {
         canvasEl.removeEventListener("pointermove", handlePointerMove);
       }
       canvasEl.removeEventListener("pointerleave", handlePointerLeave);
     };
-  }, [globalColor, globalTexture, trackPointerGlobally]);
+  }, [globalColor, globalTexture, optimizeForPerformance, trackPointerGlobally]);
 
   useEffect(() => {
     if (!transitionLayoutRef.current) return;

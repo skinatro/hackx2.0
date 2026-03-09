@@ -1,8 +1,7 @@
-import CustomCursor from "@/ui/components/custom-cursor";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
-import NavbarWrapper from "./components/NavbarWrapper";
+import ClientChrome from "./components/ClientChrome";
 import { ThemeProvider } from "./providers/theme-provider";
 
 import "./globals.css";
@@ -33,8 +32,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased hover:cursor-none bg-black`}
       >
         <ThemeProvider>
-          <NavbarWrapper />
-          <CustomCursor />
+          <ClientChrome />
           {children}
         </ThemeProvider>
       </body>

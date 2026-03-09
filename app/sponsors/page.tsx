@@ -136,38 +136,35 @@ export default function Page() {
   const [displayTier, setDisplayTier] = useState<TierKey>("presenting");
   const [isTierVisible, setIsTierVisible] = useState(true);
   const { isLightMode, setWaveTilesOpacity } = useTheme();
-  const [isModeAnimating, setIsModeAnimating] = useState(false);
-  const hasMountedRef = useRef(false);
+  const switchTimerRef = useRef<number | null>(null);
 
   useEffect(() => setWaveTilesOpacity("opacity-95", "opacity-60"), [setWaveTilesOpacity]);
 
   useEffect(() => {
-    if (activeTier === displayTier) {
-      setIsTierVisible(true);
+    return () => {
+      if (switchTimerRef.current !== null) {
+        window.clearTimeout(switchTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleTierChange = (nextTier: TierKey) => {
+    if (nextTier === activeTier) {
       return;
     }
 
+    if (switchTimerRef.current !== null) {
+      window.clearTimeout(switchTimerRef.current);
+    }
+
+    setActiveTier(nextTier);
     setIsTierVisible(false);
-
-    const switchTimer = window.setTimeout(() => {
-      setDisplayTier(activeTier);
+    switchTimerRef.current = window.setTimeout(() => {
+      setDisplayTier(nextTier);
       setIsTierVisible(true);
+      switchTimerRef.current = null;
     }, 180);
-
-    return () => window.clearTimeout(switchTimer);
-  }, [activeTier, displayTier]);
-
-  useEffect(() => {
-    if (!hasMountedRef.current) {
-      hasMountedRef.current = true;
-      return;
-    }
-
-    setIsModeAnimating(true);
-    const animationTimer = window.setTimeout(() => setIsModeAnimating(false), 520);
-
-    return () => window.clearTimeout(animationTimer);
-  }, [isLightMode]);
+  };
 
   const activeTierMeta = tiers.find((tier) => tier.key === activeTier) ?? tiers[0];
   const displayTierMeta = tiers.find((tier) => tier.key === displayTier) ?? tiers[0];
@@ -180,12 +177,12 @@ export default function Page() {
         <div
           className={`absolute left-[6%] top-[8%] h-44 w-44 rounded-full blur-3xl transition-all duration-700 ${
             isLightMode ? "bg-[#ffd23f]/45 opacity-100 scale-110" : "bg-[#ffd23f]/18 opacity-50 scale-100"
-          } ${isModeAnimating ? "animate-pulse" : ""}`}
+          }`}
         />
         <div
           className={`absolute bottom-[12%] right-[8%] h-56 w-56 rounded-full blur-3xl transition-all duration-700 ${
             isLightMode ? "bg-[#1fe0ff]/28 opacity-80 scale-110" : "bg-[#1fe0ff]/16 opacity-45 scale-100"
-          } ${isModeAnimating ? "animate-pulse" : ""}`}
+          }`}
         />
         <div
           className={`absolute right-[18%] top-[14%] h-28 w-28 rounded-full blur-2xl transition-all duration-700 ${
@@ -206,7 +203,7 @@ export default function Page() {
         <header className="shrink-0 text-center">
           <p className={`text-[10px] font-black uppercase tracking-[0.4em] xl:text-xs ${isLightMode ? "text-black/55" : "text-white/50"}`}>Hack X 2.0</p>
           <h1
-            className={`navbar-font mt-3 text-4xl uppercase leading-none transition-all duration-500 sm:text-6xl xl:text-7xl 2xl:text-[5.5rem] ${isModeAnimating ? "scale-[1.02]" : "scale-100"}`}
+            className="navbar-font mt-3 text-4xl uppercase leading-none transition-all duration-500 sm:text-6xl xl:text-7xl 2xl:text-[5.5rem] scale-100"
             style={{ textShadow: `4px 4px 0 ${activeTierMeta.accent}` }}
           >
             Our Sponsors
@@ -224,7 +221,7 @@ export default function Page() {
               label={tier.label}
               accent={tier.accent}
               isLightMode={isLightMode}
-              onClick={() => setActiveTier(tier.key)}
+              onClick={() => handleTierChange(tier.key)}
             />
           ))}
         </div>
@@ -234,7 +231,7 @@ export default function Page() {
             isLightMode
               ? "border-black/85 bg-[#fff9e8]/72 shadow-[14px_14px_0_rgba(255,210,63,0.28)]"
               : "border-black bg-black/38 shadow-[10px_10px_0_rgba(0,0,0,0.9)]"
-          } ${isModeAnimating ? (isLightMode ? "scale-[1.01]" : "scale-[0.99]") : "scale-100"}`}
+          } scale-100`}
         >
           <div className="flex h-full flex-col overflow-hidden">
             <div className={`shrink-0 border-b px-5 py-4 sm:px-6 xl:px-7 xl:py-5 ${isLightMode ? "border-black/10" : "border-white/10"}`}>
@@ -265,7 +262,7 @@ export default function Page() {
                     key={`${displayTierMeta.key}-${index}`}
                     className={`transition-all duration-500 ${
                       isTierVisible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
-                    } ${isModeAnimating ? (isLightMode ? "scale-[1.02]" : "scale-[0.98]") : "scale-100"}`}
+                    } scale-100`}
                     style={{ transitionDelay: `${isTierVisible ? 80 + index * 70 : 0}ms` }}
                   >
                     <SponsorCard {...sponsor} accent={displayTierMeta.accent} isLightMode={isLightMode} />

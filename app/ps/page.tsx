@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTheme } from "@/app/providers/theme-provider";
 
 const STYLES = `
@@ -28,6 +28,97 @@ const STYLES = `
     color: transparent;
   }
 `;
+
+type Track = {
+  name: string;
+  color: string;
+  icon: React.ReactNode;
+  desc: string;
+  example: string;
+  problem: string;
+  context: string;
+  solution: string;
+  deliverables: string[];
+};
+
+const buildTracks = (): Track[] => [
+  {
+    name: "Cyber Defence",
+    color: "#ff00a0",
+    icon: <ShieldIcon className="h-full w-full" />,
+    desc: "Build systems that protect critical infrastructure and user data from evolving digital threats.",
+    example:
+      "Develop an AI-driven real-time threat detection system for identifying Zero-Day vulnerabilities.",
+    problem:
+      "As enterprise cloud environments scale, traditional rule-based security systems fail to detect sophisticated 'Zero-Day' exploits that have no known signatures. This leaves critical data exposed for hours or days before a patch is issued.",
+    context:
+      "Digital Bharat's rapid cloud adoption means that government and financial infrastructure are now prime targets for state-sponsored and independent cyber-terrorists using AI to generate novel attack vectors.",
+    solution:
+      "An autonomous security engine that uses behavioral heuristics and anomalous pattern recognition to flag suspicious activity in real-time, even if the attack type is completely new.",
+    deliverables: [
+      "Real-time Monitoring Dashboard",
+      "AI Model Analysis Report",
+      "Automated Response Protocol",
+    ],
+  },
+  {
+    name: "FinTech",
+    color: "#c0ff00",
+    icon: <FinTechIcon className="h-full w-full" />,
+    desc: "Innovate in the realm of digital payments, decentralized finance, and accessible banking solutions.",
+    example:
+      "Create a decentralized P2P lending platform with localized credit-scoring.",
+    problem:
+      "Millions of small business owners in rural India are excluded from the formal credit system because they lack traditional collateral or a standardized credit history, forcing them into high-interest predatory lending.",
+    context:
+      "While UPI has revolutionized payments, the credit side of FinTech remains centralized. There is a massive opportunity to use community-verified trust and transaction data for decentralized lending.",
+    solution:
+      "A blockchain-based P2P platform that leverages UPI transaction history and AI-driven social graph analysis to provide fair micro-loans with low interest rates.",
+    deliverables: [
+      "Transparent Smart Contracts",
+      "Lending App Prototype",
+      "Credit Scoring Algorithm Demo",
+    ],
+  },
+  {
+    name: "Smart Cities",
+    color: "#00f0ff",
+    icon: <CityIcon className="h-full w-full" />,
+    desc: "Create technology to optimize urban living, from waste management to smart lighting and energy.",
+    example:
+      "Design an IoT-based intelligent traffic management system.",
+    problem:
+      "Urban peak-hour congestion costs the Indian economy billions in lost productivity and fuel. Existing traffic light systems are static and do not adapt to real-time fluctuations in vehicle flow.",
+    context:
+      "Smart Cities require dynamic infrastructure. With the rollout of 5G and ubiquitous camera sensor networks, we now have the data to manage traffic fluidly rather than through fixed timers.",
+    solution:
+      "An IoT network that synchronizes traffic signals across a grid using real-time density mapping and predictive AI to minimize wait times and CO2 emissions.",
+    deliverables: [
+      "Mesh Sensor Network Simulation",
+      "Optimization Dashboard",
+      "Hardware Design Prototype",
+    ],
+  },
+  {
+    name: "Future Mobility",
+    color: "#ff00a0",
+    icon: <MobilityIcon className="h-full w-full" />,
+    desc: "Design the next generation of transportation, focusing on efficiency, sustainability, and connectivity.",
+    example:
+      "Build an EV-fleet optimization engine that predicts charging demand.",
+    problem:
+      "The transition to Electric Vehicles is hampered by 'range anxiety' and inefficient charging infrastructure. Fleet operators struggle to balance route efficiency with the availability of rapid-charging points.",
+    context:
+      "India's EV goal for 2030 requires a paradigm shift in logistics. We need smart systems that can orchestrate vehicle movement around a limited but growing network of chargers.",
+    solution:
+      "A predictive routing engine that manages large EV fleets by forecasting charging station demand and dynamically assigning vehicles to chargers based on battery health and route priority.",
+    deliverables: [
+      "Route Prediction Model",
+      "Fleet Management UI",
+      "Charging Station Load Analysis",
+    ],
+  },
+];
 
 const ShieldIcon = ({ className }: { className?: string }) => (
   <svg
@@ -97,67 +188,10 @@ const MobilityIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const ThemeToggle = ({
-  isLightMode,
-  toggle,
-}: {
-  isLightMode: boolean;
-  toggle: () => void;
-}) => {
-  return (
-    <button
-      onClick={toggle}
-      className={`pointer-events-auto group relative flex h-14 w-14 items-center justify-center border-[3px] transition-all duration-300 hover:scale-105 active:scale-95 ${
-        isLightMode
-          ? "border-black bg-white shadow-[4px_4px_0_#000]"
-          : "border-white bg-[#111] shadow-[4px_4px_0_#fff]"
-      }`}
-      aria-label="Toggle theme"
-    >
-      <div
-        className={`relative h-8 w-8 transition-transform duration-500 ${isLightMode ? "rotate-0" : "rotate-360"}`}
-      >
-        {isLightMode ? (
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-full w-full text-[#ff00a0]"
-          >
-            <circle cx="12" cy="12" r="5" />
-            <line x1="12" y1="1" x2="12" y2="3" />
-            <line x1="12" y1="21" x2="12" y2="23" />
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-            <line x1="1" y1="12" x2="3" y2="12" />
-            <line x1="21" y1="12" x2="23" y2="12" />
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-          </svg>
-        ) : (
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-full w-full text-[#c0ff00]"
-          >
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-          </svg>
-        )}
-      </div>
-    </button>
-  );
-};
-
 export default function PSPage() {
   const { isLightMode } = useTheme();
-  const [activeTrack, setActiveTrack] = useState<any>(null);
+  const [activeTrack, setActiveTrack] = useState<Track | null>(null);
+  const tracks = useMemo(() => buildTracks(), []);
 
   useEffect(() => {
     if (activeTrack) {
@@ -193,85 +227,11 @@ export default function PSPage() {
               pitch your own initiative.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {[
-                {
-                  name: "Cyber Defence",
-                  color: "#ff00a0",
-                  icon: <ShieldIcon className="h-full w-full" />,
-                  desc: "Build systems that protect critical infrastructure and user data from evolving digital threats.",
-                  example:
-                    "Develop an AI-driven real-time threat detection system for identifying Zero-Day vulnerabilities.",
-                  problem:
-                    "As enterprise cloud environments scale, traditional rule-based security systems fail to detect sophisticated 'Zero-Day' exploits that have no known signatures. This leaves critical data exposed for hours or days before a patch is issued.",
-                  context:
-                    "Digital Bharat's rapid cloud adoption means that government and financial infrastructure are now prime targets for state-sponsored and independent cyber-terrorists using AI to generate novel attack vectors.",
-                  solution:
-                    "An autonomous security engine that uses behavioral heuristics and anomalous pattern recognition to flag suspicious activity in real-time, even if the attack type is completely new.",
-                  deliverables: [
-                    "Real-time Monitoring Dashboard",
-                    "AI Model Analysis Report",
-                    "Automated Response Protocol",
-                  ],
-                },
-                {
-                  name: "FinTech",
-                  color: "#c0ff00",
-                  icon: <FinTechIcon className="h-full w-full" />,
-                  desc: "Innovate in the realm of digital payments, decentralized finance, and accessible banking solutions.",
-                  example:
-                    "Create a decentralized P2P lending platform with localized credit-scoring.",
-                  problem:
-                    "Millions of small business owners in rural India are excluded from the formal credit system because they lack traditional collateral or a standardized credit history, forcing them into high-interest predatory lending.",
-                  context:
-                    "While UPI has revolutionized payments, the credit side of FinTech remains centralized. There is a massive opportunity to use community-verified trust and transaction data for decentralized lending.",
-                  solution:
-                    "A blockchain-based P2P platform that leverages UPI transaction history and AI-driven social graph analysis to provide fair micro-loans with low interest rates.",
-                  deliverables: [
-                    "Transparent Smart Contracts",
-                    "Lending App Prototype",
-                    "Credit Scoring Algorithm Demo",
-                  ],
-                },
-                {
-                  name: "Smart Cities",
-                  color: "#00f0ff",
-                  icon: <CityIcon className="h-full w-full" />,
-                  desc: "Create technology to optimize urban living, from waste management to smart lighting and energy.",
-                  example:
-                    "Design an IoT-based intelligent traffic management system.",
-                  problem:
-                    "Urban peak-hour congestion costs the Indian economy billions in lost productivity and fuel. Existing traffic light systems are static and do not adapt to real-time fluctuations in vehicle flow.",
-                  context:
-                    "Smart Cities require dynamic infrastructure. With the rollout of 5G and ubiquitous camera sensor networks, we now have the data to manage traffic fluidly rather than through fixed timers.",
-                  solution:
-                    "An IoT network that synchronizes traffic signals across a grid using real-time density mapping and predictive AI to minimize wait times and CO2 emissions.",
-                  deliverables: [
-                    "Mesh Sensor Network Simulation",
-                    "Optimization Dashboard",
-                    "Hardware Design Prototype",
-                  ],
-                },
-                {
-                  name: "Future Mobility",
-                  color: "#ff00a0",
-                  icon: <MobilityIcon className="h-full w-full" />,
-                  desc: "Design the next generation of transportation, focusing on efficiency, sustainability, and connectivity.",
-                  example:
-                    "Build an EV-fleet optimization engine that predicts charging demand.",
-                  problem:
-                    "The transition to Electric Vehicles is hampered by 'range anxiety' and inefficient charging infrastructure. Fleet operators struggle to balance route efficiency with the availability of rapid-charging points.",
-                  context:
-                    "India's EV goal for 2030 requires a paradigm shift in logistics. We need smart systems that can orchestrate vehicle movement around a limited but growing network of chargers.",
-                  solution:
-                    "A predictive routing engine that manages large EV fleets by forecasting charging station demand and dynamically assigning vehicles to chargers based on battery health and route priority.",
-                  deliverables: [
-                    "Route Prediction Model",
-                    "Fleet Management UI",
-                    "Charging Station Load Analysis",
-                  ],
-                },
-              ].map((track, i) => (
+            <div
+              className="grid grid-cols-1 md:grid-cols-2 gap-8"
+              style={{ contentVisibility: "auto", containIntrinsicSize: "1600px" }}
+            >
+              {tracks.map((track, i) => (
                 <div
                   key={i}
                   className={`cursor-target group relative flex flex-col p-10 transition-transform duration-500 hover:-translate-y-2 ${

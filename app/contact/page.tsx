@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 
 import { useTheme } from "@/app/providers/theme-provider";
 
@@ -187,22 +187,8 @@ function ContactCard({ eyebrow, title, value, href, cta, accent, isLightMode }: 
 
 export default function ContactPage() {
     const { isLightMode, setWaveTilesOpacity } = useTheme();
-    const [isModeAnimating, setIsModeAnimating] = useState(false);
-    const hasMountedRef = useRef(false);
 
     useEffect(() => setWaveTilesOpacity("opacity-95", "opacity-60"), [setWaveTilesOpacity]);
-
-    useEffect(() => {
-        if (!hasMountedRef.current) {
-            hasMountedRef.current = true;
-            return;
-        }
-
-        setIsModeAnimating(true);
-        const animationTimer = window.setTimeout(() => setIsModeAnimating(false), 520);
-
-        return () => window.clearTimeout(animationTimer);
-    }, [isLightMode]);
 
     const rootTone = isLightMode ? "text-black" : "text-white";
 
@@ -211,11 +197,11 @@ export default function ContactPage() {
             <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
                 <div
                     className={`absolute left-[6%] top-[8%] h-44 w-44 rounded-full blur-3xl transition-all duration-700 ${isLightMode ? "bg-[#5ce1e6]/38 opacity-100 scale-110" : "bg-[#5ce1e6]/18 opacity-55 scale-100"
-                        } ${isModeAnimating ? "animate-pulse" : ""}`}
+                        }`}
                 />
                 <div
                     className={`absolute bottom-[10%] right-[8%] h-56 w-56 rounded-full blur-3xl transition-all duration-700 ${isLightMode ? "bg-[#ff6b8a]/24 opacity-80 scale-110" : "bg-[#ff6b8a]/15 opacity-45 scale-100"
-                        } ${isModeAnimating ? "animate-pulse" : ""}`}
+                        }`}
                 />
                 <div
                     className={`absolute right-[18%] top-[14%] h-28 w-28 rounded-full blur-2xl transition-all duration-700 ${isLightMode ? "bg-[#7ddc7a]/28 opacity-90" : "bg-[#7ddc7a]/10 opacity-25"
@@ -235,7 +221,7 @@ export default function ContactPage() {
                 <header className="shrink-0 text-center">
                     <p className={`text-[10px] font-black uppercase tracking-[0.4em] xl:text-xs ${isLightMode ? "text-black/55" : "text-white/50"}`}>Hack X 2.0</p>
                     <h1
-                        className={`navbar-font mt-2 text-3xl uppercase leading-none transition-all duration-500 sm:text-5xl xl:text-[3.8rem] ${isModeAnimating ? "scale-[1.02]" : "scale-100"}`}
+                        className="navbar-font mt-2 text-3xl uppercase leading-none transition-all duration-500 sm:text-5xl xl:text-[3.8rem] scale-100"
                         style={{ textShadow: `3px 3px 0 ${accent}` }}
                     >
                         Contact The Team
@@ -249,7 +235,7 @@ export default function ContactPage() {
                     className={`mt-6 min-h-0 flex-1 overflow-hidden border-[3px] transition-all duration-500 backdrop-blur-md ${isLightMode
                             ? "border-black/85 bg-[#eefcff]/72 shadow-[14px_14px_0_rgba(92,225,230,0.22)]"
                             : "border-black bg-black/38 shadow-[10px_10px_0_rgba(0,0,0,0.9)]"
-                        } ${isModeAnimating ? (isLightMode ? "scale-[1.01]" : "scale-[0.99]") : "scale-100"}`}
+                        } scale-100`}
                 >
                     <div className="flex h-full flex-col overflow-hidden">
                         <div className={`shrink-0 border-b px-4 py-2 sm:px-5 xl:px-6 xl:py-3 ${isLightMode ? "border-black/10" : "border-white/10"}`}>
@@ -281,7 +267,7 @@ export default function ContactPage() {
                                     {contactCards.map((card, index) => (
                                         <div
                                             key={card.title}
-                                            className={`h-full transition-all duration-500 ${isModeAnimating ? (isLightMode ? "scale-[1.02]" : "scale-[0.98]") : "scale-100"}`}
+                                            className="h-full scale-100 transition-all duration-500"
                                             style={{ transitionDelay: `${80 + index * 50}ms` }}
                                         >
                                             <ContactCard {...card} accent={accent} isLightMode={isLightMode} />
@@ -294,7 +280,7 @@ export default function ContactPage() {
                                         isLightMode
                                             ? "border-black/15 bg-white/72 text-black shadow-[8px_8px_0_rgba(255,255,255,0.15)] hover:border-black/35 hover:bg-white/85"
                                             : "border-white/20 bg-black/55 text-white shadow-[8px_8px_0_rgba(0,0,0,0.35)] hover:border-white/50 hover:bg-black/70"
-                                    } ${isModeAnimating ? (isLightMode ? "scale-[1.01]" : "scale-[0.99]") : "scale-100"}`}
+                                    } scale-100`}
                                 >
                                     <div className={`border-b pb-2 ${isLightMode ? "border-black/10" : "border-white/10"}`}>
                                         <p className={`text-[10px] font-black uppercase tracking-[0.34em] xl:text-[11px] ${isLightMode ? "text-black/50" : "text-white/55"}`}>Socials</p>

@@ -158,7 +158,7 @@ export default function TimelinePage() {
 
       if (pts.length > 0) {
         // Group points into rows based on vertical proximity
-        let ptsByRow: { x: number, y: number }[][] = [];
+        const ptsByRow: { x: number, y: number }[][] = [];
         let currentRow: { x: number, y: number }[] = [];
         let lastY: number | null = null;
 
@@ -173,7 +173,7 @@ export default function TimelinePage() {
         });
         if (currentRow.length > 0) ptsByRow.push(currentRow);
 
-        let finalOrderPts: { x: number, y: number }[] = [];
+        const finalOrderPts: { x: number, y: number }[] = [];
         ptsByRow.forEach((row, rowIndex) => {
           row.sort((a, b) => a.x - b.x); // sort left-to-right
           if (rowIndex % 2 !== 0) {
@@ -250,10 +250,6 @@ export default function TimelinePage() {
   const mutedColor = light ? "text-slate-600" : "text-zinc-400";
 
   // Solid colors for readability
-  const cardBg = light ? "bg-white" : "bg-black/95";
-  const cardBorder = light ? "border-slate-200" : "border-zinc-800";
-
-
   return (
     <div
       ref={containerRef}

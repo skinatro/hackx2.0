@@ -2,7 +2,7 @@
 
 import { WaveTiles } from "@/ui/components/basic/wave-tiles";
 import ScrollSequence from "@/ui/components/scroll-sequence";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import Link from "next/link";
 import React, { useRef } from "react";
 import { Nvbar } from "./components/nvbar";
@@ -60,11 +60,10 @@ function FloatingBadge({
 }) {
   return (
     <div
-      className={`absolute z-20 flex items-center justify-center p-3 transition-all duration-500 ${
-        isLightMode
+      className={`absolute z-20 flex items-center justify-center p-3 transition-all duration-500 ${isLightMode
           ? "border-[3px] border-black bg-white/80 shadow-[6px_6px_0_#000]"
           : "border-[3px] border-white/50 bg-[#111]/80 shadow-[6px_6px_0_#c0ff00]"
-      } ${styleName}`}
+        } ${styleName}`}
       style={{
         animation: `${floatRev ? "float-reverse" : "float"} 6s ease-in-out infinite`,
         animationDelay: `${delay}s`,
@@ -92,11 +91,10 @@ function HighlightCard({
 }) {
   return (
     <div
-      className={`cursor-target group relative flex flex-col p-8 transition-transform duration-500 hover:-translate-y-2 ${
-        isLightMode
+      className={`cursor-target group relative flex flex-col p-8 transition-transform duration-500 hover:-translate-y-2 ${isLightMode
           ? "border-[3px] border-black bg-white shadow-[8px_8px_0_#000]"
           : "border-[3px] border-white/30 bg-[#0a0a0a] shadow-[8px_8px_0_#fff]"
-      }`}
+        }`}
       style={{
         animation: `float-reverse 8s ease-in-out infinite`,
         animationDelay: `${delay}s`,
@@ -123,31 +121,6 @@ function HighlightCard({
           {description}
         </p>
       </div>
-    </div>
-  );
-}
-
-function CountdownItem({
-  value,
-  label,
-  color,
-}: {
-  value: string;
-  label: string;
-  color: string;
-}) {
-  return (
-    <div className="relative flex w-24 flex-col items-center justify-center p-4 sm:w-32 sm:p-6 group overflow-hidden border-[3px] border-black bg-white shadow-[6px_6px_0_#000] transition-transform hover:-translate-y-1 hover:shadow-[8px_8px_0_#000]">
-      <div
-        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-        style={{ backgroundColor: color, zIndex: 0 }}
-      />
-      <span className="relative z-10 navbar-font text-5xl font-black sm:text-6xl text-black">
-        {value}
-      </span>
-      <span className="relative z-10 mt-2 text-[10px] font-black uppercase tracking-[0.3em] text-black/70 group-hover:text-black">
-        {label}
-      </span>
     </div>
   );
 }
@@ -269,83 +242,6 @@ const TrophyIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const GiftIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <polyline points="20 12 20 22 4 22 4 12" />
-    <rect x="2" y="7" width="20" height="5" />
-    <line x1="12" y1="22" x2="12" y2="7" />
-    <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
-    <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
-  </svg>
-);
-
-const ThemeToggle = ({
-  isLightMode,
-  toggle,
-}: {
-  isLightMode: boolean;
-  toggle: () => void;
-}) => {
-  return (
-    <button
-      onClick={toggle}
-      className={`pointer-events-auto group relative flex h-14 w-14 items-center justify-center border-[3px] transition-all duration-300 hover:scale-105 active:scale-95 ${
-        isLightMode
-          ? "border-black bg-white shadow-[4px_4px_0_#000]"
-          : "border-white bg-[#111] shadow-[4px_4px_0_#fff]"
-      }`}
-      aria-label="Toggle theme"
-    >
-      <div
-        className={`relative h-8 w-8 transition-transform duration-500 ${isLightMode ? "rotate-0" : "rotate-[360deg]"}`}
-      >
-        {isLightMode ? (
-          /* Sun Icon for Light Mode */
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-full w-full text-[#ff00a0]"
-          >
-            <circle cx="12" cy="12" r="5" />
-            <line x1="12" y1="1" x2="12" y2="3" />
-            <line x1="12" y1="21" x2="12" y2="23" />
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-            <line x1="1" y1="12" x2="3" y2="12" />
-            <line x1="21" y1="12" x2="23" y2="12" />
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-          </svg>
-        ) : (
-          /* Moon Icon for Dark Mode */
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-full w-full text-[#c0ff00]"
-          >
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-          </svg>
-        )}
-      </div>
-    </button>
-  );
-};
 
 export default function Home() {
   const { isLightMode } = useTheme();
@@ -356,57 +252,63 @@ export default function Home() {
     offset: ["start start", "end end"],
   });
 
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
+
   // Phase 1: Intro (HACKX 2.0 reveal)
-  const introOpacity = useTransform(scrollYProgress, [0, 0.1, 0.15], [1, 1, 0]);
-  const introY = useTransform(scrollYProgress, [0, 0.15], [0, -40]);
+  const introOpacity = useTransform(smoothProgress, [0, 0.1, 0.15], [1, 1, 0]);
+  const introY = useTransform(smoothProgress, [0, 0.15], [0, -40]);
 
   // Phase 2: Mission (Driving Digital Bharat)
   const missionOpacity = useTransform(
-    scrollYProgress,
+    smoothProgress,
     [0.2, 0.25, 0.35, 0.4],
     [0, 1, 1, 0],
   );
   const missionY = useTransform(
-    scrollYProgress,
+    smoothProgress,
     [0.2, 0.25, 0.35, 0.4],
     [30, 0, 0, -30],
   );
 
   // Phase 3: The Loot (Prizes)
   const lootOpacity = useTransform(
-    scrollYProgress,
+    smoothProgress,
     [0.45, 0.5, 0.6, 0.65],
     [0, 1, 1, 0],
   );
   const lootY = useTransform(
-    scrollYProgress,
+    smoothProgress,
     [0.45, 0.5, 0.6, 0.65],
     [30, 0, 0, -30],
   );
 
   // Phase 4: The Domains (Tracks)
   const domainsPhaseOpacity = useTransform(
-    scrollYProgress,
+    smoothProgress,
     [0.7, 0.75, 0.85, 0.9],
     [0, 1, 1, 0],
   );
   const domainsPhaseY = useTransform(
-    scrollYProgress,
+    smoothProgress,
     [0.7, 0.75, 0.85, 0.9],
     [30, 0, 0, -30],
   );
 
   // Phase 5: Pillars (Highlights)
   const pillarsOpacity = useTransform(
-    scrollYProgress,
+    smoothProgress,
     [0.92, 0.96, 0.99, 1],
     [0, 1, 1, 1],
   );
-  const pillarsY = useTransform(scrollYProgress, [0.92, 0.96], [30, 0]);
+  const pillarsY = useTransform(smoothProgress, [0.92, 0.96], [30, 0]);
 
   // Navbar Animation: Appears at the very end
-  const navbarOpacity = useTransform(scrollYProgress, [0.97, 0.99], [0, 1]);
-  const navbarX = useTransform(scrollYProgress, [0.97, 0.99], [60, 0]);
+  const navbarOpacity = useTransform(smoothProgress, [0.97, 0.99], [0, 1]);
+  const navbarX = useTransform(smoothProgress, [0.97, 0.99], [60, 0]);
 
   return (
     <div
@@ -425,7 +327,8 @@ export default function Home() {
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
         <WaveTiles
           className={isLightMode ? "opacity-40" : "opacity-30"}
-          onModeChange={() => {}}
+          optimizeForPerformance
+          onModeChange={() => { }}
         />
       </div>
 
@@ -536,7 +439,7 @@ export default function Home() {
                         {"{"} future {"}"}
                       </span>
                       <span style={{ color: isLightMode ? "#000" : "#fff" }}>
-                        from <span style={{ color: "#c0ff00" }}>'now';</span>
+                        from <span style={{ color: "#c0ff00" }}>{"'now';"}</span>
                       </span>
                     </div>
                   </FloatingBadge>
@@ -602,7 +505,7 @@ export default function Home() {
                         A national-level 24-hour student hackathon hosted at St.
                         Francis Institute of Technology, Mumbai. Join 10,000+
                         top developers, designers, and innovators shaping the
-                        future of India's digital infrastructure.
+                        future of India&apos;s digital infrastructure.
                       </p>
                     </div>
 
@@ -718,13 +621,11 @@ export default function Home() {
                       ].map((prize, idx) => (
                         <div
                           key={idx}
-                          className={`cursor-target p-8 sm:p-10 flex flex-col items-center justify-center border-[3px] transition-transform hover:-translate-y-2 duration-300 ${
-                            idx === 1 ? "sm:-mt-4 scale-105" : ""
-                          } ${
-                            isLightMode
+                          className={`cursor-target p-8 sm:p-10 flex flex-col items-center justify-center border-[3px] transition-transform hover:-translate-y-2 duration-300 ${idx === 1 ? "sm:-mt-4 scale-105" : ""
+                            } ${isLightMode
                               ? "border-black bg-white shadow-[8px_8px_0_#000]"
                               : "border-white/30 bg-[#111] shadow-[8px_8px_0_#fff]"
-                          }`}
+                            }`}
                         >
                           <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">
                             {prize.place}
@@ -783,11 +684,10 @@ export default function Home() {
                       ].map((track, i) => (
                         <div
                           key={i}
-                          className={`cursor-target group relative flex flex-col items-center justify-center p-6 sm:p-8 transition-transform duration-500 hover:-translate-y-2 ${
-                            isLightMode
+                          className={`cursor-target group relative flex flex-col items-center justify-center p-6 sm:p-8 transition-transform duration-500 hover:-translate-y-2 ${isLightMode
                               ? "border-[3px] border-black bg-white shadow-[6px_6px_0_#000]"
                               : "border-[3px] border-white/30 bg-[#111] shadow-[6px_6px_0_#fff]"
-                          }`}
+                            }`}
                         >
                           <div
                             className="absolute inset-0 z-0 origin-bottom scale-y-0 transition-transform duration-300 ease-out group-hover:scale-y-100"
@@ -799,9 +699,8 @@ export default function Home() {
                             {track.icon}
                           </div>
                           <h3
-                            className={`relative z-10 text-sm sm:text-base font-black uppercase tracking-widest text-center transition-colors duration-300 ${
-                              isLightMode ? "text-black" : "text-white"
-                            } group-hover:text-black`}
+                            className={`relative z-10 text-sm sm:text-base font-black uppercase tracking-widest text-center transition-colors duration-300 ${isLightMode ? "text-black" : "text-white"
+                              } group-hover:text-black`}
                           >
                             {track.name}
                           </h3>
@@ -858,7 +757,10 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-20">
+          <div
+            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-20"
+            style={{ contentVisibility: "auto", containIntrinsicSize: "1200px" }}
+          >
             <div className="pb-10 relative z-20">
               {/* RESOURCES & TEAM SECTION */}
               <div className="mt-20 grid grid-cols-1 lg:grid-cols-2 gap-12 w-full relative z-20 pointer-events-auto">
