@@ -151,7 +151,10 @@ function CountdownItem({
 export default function Home() {
   const { isLightMode, setWaveTilesOpacity } = useTheme();
 
-  useEffect(() => setWaveTilesOpacity("opacity-75", "opacity-30"), [setWaveTilesOpacity]);
+  useEffect(
+    () => setWaveTilesOpacity("opacity-75", "opacity-30"),
+    [setWaveTilesOpacity],
+  );
 
   return (
     <div
@@ -291,8 +294,8 @@ export default function Home() {
             >
               A national-level 24-hour student hackathon hosted at St. Francis
               Institute of Technology, Mumbai. Join 10,000+ top developers,
-              designers, and innovators shaping the future of India&apos;s digital
-              infrastructure.
+              designers, and innovators shaping the future of India&apos;s
+              digital infrastructure.
             </p>
 
             {/* Action Buttons */}
@@ -420,7 +423,11 @@ export default function Home() {
               <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6">
                 {[
                   { name: "Cyber Defence", color: "#ff00a0", icon: "🛡️" },
-                  { name: "FinTech", color: "#c0ff00", icon: "💸" },
+                  {
+                    name: "FinTech & Digital Economy",
+                    color: "#c0ff00",
+                    icon: "💸",
+                  },
                   { name: "Smart Cities", color: "#00f0ff", icon: "🏙️" },
                   { name: "Future Mobility", color: "#ff00a0", icon: "🚀" },
                 ].map((track, i) => (
@@ -635,7 +642,6 @@ export default function Home() {
             </div>
           </div>
         </main>
-
       </div>
     </div>
   );

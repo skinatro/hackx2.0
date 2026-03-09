@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useTheme } from "@/app/providers/theme-provider";
 import { Moon, Sun } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 type NavCube = {
   label: string;
@@ -54,7 +54,7 @@ export function Nvbar() {
               className="group relative flex items-center justify-end"
             >
               <div
-                className={`absolute right-full mr-3 whitespace-nowrap border-2 px-3 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-black opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100 ${
+                className={`absolute right-full mr-3 whitespace-nowrap border-2 px-3 py-2 text-xs font-black uppercase tracking-[0.24em] text-black opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100 ${
                   isActive ? "translate-x-0" : "translate-x-2"
                 }`}
                 style={{
@@ -78,7 +78,7 @@ export function Nvbar() {
                     : undefined
                 }
               >
-                <span className="navbar-font text-lg leading-none sm:text-xl">
+                <span className="navbar-font text-xl leading-none sm:text-2xl">
                   {item.shortLabel}
                 </span>
               </Link>
@@ -89,7 +89,7 @@ export function Nvbar() {
         {/* Theme Toggle Button */}
         <div className="group relative flex items-center justify-end mt-2">
           <div
-            className="absolute right-full mr-3 whitespace-nowrap border-2 px-3 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-black opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100 translate-x-2"
+            className="absolute right-full mr-3 whitespace-nowrap border-2 px-3 py-2 text-xs font-black uppercase tracking-[0.24em] text-black opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100 translate-x-2"
             style={{
               backgroundColor: isLightMode ? "#27272a" : "#e2e8f0",
               color: isLightMode ? "#fff" : "#000",

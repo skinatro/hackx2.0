@@ -62,7 +62,7 @@ const buildTracks = (): Track[] => [
     ],
   },
   {
-    name: "FinTech",
+    name: "FinTech & Digital Economy",
     color: "#c0ff00",
     icon: <FinTechIcon className="h-full w-full" />,
     desc: "Innovate in the realm of digital payments, decentralized finance, and accessible banking solutions.",
@@ -85,8 +85,7 @@ const buildTracks = (): Track[] => [
     color: "#00f0ff",
     icon: <CityIcon className="h-full w-full" />,
     desc: "Create technology to optimize urban living, from waste management to smart lighting and energy.",
-    example:
-      "Design an IoT-based intelligent traffic management system.",
+    example: "Design an IoT-based intelligent traffic management system.",
     problem:
       "Urban peak-hour congestion costs the Indian economy billions in lost productivity and fuel. Existing traffic light systems are static and do not adapt to real-time fluctuations in vehicle flow.",
     context:
@@ -229,7 +228,10 @@ export default function PSPage() {
 
             <div
               className="grid grid-cols-1 md:grid-cols-2 gap-8"
-              style={{ contentVisibility: "auto", containIntrinsicSize: "1600px" }}
+              style={{
+                contentVisibility: "auto",
+                containIntrinsicSize: "1600px",
+              }}
             >
               {tracks.map((track, i) => (
                 <div

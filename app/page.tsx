@@ -592,7 +592,7 @@ export default function Home() {
                 >
                   <div className="max-w-4xl text-center px-6">
                     <h2
-                      className={`font-black uppercase tracking-tighter text-4xl sm:text-7xl mb-8 drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] ${isLightMode ? "text-white" : "text-white"}`}
+                      className={`font-black uppercase tracking-tighter text-5xl sm:text-8xl mb-8 drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] ${isLightMode ? "text-white" : "text-white"}`}
                     >
                       Driving Digital{" "}
                       <span className="text-[#ff00a0] drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">
@@ -603,7 +603,7 @@ export default function Home() {
                       className={`mx-auto h-2 w-32 mb-12 ${isLightMode ? "bg-black" : "bg-[#c0ff00]"}`}
                     />
                     <p
-                      className={`text-xl sm:text-3xl font-black leading-tight tracking-tight uppercase p-6 border-[3px] backdrop-blur-md ${isLightMode ? "text-white border-white/30 bg-black/40 shadow-[8px_8px_0_#000]" : "text-white border-white/20 bg-black/60 shadow-[8px_8px_0_#fff]"}`}
+                      className={`text-2xl sm:text-4xl font-black leading-tight tracking-tight uppercase p-6 border-[3px] backdrop-blur-md ${isLightMode ? "text-white border-white/30 bg-black/40 shadow-[8px_8px_0_#000]" : "text-white border-white/20 bg-black/60 shadow-[8px_8px_0_#fff]"}`}
                     >
                       Over an intense 24-hour experience, we build the bridges
                       between{" "}
@@ -629,42 +629,58 @@ export default function Home() {
                     >
                       The Loot
                     </h2>
-                    <p
-                      className={`mb-12 text-sm sm:text-base font-bold uppercase tracking-widest ${isLightMode ? "text-[#00f0ff]" : "text-[#00f0ff]"}`}
-                    >
-                      ₹1.5 LAKH PRIZE POOL
-                    </p>
+                    <div className="mb-14 relative inline-block">
+                      <div className="absolute -inset-2 bg-[#ff00a0] blur-xl opacity-20 animate-pulse" />
+                      <div className="relative flex flex-col items-center">
+                        <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] text-[#00f0ff] mb-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+                          Total Prize Pool
+                        </span>
+                        <div className="px-10 py-4 border-[4px] border-black bg-[#c0ff00] shadow-[12px_12px_12px_rgba(0,0,0,0.4)] transform hover:scale-105 transition-transform duration-300">
+                          <h3 className="text-5xl sm:text-7xl font-black text-black tracking-tighter leading-none">
+                            ₹1.5 LAKH
+                          </h3>
+                        </div>
+                        <div className="mt-4 flex gap-4 text-[10px] sm:text-xs font-black uppercase tracking-widest text-zinc-400">
+                          <span>₹1L Domain Pool</span>
+                          <span className="text-[#ff00a0]">•</span>
+                          <span>₹50k Special Tracks</span>
+                        </div>
+                      </div>
+                    </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
                       {[
                         {
-                          place: "2nd Runner Up",
-                          amount: "₹25,000",
-                          color: "#c0ff00",
-                        },
-                        {
-                          place: "Winner",
-                          amount: "₹75,000",
+                          domain: "Cyber Defence",
+                          amount: "₹25k",
                           color: "#ff00a0",
                         },
                         {
-                          place: "1st Runner Up",
-                          amount: "₹50,000",
+                          domain: "FinTech & Finance",
+                          amount: "₹25k",
+                          color: "#c0ff00",
+                        },
+                        {
+                          domain: "Smart Cities",
+                          amount: "₹25k",
                           color: "#00f0ff",
+                        },
+                        {
+                          domain: "Future Mobility",
+                          amount: "₹25k",
+                          color: "#ff00a0",
                         },
                       ].map((prize, idx) => (
                         <div
                           key={idx}
-                          className={`cursor-target p-8 sm:p-10 flex flex-col items-center justify-center border-[3px] transition-transform hover:-translate-y-2 duration-300 ${
-                            idx === 1 ? "sm:-mt-4 scale-105" : ""
-                          } ${
+                          className={`cursor-target p-6 sm:p-8 flex flex-col items-center justify-center border-[3px] transition-transform hover:-translate-y-2 duration-300 ${
                             isLightMode
                               ? "border-black bg-white shadow-[8px_8px_0_#000]"
                               : "border-white/30 bg-[#111] shadow-[8px_8px_0_#fff]"
                           }`}
                         >
-                          <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">
-                            {prize.place}
+                          <span className="text-[11px] sm:text-sm font-black uppercase tracking-widest text-gray-500 mb-2 text-center leading-tight">
+                            {prize.domain}
                           </span>
                           <span
                             className="text-3xl sm:text-5xl font-black tracking-tighter"
@@ -674,6 +690,20 @@ export default function Home() {
                           </span>
                         </div>
                       ))}
+                    </div>
+
+                    <div className="mt-12 p-6 border-[3px] border-dashed border-[#c0ff00]/50 bg-black/40 backdrop-blur-sm max-w-2xl mx-auto">
+                      <p className="text-white font-black uppercase tracking-widest text-base sm:text-lg mb-2">
+                        + ₹50k Special Tracks Pool
+                      </p>
+                      <p className="text-zinc-400 text-sm sm:text-base font-bold leading-relaxed">
+                        Additional prizes for{" "}
+                        <span className="text-[#00f0ff]">Best UI/UX</span>,{" "}
+                        <span className="text-[#ff00a0]">
+                          Best Technical Implementation
+                        </span>
+                        , and other categories to be announced soon!
+                      </p>
                     </div>
                   </div>
                 </motion.div>
@@ -690,7 +720,7 @@ export default function Home() {
                       The Domains
                     </h2>
                     <p
-                      className={`mb-12 text-sm tracking-tighter sm:text-base font-bold uppercase tracking-widest text-center text-white drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]`}
+                      className={`mb-12 text-base sm:text-xl font-bold uppercase tracking-widest text-center text-white drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]`}
                     >
                       Choose a challenge or pitch your own initiative.
                     </p>
@@ -703,7 +733,7 @@ export default function Home() {
                           icon: <ShieldIcon className="h-full w-full" />,
                         },
                         {
-                          name: "FinTech",
+                          name: "FinTech & Digital Economy",
                           color: "#c0ff00",
                           icon: <FinTechIcon className="h-full w-full" />,
                         },
@@ -736,7 +766,7 @@ export default function Home() {
                             {track.icon}
                           </div>
                           <h3
-                            className={`relative z-10 text-sm sm:text-base font-black uppercase tracking-widest text-center transition-colors duration-300 ${
+                            className={`relative z-10 text-base sm:text-lg font-black uppercase tracking-widest text-center transition-colors duration-300 ${
                               isLightMode ? "text-black" : "text-white"
                             } group-hover:text-black`}
                           >
@@ -807,7 +837,7 @@ export default function Home() {
               <div
                 className={`pointer-events-auto relative px-8 py-10 sm:py-14 text-center mx-auto max-w-4xl mt-32 border-[3px] ${isLightMode ? "border-black bg-[#c0ff00] shadow-[12px_12px_0_#000]" : "border-white/30 bg-[#c0ff00] shadow-[12px_12px_0_#fff]"}`}
               >
-                <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tighter text-black">
+                <h2 className="text-4xl sm:text-6xl font-black uppercase tracking-tighter text-black">
                   Hacking Begins In
                 </h2>
 
@@ -829,14 +859,14 @@ export default function Home() {
                   className={`p-8 border-[3px] ${isLightMode ? "border-black bg-white shadow-[8px_8px_0_#000]" : "border-white/30 bg-[#111] shadow-[8px_8px_0_#fff]"}`}
                 >
                   <h3
-                    className={`text-3xl font-black uppercase tracking-tighter mb-8 ${isLightMode ? "text-black" : "text-white"}`}
+                    className={`text-4xl font-black uppercase tracking-tighter mb-8 ${isLightMode ? "text-black" : "text-white"}`}
                   >
                     Hacker Toolkit
                   </h3>
                   <div className="flex flex-col gap-4">
                     <a
                       href="#"
-                      className={`cursor-target flex items-center justify-between p-4 border-[3px] font-black uppercase tracking-wider transition-colors ${isLightMode ? "border-black hover:bg-[#c0ff00]" : "border-white/30 hover:bg-[#c0ff00] hover:text-black hover:border-[#c0ff00] text-white"}`}
+                      className={`cursor-target flex items-center justify-between p-4 border-[3px] text-lg font-black uppercase tracking-wider transition-colors ${isLightMode ? "border-black hover:bg-[#c0ff00]" : "border-white/30 hover:bg-[#c0ff00] hover:text-black hover:border-[#c0ff00] text-white"}`}
                     >
                       <span>Rules & Regulations</span>
                       <span>→</span>
@@ -861,7 +891,7 @@ export default function Home() {
                 <div
                   className={`p-8 border-[3px] ${isLightMode ? "border-black bg-[#ff00a0] text-white shadow-[8px_8px_0_#000]" : "border-white bg-[#ff00a0] text-white shadow-[8px_8px_0_#fff]"}`}
                 >
-                  <h3 className="text-3xl font-black uppercase tracking-tighter mb-4">
+                  <h3 className="text-4xl font-black uppercase tracking-tighter mb-4">
                     The Organizers
                   </h3>
                   <p className="font-bold mb-8 opacity-90">
