@@ -56,7 +56,7 @@ export function Nvbar() {
       : "border-white/50 bg-black/80 text-white shadow-[6px_6px_0_rgba(255,255,255,0.15)] hover:border-white/70 hover:bg-black/90"
   }`;
 
-  const mobileTriggerClassName = `nav-trigger-btn pointer-events-auto flex h-14 w-14 items-center justify-center text-[16px] font-black uppercase tracking-[0.22em] transition-all duration-200 sm:hidden`;
+  const mobileTriggerClassName = `nav-trigger-btn pointer-events-auto flex h-14 w-14 items-center justify-center text-[1px] font-black uppercase tracking-[0.22em] transition-all duration-200 sm:hidden`;
 
   const themeButtonClassName = `flex h-14 w-14 sm:h-15 sm:w-15 items-center justify-center border-[3px] text-xs font-black uppercase tracking-[0.22em] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 ${
     isLightMode

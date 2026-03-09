@@ -176,7 +176,7 @@ export default function TimelinePage() {
         const finalOrderPts: { x: number, y: number }[] = [];
         ptsByRow.forEach((row, rowIndex) => {
           row.sort((a, b) => a.x - b.x); // sort left-to-right
-          if (rowIndex % 2 !== 0) {
+          if (rowIndex % 2 !== 0 && window.innerWidth >= 768) {
             row.reverse(); // serpentine: odd rows go right-to-left
           }
           finalOrderPts.push(...row);
@@ -330,7 +330,7 @@ export default function TimelinePage() {
             {EVENTS.map((e, i) => {
               const solidShadow = `10px 10px 0 ${e.accent}`;
 
-              const cardClasses = `cursor-target w-full h-full max-w-sm border-[3px] p-8 flex flex-col items-center relative overflow-hidden transition-all duration-500 hover:-translate-y-2 ${light
+              const cardClasses = `cursor-target w-full h-full max-w-[280px] sm:max-w-sm border-[3px] p-6 md:p-8 flex flex-col items-center relative overflow-hidden transition-all duration-500 hover:-translate-y-2 ${light
                 ? "border-black/85 bg-[#fafafa] text-black hover:bg-white"
                 : "border-black bg-[#0a0a0a] text-white hover:bg-[#111]"
                 }`;
@@ -365,7 +365,7 @@ export default function TimelinePage() {
                       </span>
                       {/* 3) Title */}
                       <span
-                        className="cursor-target font-black tracking-tight text-3xl md:text-4xl leading-tight mb-2"
+                        className="cursor-target font-black tracking-tight text-2xl md:text-4xl leading-tight mb-2"
                         style={{ color: e.highlight ? e.accent : textColor }}
                       >
                         {e.title}

@@ -40,11 +40,12 @@ const FAQ_ITEMS = [
   },
   {
     q: "What is the team size?",
-    a: "Teams can have 2 to 4 members. You can either form a team beforehand or find teammates during the registration phase.",
+    a: "Teams can have 3 or 4 members. You can either form a team beforehand or find teammates on our community whatsapp group  .",
   },
   {
     q: "Is there a registration fee?",
-    a: "Details regarding the registration fee and process are updated on the registration portal. Check out the portal for the most recent timeline and fees!",
+    //modify
+    a: "Registration fee will only be applicable if you get shortlisted in the first round. Reg Fees of 250 per person",
   },
   {
     q: "Will the problem statements be given in advance?",
