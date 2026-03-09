@@ -105,7 +105,7 @@ export default function FAQPage() {
         <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 py-20 sm:px-6 lg:px-8 relative z-20">
           <div className="text-left w-full mx-auto relative z-20 pointer-events-auto pb-10">
             <h2
-              className={`font-black uppercase tracking-tighter text-5xl sm:text-7xl text-center mb-16 ${isLightMode ? "text-black" : "text-white"}`}
+              className={`text-center font-black uppercase tracking-tighter text-6xl sm:text-7xl md:text-8xl lg:text-9xl mb-16 ${isLightMode ? "text-black" : "text-white"}`}
             >
               FAQ
             </h2>
@@ -144,18 +144,6 @@ export default function FAQPage() {
           </div>
         </main>
 
-        <footer className="relative z-50 pointer-events-auto w-full border-t-[3px] py-12 px-6 sm:px-12 mt-20 flex flex-col sm:flex-row items-center justify-between gap-6 transition-colors duration-500 border-black/20 bg-black/5 backdrop-blur-sm">
-          <div
-            className={`text-2xl font-black uppercase tracking-tighter ${isLightMode ? "text-black" : "text-white"}`}
-          >
-            HACKX <span className="text-[#ff00a0]">2.0</span>
-          </div>
-          <div
-            className={`text-sm font-bold uppercase tracking-widest ${isLightMode ? "text-black/60" : "text-white/60"}`}
-          >
-            By CSI and GDG at SFIT • 2026
-          </div>
-        </footer>
       </div>
     </div>
   );

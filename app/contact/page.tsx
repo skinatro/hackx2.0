@@ -1,8 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect } from "react";
-
 import { useTheme } from "@/app/providers/theme-provider";
 
 type ContactCardData = {
@@ -186,84 +183,44 @@ function ContactCard({ eyebrow, title, value, href, cta, accent, isLightMode }: 
 }
 
 export default function ContactPage() {
-    const { isLightMode, setWaveTilesOpacity } = useTheme();
-
-    useEffect(() => setWaveTilesOpacity("opacity-95", "opacity-60"), [setWaveTilesOpacity]);
-
-    const rootTone = isLightMode ? "text-black" : "text-white";
+    const { isLightMode } = useTheme();
 
     return (
-        <div className={`relative h-screen overflow-hidden bg-black transition-colors duration-500 ${rootTone}`}>
-            <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-                <div
-                    className={`absolute left-[6%] top-[8%] h-44 w-44 rounded-full blur-3xl transition-all duration-700 ${isLightMode ? "bg-[#5ce1e6]/38 opacity-100 scale-110" : "bg-[#5ce1e6]/18 opacity-55 scale-100"
-                        }`}
-                />
-                <div
-                    className={`absolute bottom-[10%] right-[8%] h-56 w-56 rounded-full blur-3xl transition-all duration-700 ${isLightMode ? "bg-[#ff6b8a]/24 opacity-80 scale-110" : "bg-[#ff6b8a]/15 opacity-45 scale-100"
-                        }`}
-                />
-                <div
-                    className={`absolute right-[18%] top-[14%] h-28 w-28 rounded-full blur-2xl transition-all duration-700 ${isLightMode ? "bg-[#7ddc7a]/28 opacity-90" : "bg-[#7ddc7a]/10 opacity-25"
-                        }`}
-                />
-            </div>
-            <div
-                className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-300"
-                style={{
-                    background: isLightMode
-                        ? "linear-gradient(135deg, rgba(240,252,255,0.94) 0%, rgba(218,247,255,0.72) 28%, rgba(255,247,250,0.45) 100%), radial-gradient(circle at 18% 18%, rgba(92,225,230,0.46), transparent 28%), radial-gradient(circle at 82% 14%, rgba(255,107,138,0.24), transparent 24%), radial-gradient(circle at 52% 78%, rgba(125,220,122,0.22), transparent 24%)"
-                        : "linear-gradient(to bottom, rgba(0,0,0,0.68) 0%, rgba(0,0,0,0.42) 40%, rgba(0,0,0,0.82) 100%)",
-                }}
-            />
-
-            <main className="pointer-events-none relative z-10 mx-auto flex h-screen w-full max-w-6xl flex-col overflow-hidden px-4 py-4 sm:px-6 sm:py-6 lg:px-8 xl:max-w-360 xl:px-10 xl:py-8">
-                <header className="shrink-0 text-center">
+        <div className={`relative min-h-screen font-sans selection:bg-[#ff00a0] selection:text-white transition-colors duration-500 ${isLightMode ? "bg-[#f5f5f5]" : "bg-black"}`}>
+            <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 py-20 sm:px-6 lg:px-8 relative z-20">
+                <div className="text-left w-full mx-auto relative z-20 pointer-events-auto pb-10">
+                <header className="text-center">
                     <p className={`text-[10px] font-black uppercase tracking-[0.4em] xl:text-xs ${isLightMode ? "text-black/55" : "text-white/50"}`}>Hack X 2.0</p>
                     <h1
-                        className="navbar-font mt-2 text-3xl uppercase leading-none transition-all duration-500 sm:text-5xl xl:text-[3.8rem] scale-100"
-                        style={{ textShadow: `3px 3px 0 ${accent}` }}
+                        className={`text-center font-black uppercase tracking-tighter text-6xl sm:text-7xl md:text-8xl lg:text-9xl mb-4 ${isLightMode ? "text-black" : "text-white"}`}
                     >
                         Contact The Team
                     </h1>
-                    <p className={`mx-auto mt-2 max-w-2xl text-xs leading-5 sm:text-sm xl:max-w-3xl xl:text-[0.875rem] xl:leading-relaxed ${isLightMode ? "text-black/65" : "text-white/65"}`}>
-                        Get in touch with us for sponsorships, technical support, or any other inquiries related to the hackathon.
+                    <p className={`text-center font-black uppercase tracking-widest text-sm mb-16 px-4 py-2 border-[3px] mx-auto w-fit ${isLightMode ? "border-black bg-[#5ce1e6] text-black" : "border-[#5ce1e6] bg-black text-[#5ce1e6]"}`}>
+                        Email • Phone • Venue • Socials
                     </p>
                 </header>
 
-                <section
-                    className={`mt-6 min-h-0 flex-1 overflow-hidden border-[3px] transition-all duration-500 backdrop-blur-md ${isLightMode
-                            ? "border-black/85 bg-[#eefcff]/72 shadow-[14px_14px_0_rgba(92,225,230,0.22)]"
-                            : "border-black bg-black/38 shadow-[10px_10px_0_rgba(0,0,0,0.9)]"
-                        } scale-100`}
-                >
-                    <div className="flex h-full flex-col overflow-hidden">
-                        <div className={`shrink-0 border-b px-4 py-2 sm:px-5 xl:px-6 xl:py-3 ${isLightMode ? "border-black/10" : "border-white/10"}`}>
-                            <div className="flex items-center justify-between gap-4">
-                                <div>
-                                    <p className={`text-[10px] font-black uppercase tracking-[0.34em] xl:text-xs ${isLightMode ? "text-black/50" : "text-white/55"}`}>Contact info</p>
-                                    <h2
-                                        className={`navbar-font text-2xl uppercase leading-none transition-all duration-300 sm:text-3xl xl:text-[2.2rem] ${
-                                            isLightMode ? "text-black" : "text-white"
-                                        }`}
-                                        style={{ textShadow: `2px 2px 0 ${accent}` }}
-                                    >
-                                        Reach Us
-                                    </h2>
-                                </div>
-                                <span
-                                    className="pointer-events-auto inline-flex border-2 border-black px-3 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-black sm:px-4 xl:px-5 xl:py-2.5 xl:text-xs"
-                                    style={{ backgroundColor: accent }}
-                                >
-                                    06 details
-                                </span>
+                <section className="w-full">
+                    <div className={`mb-10 border-[3px] p-6 sm:p-8 ${isLightMode ? "border-black bg-white shadow-[8px_8px_0_#000]" : "border-white/30 bg-[#111] shadow-[8px_8px_0_#fff]"}`}>
+                        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                                <p className={`text-[10px] font-black uppercase tracking-[0.34em] ${isLightMode ? "text-black/50" : "text-white/55"}`}>Contact info</p>
+                                <h2 className={`mt-3 font-black uppercase tracking-tighter text-4xl sm:text-5xl ${isLightMode ? "text-black" : "text-white"}`}>
+                                    Reach Us
+                                </h2>
                             </div>
-
+                            <span
+                                className="inline-flex w-fit border-[3px] border-black px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-black"
+                                style={{ backgroundColor: accent }}
+                            >
+                                06 details
+                            </span>
                         </div>
+                    </div>
 
-                        <div className="min-h-0 flex-1 overflow-hidden px-3 py-3 sm:px-4 sm:py-4 xl:px-5 xl:py-5">
-                            <div className="grid h-full items-stretch gap-3 xl:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)] xl:gap-4">
-                                <div className="grid h-full auto-rows-fr gap-2 sm:grid-cols-2 xl:gap-3">
+                    <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
+                                <div className="grid auto-rows-fr gap-4 sm:grid-cols-2">
                                     {contactCards.map((card, index) => (
                                         <div
                                             key={card.title}
@@ -276,7 +233,7 @@ export default function ContactPage() {
                                 </div>
 
                                 <aside
-                                    className={`pointer-events-auto group flex h-full flex-col gap-2 border-2 p-3 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 xl:gap-3 xl:p-4 ${
+                                    className={`pointer-events-auto group flex h-full flex-col gap-4 border-2 p-4 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 xl:p-6 ${
                                         isLightMode
                                             ? "border-black/15 bg-white/72 text-black shadow-[8px_8px_0_rgba(255,255,255,0.15)] hover:border-black/35 hover:bg-white/85"
                                             : "border-white/20 bg-black/55 text-white shadow-[8px_8px_0_rgba(0,0,0,0.35)] hover:border-white/50 hover:bg-black/70"
@@ -284,12 +241,12 @@ export default function ContactPage() {
                                 >
                                     <div className={`border-b pb-2 ${isLightMode ? "border-black/10" : "border-white/10"}`}>
                                         <p className={`text-[10px] font-black uppercase tracking-[0.34em] xl:text-[11px] ${isLightMode ? "text-black/50" : "text-white/55"}`}>Socials</p>
-                                        <h3 className={`navbar-font mt-1 text-xl uppercase leading-none sm:text-2xl xl:text-[1.5rem] ${isLightMode ? "text-black" : "text-white"}`} style={{ textShadow: `2px 2px 0 ${accent}` }}>
+                                        <h3 className={`mt-2 font-black uppercase tracking-tighter text-3xl ${isLightMode ? "text-black" : "text-white"}`}>
                                             Follow Along
                                         </h3>
                                     </div>
 
-                                    <div className="grid gap-2 flex-1">
+                                    <div className="grid gap-3 flex-1">
                                         {socialLinks.map((social) => (
                                             <a
                                                 key={social.label}
@@ -308,23 +265,10 @@ export default function ContactPage() {
                                         ))}
                                     </div>
                                 </aside>
-                            </div>
-                        </div>
                     </div>
                 </section>
 
-                <footer className="mt-3 flex shrink-0 flex-col items-center justify-between gap-3 sm:flex-row xl:mt-4">
-                    <p className={`text-center text-xs sm:text-left xl:text-sm ${isLightMode ? "text-black/55" : "text-white/50"}`}>
-                        For urgent matters, feel free to contact us through any of our channels.
-                    </p>
-                    <Link
-                        href="/"
-                        className="pointer-events-auto inline-flex items-center gap-2 border-2 border-black px-4 py-2.5 text-xs font-black uppercase tracking-[0.22em] text-black shadow-[4px_4px_0_#000] transition-transform hover:-translate-y-0.5 xl:px-5 xl:py-3 xl:text-sm"
-                        style={{ backgroundColor: accent }}
-                    >
-                        Back to Home →
-                    </Link>
-                </footer>
+                </div>
             </main>
         </div>
     );
