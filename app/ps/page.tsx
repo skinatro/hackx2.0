@@ -216,7 +216,7 @@ export default function PSPage() {
         <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 py-20 sm:px-6 lg:px-8 relative z-20">
           <div className="text-left w-full mx-auto relative z-20 pointer-events-auto pb-10">
             <h2
-              className={`font-black uppercase tracking-tighter text-5xl sm:text-7xl text-center mb-4 ${isLightMode ? "text-black" : "text-white"}`}
+              className={`text-center font-black uppercase tracking-tighter text-6xl sm:text-7xl md:text-8xl lg:text-9xl mb-4 ${isLightMode ? "text-black" : "text-white"}`}
             >
               The Domains
             </h2>
