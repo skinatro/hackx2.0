@@ -52,7 +52,7 @@ const sections = {
         title: "CSI SFIT",
         subtitle: "Academic Innovation Partner",
         description:
-          "CSI SFIT drives student-led technical initiatives on campus and supports a strong culture of engineering practice, events, and collaboration.",
+          "We are a premier student body dedicated to advancing the theory and practice of computer engineering. We bridge the gap between academic curriculum and industry demands by consistently organising rigorous technical workshops, seminars, and competitive coding events that shape the technical leaders of tomorrow.",
         href: "https://csi-sfit.vercel.app/",
         cta: "Visit CSI SFIT",
       },
@@ -60,55 +60,10 @@ const sections = {
         title: "GDG SFIT",
         subtitle: "Developer Community Partner",
         description:
-          "GDG SFIT brings the Google Developer Group spirit to the campus through workshops, community programs, mentorship, and ecosystem access.",
+          "As a community-driven developer ecosystem, we focus on fostering an environment of open- source collaboration and cutting- edge innovation. We empower students to build real-world solutions using modern developer tools, creating a vibrant culture of peer-to-peer learning and technological exploration.",
       },
     ],
-  },
-  team: {
-    label: "Organizing Team",
-    accent: "#ff3b6b",
-    intro:
-      "Core organizing functions across both committees keep the experience coordinated, visible, and participant-focused from launch to finale.",
-    colClass: "sm:grid-cols-2 lg:grid-cols-3",
-    cards: [
-      {
-        title: "Program Lead",
-        subtitle: "CSI SFIT",
-        description:
-          "Owns event flow, problem statement alignment, and overall delivery across the hackathon timeline.",
-      },
-      {
-        title: "Community Lead",
-        subtitle: "GDG SFIT",
-        description:
-          "Coordinates outreach, onboarding, and community touchpoints to keep participation active before and during the event.",
-      },
-      {
-        title: "Operations Lead",
-        subtitle: "CSI SFIT",
-        description:
-          "Manages venue readiness, logistics, volunteer coordination, and on-ground execution for each phase of the event.",
-      },
-      {
-        title: "Mentorship Lead",
-        subtitle: "GDG SFIT",
-        description:
-          "Brings mentors, reviewers, and technical guidance into the event to strengthen project outcomes and participant support.",
-      },
-      {
-        title: "Sponsorship Lead",
-        subtitle: "Joint Committee",
-        description:
-          "Builds partner relationships, sponsorship coordination, and visibility opportunities for supporting organizations.",
-      },
-      {
-        title: "Experience Lead",
-        subtitle: "Joint Committee",
-        description:
-          "Shapes communication, participant help channels, and the overall event atmosphere from registration to results.",
-      },
-    ],
-  },
+  }
 } as const;
 
 const sectionOrder = [
@@ -121,12 +76,7 @@ const sectionOrder = [
     key: "organizers" as const,
     label: sections.organizers.label,
     accent: sections.organizers.accent,
-  },
-  {
-    key: "team" as const,
-    label: sections.team.label,
-    accent: sections.team.accent,
-  },
+  }
 ];
 
 type SectionKey = (typeof sectionOrder)[number]["key"];

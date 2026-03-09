@@ -209,7 +209,7 @@ export default function Page() {
             Our Sponsors
           </h1>
           <p className={`mx-auto mt-4 max-w-2xl text-sm leading-6 sm:text-base xl:max-w-3xl xl:text-lg xl:leading-7 ${isLightMode ? "text-black/65" : "text-white/65"}`}>
-            A clean one-screen view of the brands and communities supporting Hack X 2.0.
+            brands and communities supporting Hack X 2.0.
           </p>
         </header>
 
