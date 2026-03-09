@@ -40,7 +40,7 @@ export function Nvbar() {
   const { isLightMode, toggleTheme } = useTheme();
 
   return (
-    <aside className="pointer-events-none fixed right-3 top-1/2 z-20 -translate-y-1/2 sm:right-5 xl:right-7">
+    <aside className="pointer-events-none fixed right-3 top-1/2 z-50 -translate-y-1/2 sm:right-5 xl:right-7">
       <nav
         className="pointer-events-auto flex flex-col gap-3"
         aria-label="Primary"
