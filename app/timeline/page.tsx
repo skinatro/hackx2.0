@@ -10,6 +10,10 @@ const STYLES = `
     from { transform: rotateX(-28deg) rotateY(0deg); }
     to   { transform: rotateX(-28deg) rotateY(360deg); }
   }
+  @keyframes pulseGlow {
+    0%, 100% { filter: drop-shadow(0 0 10px #ff00a0); stroke-width: 14; }
+    50% { filter: drop-shadow(0 0 30px #ff00a0) drop-shadow(0 0 15px #ff00a0); stroke-width: 16; }
+  }
 `;
 
 type EventItem = {
@@ -317,10 +321,12 @@ export default function TimelinePage() {
               d={svgPathD}
               fill="none"
               stroke="#ff00a0"
-              strokeWidth={14}
               strokeLinecap="round"
               strokeLinejoin="round"
-              style={{ pathLength: drawProgress }}
+              style={{ 
+                pathLength: drawProgress,
+                animation: "pulseGlow 2s infinite ease-in-out"
+              }}
               className="drop-shadow-[0_0_15px_#ff00a0]"
             />
           </svg>
@@ -366,7 +372,7 @@ export default function TimelinePage() {
                       {/* 3) Title */}
                       <span
                         className="cursor-target font-black tracking-tight text-2xl md:text-4xl leading-tight mb-2"
-                        style={{ color: e.highlight ? e.accent : textColor }}
+                        style={{ color: e.accent }}
                       >
                         {e.title}
                       </span>
