@@ -31,7 +31,7 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [isLightMode, setIsLightMode] = useState(true);
+  const [isLightMode, setIsLightMode] = useState(false);
   const [lightClass, setLightClass] = useState(DEFAULT_LIGHT);
   const [darkClass, setDarkClass] = useState(DEFAULT_DARK);
   const [forceTheme, setForceTheme] = useState(false);

@@ -40,27 +40,27 @@ const FAQ_ITEMS = [
   },
   {
     q: "What is the team size?",
-    a: "Teams can have 2 to 4 members. You can either form a team beforehand or find teammates during the registration phase.",
+    a: "Teams can have 3 or 4 members. You can either form a team beforehand or find teammates on our community whatsapp group  .",
   },
   {
     q: "Is there a registration fee?",
-    a: "Details regarding the registration fee and process are updated on the registration portal. Check out the portal for the most recent timeline and fees!",
+    a: "A registration fee will be applicable only if you are shortlisted in the first round. The fee is ₹250 per participant.",
   },
   {
     q: "Will the problem statements be given in advance?",
-    a: "The broad domains (Cyber Defence, FinTech, Smart Cities, Future Mobility) are known, but the exact problem statements are revealed during the opening ceremony to maintain equal footing.",
+    a: "The broad domains (Cyber Defence & Digital Trust, Digital Economy, InfraTech, Future Mobility & Transportation) are known, but the exact problem statements are revealed during the opening ceremony to maintain equal footing.",
   },
   {
     q: "Is accommodation provided for outstation participants?",
-    a: "Yes! Accommodation will be arranged for outstation participants on a first-come, first-served basis. Make sure to indicate your requirement during registration so we can plan accordingly.",
+    a: "Yes! A common room will be provided for participants within the college campus; no additional accommodation will be available.",
   },
   {
     q: "What should I bring to the hackathon?",
-    a: "Bring your laptop, charger, any hardware you plan to use, a valid college ID, and your energy! We will provide food, internet, and a fully equipped hacking space for the duration of the event.",
+    a: "Bring your laptop, charger, any hardware you plan to use, a valid college ID, and your energy! We will provide food, refreshments, internet, and a fully equipped hacking space for the duration of the event.",
   },
   {
     q: "Are there any prizes?",
-    a: "Yes! HackX 2.0 features exciting cash prizes, goodies, and recognition across multiple tracks. Top teams may also get opportunities for mentorship and incubation support. Full prize details will be announced soon.",
+    a: "Yes! HackX 2.0 features exciting prizes across multiple domains. There are four domains, and each domain will have a single winner who will be awarded ₹25k. In addition, there will be prizes for special categories such as Best UI, Best Idea, and more.",
   },
   {
     q: "Do I need to have a fully built project before the event?",
@@ -88,7 +88,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "How do I stay updated about HackX 2.0?",
-    a: "Follow our official social media handles and keep an eye on the registration portal for announcements, schedule updates, and sponsor reveals. You can also subscribe to our newsletter for direct updates.",
+    a: "Follow our official social media handles and keep an eye on the registration portal for announcements, schedule updates, and sponsor reveals. ",
   },
 ] as const;
 

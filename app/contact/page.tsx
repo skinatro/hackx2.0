@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from "@/app/providers/theme-provider";
+import { ArrowUpRight } from "lucide-react";
 
 type ContactCardData = {
     eyebrow: string;
@@ -152,7 +153,7 @@ function ContactCard({ eyebrow, title, value, href, cta, accent, isLightMode }: 
                 style={{ borderTopColor: accent }}
             >
                 <span>{eyebrow}</span>
-                <span style={{ color: accent }}>{cta ? "↗" : "·"}</span>
+                <span style={{ color: accent }}>{cta ? <ArrowUpRight className="w-4 h-4 stroke-[3px]" /> : "·"}</span>
             </div>
             <div>
                 <p className={`text-xs font-black uppercase tracking-widest xl:text-sm ${isLightMode ? "text-black" : "text-white"}`}>{title}</p>

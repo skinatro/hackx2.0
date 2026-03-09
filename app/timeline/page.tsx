@@ -10,6 +10,10 @@ const STYLES = `
     from { transform: rotateX(-28deg) rotateY(0deg); }
     to   { transform: rotateX(-28deg) rotateY(360deg); }
   }
+  @keyframes pulseGlow {
+    0%, 100% { filter: drop-shadow(0 0 10px #ff00a0); stroke-width: 14; }
+    50% { filter: drop-shadow(0 0 30px #ff00a0) drop-shadow(0 0 15px #ff00a0); stroke-width: 16; }
+  }
 `;
 
 type EventItem = {
@@ -176,7 +180,7 @@ export default function TimelinePage() {
         const finalOrderPts: { x: number, y: number }[] = [];
         ptsByRow.forEach((row, rowIndex) => {
           row.sort((a, b) => a.x - b.x); // sort left-to-right
-          if (rowIndex % 2 !== 0) {
+          if (rowIndex % 2 !== 0 && window.innerWidth >= 768) {
             row.reverse(); // serpentine: odd rows go right-to-left
           }
           finalOrderPts.push(...row);
@@ -317,10 +321,12 @@ export default function TimelinePage() {
               d={svgPathD}
               fill="none"
               stroke="#ff00a0"
-              strokeWidth={14}
               strokeLinecap="round"
               strokeLinejoin="round"
-              style={{ pathLength: drawProgress }}
+              style={{ 
+                pathLength: drawProgress,
+                animation: "pulseGlow 2s infinite ease-in-out"
+              }}
               className="drop-shadow-[0_0_15px_#ff00a0]"
             />
           </svg>
@@ -330,7 +336,7 @@ export default function TimelinePage() {
             {EVENTS.map((e, i) => {
               const solidShadow = `10px 10px 0 ${e.accent}`;
 
-              const cardClasses = `cursor-target w-full h-full max-w-sm border-[3px] p-8 flex flex-col items-center relative overflow-hidden transition-all duration-500 hover:-translate-y-2 ${light
+              const cardClasses = `cursor-target w-full h-full max-w-[280px] sm:max-w-sm border-[3px] p-6 md:p-8 flex flex-col items-center relative overflow-hidden transition-all duration-500 hover:-translate-y-2 ${light
                 ? "border-black/85 bg-[#fafafa] text-black hover:bg-white"
                 : "border-black bg-[#0a0a0a] text-white hover:bg-[#111]"
                 }`;
@@ -365,8 +371,8 @@ export default function TimelinePage() {
                       </span>
                       {/* 3) Title */}
                       <span
-                        className="cursor-target font-black tracking-tight text-3xl md:text-4xl leading-tight mb-2"
-                        style={{ color: e.highlight ? e.accent : textColor }}
+                        className="cursor-target font-black tracking-tight text-2xl md:text-4xl leading-tight mb-2"
+                        style={{ color: e.accent }}
                       >
                         {e.title}
                       </span>

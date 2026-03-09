@@ -10,6 +10,36 @@ body {
   font-family: "Bebas Neue", cursive !important;
 }
 
+/* NAV trigger button */
+@keyframes nav-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 var(--nav-accent-glow), 6px 6px 0 #000;
+  }
+  50% {
+    box-shadow: 0 0 0 8px transparent, 6px 6px 0 #000;
+  }
+}
+
+.nav-trigger-btn {
+  background: var(--nav-accent);
+  border: 3px solid #000;
+  color: #000;
+  box-shadow: 6px 6px 0 #000;
+  animation: nav-pulse 2s ease-in-out infinite;
+  transition: background 0.4s ease, transform 0.2s ease;
+}
+
+.nav-trigger-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px var(--nav-accent-glow), 8px 8px 0 #000;
+  animation: none;
+}
+
+.nav-trigger-btn:active {
+  transform: translateY(2px);
+  box-shadow: 2px 2px 0 #000;
+}
+
 /* Enables 3D space */
 .preserve-3d {
   transform-style: preserve-3d;
