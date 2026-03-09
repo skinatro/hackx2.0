@@ -72,14 +72,14 @@ function SponsorCard({ name, logo, description, website, accent, isLightMode }: 
       href={website}
       target="_blank"
       rel="noopener noreferrer"
-      className={`pointer-events-auto group flex h-full flex-col gap-4 border-2 p-6 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 xl:gap-5 xl:p-7 ${
+      className={`cursor-target pointer-events-auto group flex h-full flex-col gap-4 border-2 p-6 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 xl:gap-5 xl:p-7 ${
         isLightMode
           ? "border-black/15 bg-white/72 text-black shadow-[8px_8px_0_rgba(255,255,255,0.15)] hover:border-black/35 hover:bg-white/85"
           : "border-white/20 bg-black/55 text-white shadow-[8px_8px_0_rgba(0,0,0,0.35)] hover:border-white/50 hover:bg-black/70"
       }`}
     >
       <div
-        className={`flex h-20 items-center justify-center border-2 text-sm font-bold uppercase tracking-widest xl:h-24 xl:text-base ${
+        className={`cursor-target flex h-20 items-center justify-center border-2 text-sm font-bold uppercase tracking-widest xl:h-24 xl:text-base ${
           isLightMode ? "border-black/10 bg-black/5 text-black/35" : "border-white/10 bg-white/5 text-white/30"
         }`}
         style={{ borderTopColor: accent }}
@@ -87,10 +87,10 @@ function SponsorCard({ name, logo, description, website, accent, isLightMode }: 
         {logo ?? name}
       </div>
       <div>
-        <p className={`text-base font-black uppercase tracking-widest xl:text-lg ${isLightMode ? "text-black" : "text-white"}`}>{name}</p>
-        <p className={`mt-2 text-sm leading-6 xl:text-base xl:leading-7 ${isLightMode ? "text-black/65" : "text-white/65"}`}>{description}</p>
+        <p className={`cursor-target text-base font-black uppercase tracking-widest xl:text-lg ${isLightMode ? "text-black" : "text-white"}`}>{name}</p>
+        <p className={`cursor-target mt-2 text-sm leading-6 xl:text-base xl:leading-7 ${isLightMode ? "text-black/65" : "text-white/65"}`}>{description}</p>
       </div>
-      <span className="mt-auto text-[11px] font-black uppercase tracking-widest xl:text-xs" style={{ color: accent }}>
+      <span className="cursor-target mt-auto text-[11px] font-black uppercase tracking-widest xl:text-xs" style={{ color: accent }}>
         Visit →
       </span>
     </a>
@@ -114,7 +114,7 @@ function TierButton({
     <button
       type="button"
       onClick={onClick}
-      className={`pointer-events-auto border-2 px-4 py-3 text-xs font-black uppercase tracking-[0.24em] transition-all duration-300 sm:text-sm xl:px-5 xl:py-3.5 xl:text-base ${
+      className={`cursor-target pointer-events-auto border-2 px-4 py-3 text-xs font-black uppercase tracking-[0.24em] transition-all duration-300 sm:text-sm xl:px-5 xl:py-3.5 xl:text-base ${
         active
           ? isLightMode
             ? "border-black bg-[#fff7d6] text-black shadow-[5px_5px_0_#000]"
@@ -174,13 +174,13 @@ export default function Page() {
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 py-20 sm:px-6 lg:px-8 relative z-20">
         <div className="text-left w-full mx-auto relative z-20 pointer-events-auto pb-10">
         <header className="text-center">
-          <p className={`text-[10px] font-black uppercase tracking-[0.4em] xl:text-xs ${isLightMode ? "text-black/55" : "text-white/50"}`}>Hack X 2.0</p>
+          <p className={`cursor-target text-[10px] font-black uppercase tracking-[0.4em] xl:text-xs ${isLightMode ? "text-black/55" : "text-white/50"}`}>Hack X 2.0</p>
           <h1
-            className={`text-center font-black uppercase tracking-tighter text-6xl sm:text-7xl md:text-8xl lg:text-9xl mb-4 ${isLightMode ? "text-black" : "text-white"}`}
+            className={`cursor-target text-center font-black uppercase tracking-tighter text-6xl sm:text-7xl md:text-8xl lg:text-9xl mb-4 ${isLightMode ? "text-black" : "text-white"}`}
           >
             Our Sponsors
           </h1>
-          <p className={`text-center font-black uppercase tracking-widest text-sm mb-16 px-4 py-2 border-[3px] mx-auto w-fit ${isLightMode ? "border-black bg-[#ffd23f] text-black" : "border-[#ffd23f] bg-black text-[#ffd23f]"}`}>
+          <p className={`cursor-target text-center font-black uppercase tracking-widest text-sm mb-16 px-4 py-2 border-[3px] mx-auto w-fit ${isLightMode ? "border-black bg-[#ffd23f] text-black" : "border-[#ffd23f] bg-black text-[#ffd23f]"}`}>
             Presenting • Powered By • Community Partners
           </p>
         </header>
@@ -199,16 +199,16 @@ export default function Page() {
         </div>
 
         <section className="w-full">
-          <div className={`mb-10 border-[3px] p-6 sm:p-8 ${isLightMode ? "border-black bg-white shadow-[8px_8px_0_#000]" : "border-white/30 bg-[#111] shadow-[8px_8px_0_#fff]"}`}>
+          <div className={`cursor-target mb-10 border-[3px] p-6 sm:p-8 ${isLightMode ? "border-black bg-white shadow-[8px_8px_0_#000]" : "border-white/30 bg-[#111] shadow-[8px_8px_0_#fff]"}`}>
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className={`text-[10px] font-black uppercase tracking-[0.34em] ${isLightMode ? "text-black/50" : "text-white/55"}`}>Sponsor tier</p>
-                <h2 className={`mt-3 font-black uppercase tracking-tighter text-4xl sm:text-5xl ${isLightMode ? "text-black" : "text-white"}`}>
+                <p className={`cursor-target text-[10px] font-black uppercase tracking-[0.34em] ${isLightMode ? "text-black/50" : "text-white/55"}`}>Sponsor tier</p>
+                <h2 className={`cursor-target mt-3 font-black uppercase tracking-tighter text-4xl sm:text-5xl ${isLightMode ? "text-black" : "text-white"}`}>
                   {displayTierMeta.label}
                 </h2>
               </div>
               <span
-                className="inline-flex w-fit border-[3px] border-black px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-black"
+                className="cursor-target inline-flex w-fit border-[3px] border-black px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-black"
                 style={{ backgroundColor: displayTierMeta.accent }}
               >
                 {String(displaySponsors.length).padStart(2, "0")} sponsors
@@ -224,7 +224,7 @@ export default function Page() {
             {displaySponsors.map((sponsor, index) => (
               <div
                 key={`${displayTierMeta.key}-${index}`}
-                className={`transition-all duration-500 ${
+                className={`cursor-target transition-all duration-500 ${
                   isTierVisible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
                 }`}
                 style={{ transitionDelay: `${isTierVisible ? 80 + index * 70 : 0}ms` }}

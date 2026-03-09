@@ -97,7 +97,7 @@ function InfoCard({
   const content = (
     <>
       <div
-        className={`flex h-20 items-center justify-between border-2 px-4 text-sm font-bold uppercase tracking-widest xl:h-22 xl:text-[0.8125rem] ${
+        className={`cursor-target flex h-20 items-center justify-between border-2 px-4 text-sm font-bold uppercase tracking-widest xl:h-22 xl:text-[0.8125rem] ${
           isLightMode
             ? "border-black/10 bg-black/5 text-black/40"
             : "border-white/10 bg-white/5 text-white/30"
@@ -109,18 +109,18 @@ function InfoCard({
       </div>
       <div>
         <p
-          className={`text-base font-black uppercase tracking-widest ${isLightMode ? "text-black" : "text-white"}`}
+          className={`cursor-target text-base font-black uppercase tracking-widest ${isLightMode ? "text-black" : "text-white"}`}
         >
           {title}
         </p>
         <p
-          className={`mt-2 text-sm leading-6 xl:text-[0.9375rem] xl:leading-relaxed ${isLightMode ? "text-black/65" : "text-white/65"}`}
+          className={`cursor-target mt-2 text-sm leading-6 xl:text-[0.9375rem] xl:leading-relaxed ${isLightMode ? "text-black/65" : "text-white/65"}`}
         >
           {description}
         </p>
       </div>
       <span
-        className="mt-auto text-[11px] font-black uppercase tracking-widest xl:text-xs"
+        className="cursor-target mt-auto text-[11px] font-black uppercase tracking-widest xl:text-xs"
         style={{ color: accent }}
       >
         {cta ?? (href ? "Open →" : "Core Focus")}
@@ -128,7 +128,7 @@ function InfoCard({
     </>
   );
 
-  const className = `pointer-events-auto group flex h-full flex-col gap-4 border-2 p-6 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 ${
+  const className = `cursor-target pointer-events-auto group flex h-full flex-col gap-4 border-2 p-6 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 ${
     isLightMode
       ? "border-black/15 bg-white/72 text-black shadow-[8px_8px_0_rgba(255,255,255,0.15)] hover:border-black/35 hover:bg-white/85"
       : "border-white/20 bg-black/55 text-white shadow-[8px_8px_0_rgba(0,0,0,0.35)] hover:border-white/50 hover:bg-black/70"
@@ -167,7 +167,7 @@ function SectionButton({
     <button
       type="button"
       onClick={onClick}
-      className={`pointer-events-auto border-2 px-4 py-3 text-xs font-black uppercase tracking-[0.24em] transition-all duration-300 sm:text-sm xl:text-sm ${
+      className={`cursor-target pointer-events-auto border-2 px-4 py-3 text-xs font-black uppercase tracking-[0.24em] transition-all duration-300 sm:text-sm xl:text-sm ${
         active
           ? isLightMode
             ? "border-black bg-[#fff7d6] text-black shadow-[5px_5px_0_#000]"
@@ -232,17 +232,17 @@ export default function AboutPage() {
         <div className="text-left w-full mx-auto relative z-20 pointer-events-auto pb-10">
           <header className="text-center">
           <p
-            className={`text-[10px] font-black uppercase tracking-[0.4em] ${isLightMode ? "text-black/55" : "text-white/50"}`}
+            className={`cursor-target text-[10px] font-black uppercase tracking-[0.4em] ${isLightMode ? "text-black/55" : "text-white/50"}`}
           >
             Hack X 2.0
           </p>
           <h1
-            className={`text-center font-black uppercase tracking-tighter text-6xl sm:text-7xl md:text-8xl lg:text-9xl mb-4 ${isLightMode ? "text-black" : "text-white"}`}
+            className={`cursor-target text-center font-black uppercase tracking-tighter text-6xl sm:text-7xl md:text-8xl lg:text-9xl mb-4 ${isLightMode ? "text-black" : "text-white"}`}
           >
             About The Event
           </h1>
           <p
-            className={`text-center font-black uppercase tracking-widest text-sm mb-16 px-4 py-2 border-[3px] mx-auto w-fit ${isLightMode ? "border-black bg-[#ffd23f] text-black" : "border-[#ffd23f] bg-black text-[#ffd23f]"}`}
+            className={`cursor-target text-center font-black uppercase tracking-widest text-sm mb-16 px-4 py-2 border-[3px] mx-auto w-fit ${isLightMode ? "border-black bg-[#ffd23f] text-black" : "border-[#ffd23f] bg-black text-[#ffd23f]"}`}
           >
             Mission • Organizers • Team
           </p>
@@ -263,30 +263,30 @@ export default function AboutPage() {
 
         <section className="w-full">
           <div
-            className={`mb-10 border-[3px] p-6 sm:p-8 ${isLightMode ? "border-black bg-white shadow-[8px_8px_0_#000]" : "border-white/30 bg-[#111] shadow-[8px_8px_0_#fff]"}`}
+            className={`cursor-target mb-10 border-[3px] p-6 sm:p-8 ${isLightMode ? "border-black bg-white shadow-[8px_8px_0_#000]" : "border-white/30 bg-[#111] shadow-[8px_8px_0_#fff]"}`}
           >
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p
-                  className={`text-[10px] font-black uppercase tracking-[0.34em] ${isLightMode ? "text-black/50" : "text-white/55"}`}
+                  className={`cursor-target text-[10px] font-black uppercase tracking-[0.34em] ${isLightMode ? "text-black/50" : "text-white/55"}`}
                 >
                   About section
                 </p>
                 <h2
-                  className={`mt-3 font-black uppercase tracking-tighter text-4xl sm:text-5xl ${isLightMode ? "text-black" : "text-white"}`}
+                  className={`cursor-target mt-3 font-black uppercase tracking-tighter text-4xl sm:text-5xl ${isLightMode ? "text-black" : "text-white"}`}
                 >
                   {displayContent.label}
                 </h2>
               </div>
               <span
-                className="inline-flex w-fit border-[3px] border-black px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-black"
+                className="cursor-target inline-flex w-fit border-[3px] border-black px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-black"
                 style={{ backgroundColor: displayMeta.accent }}
               >
                 {String(displayContent.cards.length).padStart(2, "0")} tiles
               </span>
             </div>
             <p
-              className={`mt-6 max-w-3xl text-sm sm:text-base font-bold leading-relaxed ${isLightMode ? "text-black/70" : "text-white/70"}`}
+              className={`cursor-target mt-6 max-w-3xl text-sm sm:text-base font-bold leading-relaxed ${isLightMode ? "text-black/70" : "text-white/70"}`}
             >
               {displayContent.intro}
             </p>

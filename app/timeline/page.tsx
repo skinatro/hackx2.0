@@ -261,13 +261,13 @@ export default function TimelinePage() {
       {/* ── Heading ── */}
       <div className="relative z-10 pt-32 pb-8 text-center px-4">
         <h1
-          className={`font-black uppercase tracking-tighter text-6xl sm:text-7xl md:text-8xl lg:text-9xl ${textColor}`}
+          className={`cursor-target font-black uppercase tracking-tighter text-6xl sm:text-7xl md:text-8xl lg:text-9xl ${textColor}`}
         >
           TIMELINE
         </h1>
 
         <p
-          className={`text-center font-black uppercase tracking-widest text-sm mb-16 px-4 py-2 border-[3px] mx-auto w-fit ${isLightMode ? "border-black bg-[#c0ff00] text-black" : "border-[#c0ff00] bg-black text-[#c0ff00]"}`}
+          className={`cursor-target text-center font-black uppercase tracking-widest text-sm mb-16 px-4 py-2 border-[3px] mx-auto w-fit ${isLightMode ? "border-black bg-[#c0ff00] text-black" : "border-[#c0ff00] bg-black text-[#c0ff00]"}`}
         >
           Key Milestones · HackX 2.0 · 2026
         </p>
@@ -330,14 +330,14 @@ export default function TimelinePage() {
             {EVENTS.map((e, i) => {
               const solidShadow = `10px 10px 0 ${e.accent}`;
 
-              const cardClasses = `w-full h-full max-w-sm border-[3px] p-8 flex flex-col items-center relative overflow-hidden transition-all duration-500 hover:-translate-y-2 ${light
+              const cardClasses = `cursor-target w-full h-full max-w-sm border-[3px] p-8 flex flex-col items-center relative overflow-hidden transition-all duration-500 hover:-translate-y-2 ${light
                 ? "border-black/85 bg-[#fafafa] text-black hover:bg-white"
                 : "border-black bg-[#0a0a0a] text-white hover:bg-[#111]"
                 }`;
               return (
                 <div
                   key={i}
-                  className="flex flex-col items-center group h-full"
+                  className="cursor-target flex flex-col items-center group h-full"
                 >
                   {/* Solid Non-Glass Card Wrapper */}
                   <div
@@ -346,32 +346,32 @@ export default function TimelinePage() {
                     style={{ boxShadow: solidShadow }}
                   >
                     {/* Cube Attachment Point (The SVG path connects to these) */}
-                    <div className="relative z-10 mb-8 p-3 bg-black/5 dark:bg-white/5 rounded-2xl flex flex-col items-center">
+                    <div className="cursor-target relative z-10 mb-8 p-3 bg-black/5 dark:bg-white/5 rounded-2xl flex flex-col items-center">
                       <Cube3D accent={e.accent} isLight={light} step={e.step} className="group-hover:scale-110 transition-transform duration-500" />
                     </div>
 
                     {/* Content Details: Stacked precisely Time -> Date -> Title -> Sub */}
-                    <div className="text-center flex flex-col items-center justify-start flex-1 w-full gap-1 mt-2">
+                    <div className="cursor-target text-center flex flex-col items-center justify-start flex-1 w-full gap-1 mt-2">
                       {/* 1) Time */}
                       <span
-                        className="font-black text-2xl tracking-tighter tabular-nums"
+                        className="cursor-target font-black text-2xl tracking-tighter tabular-nums"
                         style={{ color: e.accent }}
                       >
                         {e.time}
                       </span>
                       {/* 2) Date */}
-                      <span className={`text-xs md:text-sm font-bold tracking-widest uppercase mb-4 ${mutedColor}`}>
+                      <span className={`cursor-target text-xs md:text-sm font-bold tracking-widest uppercase mb-4 ${mutedColor}`}>
                         {e.date}
                       </span>
                       {/* 3) Title */}
                       <span
-                        className="font-black tracking-tight text-3xl md:text-4xl leading-tight mb-2"
+                        className="cursor-target font-black tracking-tight text-3xl md:text-4xl leading-tight mb-2"
                         style={{ color: e.highlight ? e.accent : textColor }}
                       >
                         {e.title}
                       </span>
                       {/* 4) Sub */}
-                      <span className={`text-sm md:text-base font-semibold tracking-wide ${mutedColor}`}>
+                      <span className={`cursor-target text-sm md:text-base font-semibold tracking-wide ${mutedColor}`}>
                         {e.sub || "Event Schedule"}
                       </span>
                     </div>
