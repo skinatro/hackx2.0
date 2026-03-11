@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useTheme } from "@/app/providers/theme-provider";
-import { motion, useScroll, useSpring } from "framer-motion";
+import { motion, useSpring } from "framer-motion";
 
 /* ─── Styles ─────────────────────────────────────────────── */
 const STYLES = `
@@ -236,14 +236,46 @@ export default function TimelinePage() {
     };
   }, []);
 
-  // Framer motion scroll progress over the entire page block
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"],
-  });
+  const [timeProgress, setTimeProgress] = useState(0);
+
+  useEffect(() => {
+    const updateProgress = () => {
+      // **Testing:** Uncomment the line below and change the date/time to preview different progress states.
+      // const now = new Date("2026-04-18T15:00:00").getTime(); 
+      const now = Date.now();
+      
+      const eventTimes = EVENTS.map(e => {
+          const dStr = e.date.replace(/(st|nd|rd|th)/, "");
+          return new Date(`2026 ${dStr} ${e.time}`).getTime();
+      });
+
+      const startTime = eventTimes[0];
+      const endTime = eventTimes[eventTimes.length - 1];
+
+      if (now <= startTime) {
+        setTimeProgress(0);
+      } else if (now >= endTime) {
+        setTimeProgress(1);
+      } else {
+        let progress = 0;
+        for (let i = 0; i < eventTimes.length - 1; i++) {
+          if (now >= eventTimes[i] && now < eventTimes[i+1]) {
+            const segmentProgress = (now - eventTimes[i]) / (eventTimes[i+1] - eventTimes[i]);
+            progress = (i + segmentProgress) / (eventTimes.length - 1);
+            break;
+          }
+        }
+        setTimeProgress(progress);
+      }
+    };
+
+    updateProgress();
+    const interval = setInterval(updateProgress, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Apply spring physics so drawing feels smooth and snappy
-  const drawProgress = useSpring(scrollYProgress, {
+  const drawProgress = useSpring(timeProgress, {
     stiffness: 100,
     damping: 30,
     restDelta: 0.001
