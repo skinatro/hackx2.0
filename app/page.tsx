@@ -34,15 +34,33 @@ const STYLES = `
   }
   .bg-grid-light {
     background-size: 50px 50px;
-    background-image: 
+    background-image:
       linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
   }
   .bg-grid-dark {
     background-size: 50px 50px;
-    background-image: 
+    background-image:
       linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  }
+  .safe-area-insets {
+    padding-top: env(safe-area-inset-top);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-area-top {
+    margin-top: env(safe-area-inset-top);
+  }
+  @media (max-width: 768px) {
+    .mobile-safe-height {
+      height: 100dvh;
+      min-height: 100svh;
+    }
+    .safe-area-top {
+      margin-top: max(env(safe-area-inset-top), 20px);
+    }
   }
 `;
 
@@ -86,11 +104,10 @@ function FloatingBadge({
 }) {
   return (
     <div
-      className={`absolute z-20 flex items-center justify-center p-3 transition-all duration-500 ${
-        isLightMode
-          ? "border-[3px] border-black bg-white/80 shadow-[6px_6px_0_#000]"
-          : "border-[3px] border-white/50 bg-[#111]/80 shadow-[6px_6px_0_#c0ff00]"
-      } ${styleName}`}
+      className={`absolute z-20 flex items-center justify-center p-3 transition-all duration-500 ${isLightMode
+        ? "border-[3px] border-black bg-white/80 shadow-[6px_6px_0_#000]"
+        : "border-[3px] border-white/50 bg-[#111]/80 shadow-[6px_6px_0_#c0ff00]"
+        } ${styleName}`}
       style={{
         animation: `${floatRev ? "float-reverse" : "float"} 6s ease-in-out infinite`,
         animationDelay: `${delay}s`,
@@ -118,11 +135,10 @@ function HighlightCard({
 }) {
   return (
     <div
-      className={`cursor-target group relative flex flex-col p-6 sm:p-8 transition-transform duration-500 hover:-translate-y-2 ${
-        isLightMode
-          ? "border-[3px] border-black bg-white shadow-[8px_8px_0_#000]"
-          : "border-[3px] border-white/30 bg-[#0a0a0a] shadow-[8px_8px_0_#fff]"
-      }`}
+      className={`cursor-target group relative flex flex-col p-6 sm:p-8 transition-transform duration-500 hover:-translate-y-2 ${isLightMode
+        ? "border-[3px] border-black bg-white shadow-[8px_8px_0_#000]"
+        : "border-[3px] border-white/30 bg-[#0a0a0a] shadow-[8px_8px_0_#fff]"
+        }`}
       style={{
         animation: `float-reverse 8s ease-in-out infinite`,
         animationDelay: `${delay}s`,
@@ -398,7 +414,7 @@ export default function Home() {
           <WaveTiles
             className={isLightMode ? "opacity-40" : "opacity-30"}
             optimizeForPerformance
-            onModeChange={() => {}}
+            onModeChange={() => { }}
           />
         </div>
       )}
@@ -406,7 +422,7 @@ export default function Home() {
       {/* Floating Canvas Sequence Layer */}
       <motion.div
         style={{ opacity: isMobile ? sequenceOpacity : 1 }}
-        className="absolute top-0 left-0 w-full z-0"
+        className="fixed inset-0 w-full h-full z-0 overflow-hidden"
       >
         <ScrollSequence
           frameCount={isMobile ? 48 : 192}
@@ -420,7 +436,7 @@ export default function Home() {
         />
         {/* Soft bottom blend mask to merge video to solid body section smoothly */}
         <div
-          className={`absolute bottom-0 left-0 w-full h-[50vh] bg-linear-to-t ${isLightMode ? "from-[#f5f5f5] to-transparent" : "from-black to-transparent"} z-10`}
+          className={`absolute bottom-0 left-0 w-full h-[50vh] bg-linear-to-t ${isLightMode ? "from-[#f5f5f5] to-transparent" : "from-black to-transparent"} z-10 pointer-events-none`}
         />
       </motion.div>
 
@@ -441,7 +457,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="relative z-10 flex min-h-screen flex-col">
+      <div className="relative z-10 flex min-h-screen px-10 flex-col">
         {/* Main Content */}
         <main className="relative z-20 flex w-full flex-1 flex-col">
           {/* Height matched to the length of the sticky ScrollSequence to keep layout linear */}
@@ -456,7 +472,7 @@ export default function Home() {
                 y: introY,
                 pointerEvents: introPointerEvents,
               }}
-              className="absolute top-3 left-3 sm:top-5 sm:left-5 px-3 py-1.5 sm:px-4 sm:py-2 mx-auto max-w-xs bg-white/60 dark:bg-black/40 backdrop-blur-sm rounded-lg cursor-target"
+              className="absolute top-3 sm:top-5 left-0 right-0 px-3 py-1.5 sm:px-4 sm:py-2 mx-auto max-w-xs bg-white/60 dark:bg-black/40 backdrop-blur-sm rounded-lg cursor-target z-50 safe-area-top"
             >
               <span className="text-base sm:text-lg font-bold uppercase tracking-tight text-black dark:text-white opacity-80">
                 Hacking Begins In
@@ -489,8 +505,8 @@ export default function Home() {
               </div>
             </motion.div>
             {/* Sticky pin wrap so text stays fixed while scrolling the background frames */}
-            <div className="sticky  top-29 h-[calc(100vh-150px)] w-full flex flex-col overflow-hidden">
-              <div className="relative w-full mx-auto flex-1 flex flex-col justify-between px-6 sm:px-12">
+            <div className="sticky top-0 h-screen mobile-safe-height w-full flex flex-col">
+              <div className="relative w-full mx-auto flex-1 flex flex-col justify-between px-4 sm:px-12 py-4 sm:py-0 safe-area-insets">
                 {/* GIANT BACKGROUND TITLE + Hacking Begins Counter (Glassmorphism) */}
                 <motion.div
                   style={{
@@ -498,9 +514,9 @@ export default function Home() {
                     y: introY,
                     pointerEvents: introPointerEvents,
                   }}
-                  className="absolute top-[35%] sm:top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center flex flex-col items-center justify-center z-50"
+                  className="absolute top-[40%] sm:top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center flex flex-col items-center justify-center z-40"
                 >
-                  <div className="flex font-black text-[clamp(3rem,12vw,200px)] sm:text-[clamp(4rem,16vw,200px)] leading-tight tracking-tighter mix-blend-overlay">
+                  <div className="flex font-black text-[clamp(5rem,10vw,200px)] sm:text-[clamp(4rem,16vw,200px)] leading-tight tracking-tighter mix-blend-overlay">
                     <h1 className={`text-[#ff00a0] cursor-target`}>HACKX</h1>
                     <h1
                       className="text-transparent ml-2 sm:ml-8 cursor-target"
@@ -544,20 +560,10 @@ export default function Home() {
                     delay={1.2}
                   >
                     <span
-                      className="text-2xl sm:text-3xl font-black text-black"
-                      style={{ WebkitTextStroke: "2px black" }}
+                      className="text-2xl sm:text-3xl font-black text-white"
+                      style={{ WebkitTextStroke: "2px white" }}
                     >
                       {"< />"}
-                    </span>
-                  </FloatingBadge>
-
-                  <FloatingBadge
-                    isLightMode={isLightMode}
-                    styleName="cursor-target absolute left-[10%] top-[10%] hidden lg:flex"
-                    delay={0.8}
-                  >
-                    <span className="text-xl sm:text-2xl drop-shadow-[2px_2px_0_#ff00a0]">
-                      ✨
                     </span>
                   </FloatingBadge>
                 </motion.div>
@@ -571,7 +577,7 @@ export default function Home() {
                   }}
                   className="flex-1 flex flex-col justify-between"
                 >
-                  <div className="relative z-10 w-full flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 pt-16 sm:pt-42">
+                  <div className="relative z-10 w-full flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 pt-32 sm:pt-42 pb-8 sm:pb-8">
                     <div
                       className={`inline-block border-[3px] px-6 py-2 text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] transition-transform hover:scale-105 ${isLightMode ? "border-black bg-[#ff00a0] text-white shadow-[4px_4px_0_#000]" : "border-white bg-[#ff00a0] text-white shadow-[4px_4px_0_#fff]"}`}
                     >
@@ -579,7 +585,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="relative z-10 w-full flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 pt-18 sm:pt-60">
+                  <div className="relative z-10 w-full flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-2 bg-black text-white px-4 py-2 border-[3px] border-white/50 shadow-[4px_4px_0_#c0ff00]">
                         <div className="h-2 w-2 rounded-full bg-[#00f0ff] animate-pulse"></div>
@@ -590,7 +596,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="relative z-10 w-full flex flex-col items-center lg:flex-row lg:items-end justify-between text-center lg:text-left mt-auto pb-8">
+                  <div className="relative z-10 w-full flex flex-col items-center lg:flex-row lg:items-end justify-between text-center lg:text-left mt-auto pb-8 gap-10">
                     <div className="flex flex-col items-center lg:items-start gap-4 sm:gap-6 max-w-xl">
                       <div
                         className={`cursor-target inline-block w-max font-black uppercase tracking-widest text-xs sm:text-sm whitespace-nowrap border-[3px] px-4 py-2 ${isLightMode ? "border-black bg-white text-black shadow-[4px_4px_0_#000]" : "border-white bg-black text-white shadow-[4px_4px_0_#c0ff00]"}`}
@@ -658,7 +664,7 @@ export default function Home() {
                   }}
                   className="absolute inset-0 flex items-center justify-center pointer-events-none"
                 >
-                  <div className="max-w-4xl text-center px-6">
+                  <div className="max-w-4xl text-center">
                     <h2
                       className={`font-black uppercase tracking-tighter text-4xl sm:text-8xl mb-6 sm:mb-8 drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] ${isLightMode ? "text-white" : "text-white"}`}
                     >
@@ -671,7 +677,7 @@ export default function Home() {
                       className={`mx-auto h-2 w-32 mb-12 ${isLightMode ? "bg-black" : "bg-[#c0ff00]"}`}
                     />
                     <p
-                      className={`text-lg sm:text-4xl font-black leading-tight tracking-tight uppercase p-4 sm:p-6 border-[3px] backdrop-blur-md ${isLightMode ? "text-white border-white/30 bg-black/40 shadow-[6px_6px_0_#000] sm:shadow-[8px_8px_0_#000]" : "text-white border-white/20 bg-black/60 shadow-[6px_6px_0_#fff]"}`}
+                      className={`text-lg sm:text-4xl font-black leading-tight sm:tracking-tight uppercase p-4 sm:p-6 border-[3px] backdrop-blur-md ${isLightMode ? "text-white border-white/30 bg-black/40 shadow-[6px_6px_0_#000] sm:shadow-[8px_8px_0_#000]" : "text-white border-white/20 bg-black/60 shadow-[6px_6px_0_#fff]"}`}
                     >
                       Over an intense 24-hour experience, we build the bridges
                       between{" "}
@@ -693,29 +699,29 @@ export default function Home() {
                     y: lootY,
                     pointerEvents: lootPointerEvents,
                   }}
-                  className="absolute inset-0 flex flex-col items-center justify-center p-6 pointer-events-none"
+                  className="mobile-safe-height absolute top-5 inset-0 flex items-center justify-center pointer-events-none"
                 >
                   <div className="text-center w-full max-w-5xl pointer-events-auto">
                     <h2
-                      className={`font-black uppercase tracking-tighter text-4xl sm:text-7xl mb-8 drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] text-zinc-100`}
+                      className={`font-black uppercase tracking-tighter text-4xl sm:text-7xl mb-2 drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] text-zinc-100`}
                     >
                       The Loot
                     </h2>
-                    <div className="mb-14 relative inline-block">
+                    <div className="mb-4 relative inline-block">
                       <div className="absolute -inset-2 bg-[#ff00a0] blur-xl opacity-20 animate-pulse" />
                       <div className="relative flex flex-col items-center">
                         <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] text-[#00f0ff] mb-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
                           Total Prize Pool
                         </span>
-                        <div className="px-10 py-4 border-[4px] border-black bg-[#c0ff00] shadow-[12px_12px_12px_rgba(0,0,0,0.4)] transform hover:scale-105 transition-transform duration-300">
-                          <h3 className="text-5xl sm:text-7xl font-black text-black tracking-tighter leading-none">
-                            ₹1.5 LAKH
+                        <div className="px-10 py-3 border-4 border-black bg-[#c0ff00] shadow-[12px_12px_12px_rgba(0,0,0,0.4)] transform hover:scale-105 transition-transform duration-300">
+                          <h3 className="text-4xl sm:text-7xl font-black text-black tracking-tighter leading-none">
+                            ₹1,45,000
                           </h3>
                         </div>
-                        <div className="mt-4 flex gap-4 text-[10px] sm:text-xs font-black uppercase tracking-widest text-zinc-400">
-                          <span>₹1L Domain Pool</span>
+                        <div className="mt-2 flex gap-4 text-[10px] sm:text-xs font-black uppercase tracking-widest text-zinc-400">
+                          <span>₹1,00,000 Domain Pool</span>
                           <span className="text-[#ff00a0]">•</span>
-                          <span>₹50k Special Tracks</span>
+                          <span>₹45k Special Tracks</span>
                         </div>
                       </div>
                     </div>
@@ -745,11 +751,10 @@ export default function Home() {
                       ].map((prize, idx) => (
                         <div
                           key={idx}
-                          className={`cursor-target p-6 sm:p-8 flex flex-col items-center justify-center border-[3px] transition-transform hover:-translate-y-2 duration-300 ${
-                            isLightMode
-                              ? "border-black bg-white shadow-[8px_8px_0_#000]"
-                              : "border-white/30 bg-[#111] shadow-[8px_8px_0_#fff]"
-                          }`}
+                          className={`cursor-target p-6 sm:p-8 flex flex-col items-center justify-center border-[3px] transition-transform hover:-translate-y-2 duration-300 ${isLightMode
+                            ? "border-black bg-white shadow-[8px_8px_0_#000]"
+                            : "border-white/30 bg-[#111] shadow-[8px_8px_0_#fff]"
+                            }`}
                         >
                           <span className="text-[11px] sm:text-sm font-black uppercase tracking-widest text-gray-500 mb-2 text-center leading-tight">
                             {prize.domain}
@@ -764,17 +769,19 @@ export default function Home() {
                       ))}
                     </div>
 
-                    <div className="mt-12 p-6 border-[3px] border-dashed border-[#c0ff00]/50 bg-black/40 backdrop-blur-sm max-w-2xl mx-auto">
+                    <div className="mt-6 p-6 border-[3px] border-dashed border-[#c0ff00]/50 bg-black/40 backdrop-blur-sm max-w-2xl mx-auto">
                       <p className="text-white font-black uppercase tracking-widest text-base sm:text-lg mb-2">
-                        + ₹50k Special Tracks Pool
+                        + ₹45k Special Tracks Pool
                       </p>
                       <p className="text-zinc-400 text-sm sm:text-base font-bold leading-relaxed">
                         Additional prizes for{" "}
                         <span className="text-[#00f0ff]">Best UI/UX</span>,{" "}
                         <span className="text-[#ff00a0]">
-                          Best Technical Implementation
+                          Best Innovation
                         </span>
-                        , and other categories to be announced soon!
+                        , and{" "}
+                        <span className="text-[#c0ff00]">Best Business Model</span>
+                        !
                       </p>
                     </div>
                   </div>
@@ -787,21 +794,21 @@ export default function Home() {
                     y: domainsPhaseY,
                     pointerEvents: domainsPointerEvents,
                   }}
-                  className="absolute inset-0 flex flex-col items-center justify-center p-6 pointer-events-none"
+                  className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
                 >
                   <div className="w-full max-w-6xl pointer-events-auto">
                     <h2
-                      className={`font-black uppercase tracking-tighter text-center text-4xl sm:text-7xl mb-8 drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] text-zinc-100`}
+                      className={`font-black uppercase tracking-tighter text-center text-4xl sm:text-7xl mb-4 drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] text-zinc-100`}
                     >
                       The Domains
                     </h2>
                     <p
-                      className={`mb-12 text-base sm:text-xl font-bold uppercase tracking-widest text-center text-white drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]`}
+                      className={`mb-6 text-base sm:text-xl font-bold uppercase tracking-widest text-center text-white drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]`}
                     >
                       Choose a challenge or pitch your own initiative.
                     </p>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 px-4 sm:px-0">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
                       {[
                         {
                           name: "Cyber Defence",
@@ -826,11 +833,10 @@ export default function Home() {
                       ].map((track, i) => (
                         <div
                           key={i}
-                          className={`cursor-target group relative flex flex-col items-center justify-center p-6 sm:p-8 transition-transform duration-500 hover:-translate-y-2 ${
-                            isLightMode
-                              ? "border-[3px] border-black bg-white shadow-[6px_6px_0_#000]"
-                              : "border-[3px] border-white/30 bg-[#111] shadow-[6px_6px_0_#fff]"
-                          }`}
+                          className={`cursor-target group relative flex flex-col items-center justify-center p-6 sm:p-8 transition-transform duration-500 hover:-translate-y-2 ${isLightMode
+                            ? "border-[3px] border-black bg-white shadow-[6px_6px_0_#000]"
+                            : "border-[3px] border-white/30 bg-[#111] shadow-[6px_6px_0_#fff]"
+                            }`}
                         >
                           <div
                             className="absolute inset-0 z-0 origin-bottom scale-y-0 transition-transform duration-300 ease-out group-hover:scale-y-100"
@@ -842,9 +848,8 @@ export default function Home() {
                             {track.icon}
                           </div>
                           <h3
-                            className={`relative z-10 text-base sm:text-lg font-black uppercase tracking-widest text-center transition-colors duration-300 ${
-                              isLightMode ? "text-black" : "text-white"
-                            } group-hover:text-black`}
+                            className={`relative z-10 text-base sm:text-lg font-black uppercase tracking-widest text-center transition-colors duration-300 ${isLightMode ? "text-black" : "text-white"
+                              } group-hover:text-black`}
                           >
                             {track.name}
                           </h3>
@@ -859,16 +864,16 @@ export default function Home() {
                     y: pillarsY,
                     pointerEvents: pillarsPointerEvents,
                   }}
-                  className="absolute inset-0 flex flex-col justify-between pt-24 sm:pt-32 pb-32 sm:pb-48 px-4 sm:px-6 pointer-events-none"
+                  className="absolute inset-0 flex flex-col justify-between pt-24 sm:pt-32 pb-32 sm:pb-48 sm:px-6 pointer-events-none"
                 >
                   <div className="text-center">
                     <h2
-                      className={`font-black uppercase tracking-tighter text-4xl sm:text-7xl mb-8 drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] text-zinc-100`}
+                      className={`font-black uppercase tracking-tighter text-4xl sm:text-7xl mb-4 drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] text-zinc-100`}
                     >
                       Event Highlights
                     </h2>
                     <p
-                      className={`mt-4 text-sm sm:text-md font-bold uppercase tracking-widest ${isLightMode ? "text-[#ff00a0]" : "text-[#c0ff00]"}`}
+                      className={`mb-4 text-sm sm:text-md font-bold uppercase tracking-widest ${isLightMode ? "text-[#ff00a0]" : "text-[#c0ff00]"}`}
                     >
                       Scale • Mentorship • Prizes
                     </p>
@@ -877,7 +882,7 @@ export default function Home() {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 pointer-events-auto max-w-7xl mx-auto w-full px-6 sm:px-4">
                     <HighlightCard
                       title="Scale"
-                      description="Connect with 10,000+ participants and builders across India."
+                      description="Connect with participants and builders across India."
                       icon={<GlobeIcon className="h-2/3 w-2/3" />}
                       color="#c0ff00"
                       isLightMode={isLightMode}
@@ -893,7 +898,7 @@ export default function Home() {
                     />
                     <HighlightCard
                       title="Prizes"
-                      description="Compete for a massive ₹1.5 lakh prize pool and bounties."
+                      description="Compete for a massive ₹1,45,000 prize pool and bounties."
                       icon={<TrophyIcon className="h-2/3 w-2/3" />}
                       color="#ff00a0"
                       isLightMode={isLightMode}
@@ -906,7 +911,7 @@ export default function Home() {
           </div>
 
           <div
-            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full"
+            className="max-w-7xl mx-auto sm:px-6 lg:px-8 w-full mt-36 sm:mt-0"
             style={{
               contentVisibility: "auto",
               containIntrinsicSize: "1200px",
@@ -915,7 +920,7 @@ export default function Home() {
             <div className="pb-10 relative z-20">
               {/* Countdown */}
               <div
-                className={`pointer-events-auto relative px-8 py-10 sm:py-14 text-center mx-auto max-w-4xl mt-32 border-[3px] ${isLightMode ? "border-black bg-[#c0ff00] shadow-[12px_12px_0_#000]" : "border-white/30 bg-[#c0ff00] shadow-[12px_12px_0_#fff]"}`}
+                className={`pointer-events-auto relative px-1 py-10 sm:py-14 text-center mx-auto max-w-6xl mt-32 border-[3px] ${isLightMode ? "border-black bg-[#c0ff00] shadow-[12px_12px_0_#000]" : "border-white/30 bg-[#c0ff00] shadow-[12px_12px_0_#fff]"}`}
               >
                 <h2 className="text-2xl sm:text-6xl font-black uppercase tracking-tighter text-black">
                   Hacking Begins In

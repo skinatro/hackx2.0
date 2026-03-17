@@ -19,18 +19,20 @@ export default function Preloader({
     setHasMounted(true);
     const visited = localStorage.getItem("hackx_visited");
 
-    if (visited) {
+    if (!visited) {
+      // First time visiting - show preloader
       setIsFirstLoad(true);
       setIsVisible(true);
 
       // Play animation for a fixed duration then complete
       const timer = setTimeout(() => {
         setIsVisible(false);
-        // localStorage.setItem("hackx_visited", "true");
+        localStorage.setItem("hackx_visited", "true");
         setTimeout(onComplete, 1000); // Wait for exit animation
       }, 3500);
       return () => clearTimeout(timer);
     } else {
+      // Already visited - skip preloader
       onComplete();
     }
   }, [onComplete]);

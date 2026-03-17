@@ -123,8 +123,7 @@ export default function ScrollSequence({
             const vRatio = displayHeight / currentImage.height;
             const ratio = Math.max(hRatio, vRatio);
             const isPortrait = displayHeight > displayWidth;
-            const adaptiveRatio =
-              isPortrait && displayWidth < 768 ? ratio * 0.8 : ratio;
+            const adaptiveRatio = ratio; // Always use full ratio for complete coverage
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = isLightModeRef.current ? "#ffffff" : "#000000";
@@ -241,10 +240,9 @@ export default function ScrollSequence({
       const centerShiftX = (displayWidth - img.width * ratio) / 2;
       const centerShiftY = (displayHeight - img.height * ratio) / 2;
 
-      // On mobile portrait, we scale down slightly to avoid massive character focus
+      // Always use full ratio for complete coverage without black bars
       const isPortrait = displayHeight > displayWidth;
-      const adaptiveRatio =
-        isPortrait && displayWidth < 768 ? ratio * 0.8 : ratio;
+      const adaptiveRatio = ratio;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 

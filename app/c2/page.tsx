@@ -1,8 +1,8 @@
 "use client";
 
+import { useTheme } from "@/app/providers/theme-provider";
 import Link from "next/link";
 import React, { useEffect } from "react";
-import { useTheme } from "@/app/providers/theme-provider";
 
 const STYLES = `
   @keyframes float {
@@ -344,7 +344,7 @@ export default function Home() {
             <div className="pointer-events-auto mt-16 grid grid-cols-1 gap-8 sm:grid-cols-3">
               <HighlightCard
                 title="Scale"
-                description="Connect with 10,000+ participants, builders, industry experts, and founders across India."
+                description="Connect with participants, builders, industry experts, and founders across India."
                 icon="🌐"
                 color="#c0ff00"
                 isLightMode={isLightMode}
@@ -360,7 +360,7 @@ export default function Home() {
               />
               <HighlightCard
                 title="Prizes"
-                description="Compete for a massive ₹1.5 lakh prize pool, bounties, credits, and potential investments."
+                description="Compete for a massive ₹1,45,000 prize pool, bounties, credits, and potential investments."
                 icon="🏆"
                 color="#ff00a0"
                 isLightMode={isLightMode}
@@ -396,7 +396,7 @@ export default function Home() {
                 >
                   Over an intense 24-hour hacking experience, participants will
                   work in teams to develop impactful solutions that matter. With
-                  a ₹1.5 lakh prize pool, mentorship from industry experts, and
+                  a ₹1,45,000 prize pool, mentorship from industry experts, and
                   a rigorous competitive selection process leading to the top
                   finalist teams, HackX 2.0 aims to become one of the largest
                   student-led hackathons in all of Maharashtra. Our goal?
@@ -491,7 +491,7 @@ export default function Home() {
                   {
                     date: "19th Apr 2026",
                     title: "Closing Ceremony",
-                    desc: "Judging, top finalist pitches, and the ₹1.5 Lakh prize distribution.",
+                    desc: "Judging, top finalist pitches, and the ₹1,45,000 prize distribution.",
                   },
                 ].map((item, idx) => (
                   <div

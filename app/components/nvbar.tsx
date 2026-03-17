@@ -23,6 +23,7 @@ const navCubes: NavCube[] = [
     accent: "#00f0ff",
   },
   { label: "Timeline", shortLabel: "TL", href: "/timeline", accent: "#c0ff00" },
+  { label: "Payment", shortLabel: "PAY", href: "/payment", accent: "#ff00a0" },
   { label: "Sponsors", shortLabel: "SP", href: "/sponsors", accent: "#ffd23f" },
   { label: "F.A.Q", shortLabel: "FAQ", href: "/faq", accent: "#00f0ff" },
   { label: "Contact", shortLabel: "CT", href: "/contact", accent: "#c0ff00" },
@@ -50,27 +51,25 @@ export function Nvbar() {
   const currentAccent = currentNav?.accent ?? "#ffd23f";
   const currentShortLabel = currentNav?.shortLabel ?? "NAV";
 
-  const navButtonClassName = `flex h-14 w-14 items-center justify-center border-[3px] text-xs font-black uppercase tracking-[0.22em] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 sm:h-15 sm:w-15 ${
-    isLightMode
+  const navButtonClassName = `flex h-14 w-14 items-center justify-center border-[3px] text-xs font-black uppercase tracking-[0.22em] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 sm:h-15 sm:w-15 ${isLightMode
       ? "border-black bg-white text-black shadow-[6px_6px_0_#000]"
       : "border-white/50 bg-black/80 text-white shadow-[6px_6px_0_rgba(255,255,255,0.15)] hover:border-white/70 hover:bg-black/90"
-  }`;
+    }`;
 
   const mobileTriggerClassName = `nav-trigger-btn pointer-events-auto flex h-14 w-14 items-center justify-center text-[1px] font-black uppercase tracking-[0.22em] transition-all duration-200 sm:hidden`;
 
-  const themeButtonClassName = `flex h-14 w-14 sm:h-15 sm:w-15 items-center justify-center border-[3px] text-xs font-black uppercase tracking-[0.22em] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 ${
-    isLightMode
+  const themeButtonClassName = `flex h-14 w-14 sm:h-15 sm:w-15 items-center justify-center border-[3px] text-xs font-black uppercase tracking-[0.22em] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 ${isLightMode
       ? "border-black bg-white text-black shadow-[6px_6px_0_#000] hover:bg-slate-100"
       : "border-white/50 bg-black/80 text-white shadow-[6px_6px_0_rgba(255,255,255,0.15)] hover:border-white/70 hover:bg-black/90"
-  }`;
+    }`;
 
   return (
     <aside className="pointer-events-none fixed bottom-4 right-4 z-50 sm:bottom-auto sm:right-5 sm:top-1/2 sm:-translate-y-1/2 xl:right-7">
       <div className="flex flex-col items-end gap-3 sm:hidden">
         <div
           className={`flex flex-col items-end gap-3 transition-all duration-300 ${isMobileOpen
-              ? "translate-y-0 opacity-100"
-              : "pointer-events-none translate-y-3 opacity-0"
+            ? "translate-y-0 opacity-100"
+            : "pointer-events-none translate-y-3 opacity-0"
             }`}
           aria-hidden={!isMobileOpen}
         >
@@ -167,9 +166,8 @@ export function Nvbar() {
                 className="group relative flex items-center justify-end"
               >
                 <div
-                  className={`absolute right-full mr-3 whitespace-nowrap border-2 px-3 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-black opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100 ${
-                    isActive ? "translate-x-0" : "translate-x-2"
-                  }`}
+                  className={`absolute right-full mr-3 whitespace-nowrap border-2 px-3 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-black opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100 ${isActive ? "translate-x-0" : "translate-x-2"
+                    }`}
                   style={{
                     backgroundColor: item.accent,
                     boxShadow: "4px 4px 0 #000",
