@@ -172,14 +172,15 @@ export function WaveTiles({
     const canvasEl: HTMLCanvasElement = canvas;
     const drawingContext: CanvasRenderingContext2D = ctx;
 
-    const baseCells = optimizeForPerformance ? 16 : 24;
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    const baseCells = isMobile ? 10 : optimizeForPerformance ? 16 : 24;
     const perspective = 3000; // Larger value = less perspective distortion (better for large cuboids)
     const viewYaw = 0;
     const viewPitch = 0;
     const maxCursorYaw = Math.PI / 6;
     const maxCursorPitch = Math.PI / 8;
-    const maxVisibleCubes = optimizeForPerformance ? 400 : 900;
-    const minCubeSize = optimizeForPerformance ? 24 : 16;
+    const maxVisibleCubes = isMobile ? 150 : optimizeForPerformance ? 400 : 900;
+    const minCubeSize = isMobile ? 32 : optimizeForPerformance ? 24 : 16;
     const lightDir = normalize({ x: -0.35, y: -0.45, z: 1 });
     const GRID_GAP_SIZE = 0;
     const CUSTOM_CUBE_GAP_SIZE = GRID_GAP_SIZE;

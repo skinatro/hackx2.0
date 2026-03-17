@@ -4,7 +4,8 @@ import { useScroll, useSpring, useTransform } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
 interface ScrollSequenceProps {
-  frameCount: number; // How many frames are in the sequence?
+  frameCount: number; // How many frames to load/render in this session
+  totalFrames?: number; // Total number of generic frames available in directory
   folderPath?: string; // Default: "/hero-frames"
   filePrefix?: string; // Default: ""
   fileExtension?: string; // Default: ".webp"
@@ -17,6 +18,7 @@ interface ScrollSequenceProps {
 
 export default function ScrollSequence({
   frameCount,
+  totalFrames,
   folderPath = "/hero-frames",
   filePrefix = "",
   fileExtension = ".webp",
@@ -26,6 +28,7 @@ export default function ScrollSequence({
   height = "h-[300vh]",
   optimizeForPerformance = false,
 }: ScrollSequenceProps) {
+  const actualTotalFrames = totalFrames || frameCount;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const imagesRef = useRef<(HTMLImageElement | undefined)[]>([]);
@@ -66,7 +69,10 @@ export default function ScrollSequence({
     renderedFrameRef.current = -1;
 
     const buildSrc = (index: number) => {
-      const fileNumber = index + 1;
+      // Scale requested index (0..frameCount-1) to actual file range (0..actualTotalFrames-1)
+      const step = (actualTotalFrames - 1) / Math.max(1, frameCount - 1);
+      const actualIndex = Math.round(index * step);
+      const fileNumber = actualIndex + 1;
       const id = fileNumber.toString().padStart(padLength, "0");
 
       return `${folderPath}/${filePrefix}${id}${fileExtension}`;
@@ -116,10 +122,9 @@ export default function ScrollSequence({
             const hRatio = displayWidth / currentImage.width;
             const vRatio = displayHeight / currentImage.height;
             const ratio = Math.max(hRatio, vRatio);
-            const centerShiftX =
-              (displayWidth - currentImage.width * ratio) / 2;
-            const centerShiftY =
-              (displayHeight - currentImage.height * ratio) / 2;
+            const isPortrait = displayHeight > displayWidth;
+            const adaptiveRatio =
+              isPortrait && displayWidth < 768 ? ratio * 0.8 : ratio;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = isLightModeRef.current ? "#ffffff" : "#000000";
@@ -130,10 +135,10 @@ export default function ScrollSequence({
               0,
               currentImage.width,
               currentImage.height,
-              centerShiftX,
-              centerShiftY,
-              currentImage.width * ratio,
-              currentImage.height * ratio,
+              (displayWidth - currentImage.width * adaptiveRatio) / 2,
+              (displayHeight - currentImage.height * adaptiveRatio) / 2,
+              currentImage.width * adaptiveRatio,
+              currentImage.height * adaptiveRatio,
             );
             renderedFrameRef.current = currentFrame;
           });
@@ -199,7 +204,14 @@ export default function ScrollSequence({
         resizeRafRef.current = null;
       }
     };
-  }, [fileExtension, filePrefix, folderPath, frameCount, padLength]);
+  }, [
+    fileExtension,
+    filePrefix,
+    folderPath,
+    frameCount,
+    padLength,
+    actualTotalFrames,
+  ]);
 
   // Handle Canvas Drawing when the scroll/frame changes
   useEffect(() => {
@@ -229,6 +241,11 @@ export default function ScrollSequence({
       const centerShiftX = (displayWidth - img.width * ratio) / 2;
       const centerShiftY = (displayHeight - img.height * ratio) / 2;
 
+      // On mobile portrait, we scale down slightly to avoid massive character focus
+      const isPortrait = displayHeight > displayWidth;
+      const adaptiveRatio =
+        isPortrait && displayWidth < 768 ? ratio * 0.8 : ratio;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Optional: fill background color depending on light/dark mode for the edges before the cover calculates
@@ -241,10 +258,10 @@ export default function ScrollSequence({
         0,
         img.width,
         img.height,
-        centerShiftX,
-        centerShiftY,
-        img.width * ratio,
-        img.height * ratio,
+        (displayWidth - img.width * adaptiveRatio) / 2,
+        (displayHeight - img.height * adaptiveRatio) / 2,
+        img.width * adaptiveRatio,
+        img.height * adaptiveRatio,
       );
 
       renderedFrameRef.current = index;
