@@ -56,12 +56,12 @@ function CountdownItem({
   color: string;
 }) {
   return (
-    <div className="relative flex w-24 flex-col items-center justify-center p-4 sm:w-32 sm:p-6 group overflow-hidden border-[3px] border-black bg-white shadow-[6px_6px_0_#000] transition-transform hover:-translate-y-1 hover:shadow-[8px_8px_0_#000]">
+    <div className="relative flex w-20 flex-col items-center justify-center p-3 sm:w-32 sm:p-6 group overflow-hidden border-[3px] border-black bg-white shadow-[6px_6px_0_#000] transition-transform hover:-translate-y-1 hover:shadow-[8px_8px_0_#000]">
       <div
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         style={{ backgroundColor: color, zIndex: 0 }}
       />
-      <span className="relative z-10 navbar-font text-5xl font-black sm:text-6xl text-black">
+      <span className="relative z-10 navbar-font text-4xl font-black sm:text-6xl text-black">
         {value}
       </span>
       <span className="relative z-10 mt-2 text-[10px] font-black uppercase tracking-[0.3em] text-black/70 group-hover:text-black">
@@ -118,7 +118,7 @@ function HighlightCard({
 }) {
   return (
     <div
-      className={`cursor-target group relative flex flex-col p-8 transition-transform duration-500 hover:-translate-y-2 ${
+      className={`cursor-target group relative flex flex-col p-6 sm:p-8 transition-transform duration-500 hover:-translate-y-2 ${
         isLightMode
           ? "border-[3px] border-black bg-white shadow-[8px_8px_0_#000]"
           : "border-[3px] border-white/30 bg-[#0a0a0a] shadow-[8px_8px_0_#fff]"
@@ -274,6 +274,16 @@ export default function Home() {
   const { isLightMode } = useTheme();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [preloaderComplete, setPreloaderComplete] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const { scrollYProgress } = useScroll({
     target: scrollContainerRef,
@@ -338,6 +348,33 @@ export default function Home() {
   const navbarOpacity = useTransform(smoothProgress, [0.97, 0.99], [0, 1]);
   const navbarX = useTransform(smoothProgress, [0.97, 0.99], [60, 0]);
 
+  // Background Dimming for mobile to improve readability
+  const sequenceOpacity = useTransform(
+    smoothProgress,
+    [0.15, 0.2, 0.4, 0.45, 0.7, 0.75, 0.9, 0.95],
+    [1, 0.5, 0.5, 0.4, 0.4, 0.4, 0.4, 1],
+  );
+
+  // Pointer Events Control: Disable interaction for sections that are invisible
+  const introPointerEvents = useTransform(introOpacity, (v) =>
+    v > 0.1 ? "auto" : ("none" as any),
+  );
+  const missionPointerEvents = useTransform(missionOpacity, (v) =>
+    v > 0.1 ? "auto" : ("none" as any),
+  );
+  const lootPointerEvents = useTransform(lootOpacity, (v) =>
+    v > 0.1 ? "auto" : ("none" as any),
+  );
+  const domainsPointerEvents = useTransform(domainsPhaseOpacity, (v) =>
+    v > 0.1 ? "auto" : ("none" as any),
+  );
+  const pillarsPointerEvents = useTransform(pillarsOpacity, (v) =>
+    v > 0.1 ? "auto" : ("none" as any),
+  );
+  const navbarPointerEvents = useTransform(navbarOpacity, (v) =>
+    v > 0.1 ? "auto" : ("none" as any),
+  );
+
   return (
     <div
       className={`relative min-h-screen font-sans selection:bg-[#ff00a0] selection:text-white ${isLightMode ? "bg-[#f5f5f5]" : "bg-black"}`}
@@ -356,18 +393,24 @@ export default function Home() {
       />
 
       {/* Floating Wave Tiles Background - Design Uniformity with Sponsors */}
-      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <WaveTiles
-          className={isLightMode ? "opacity-40" : "opacity-30"}
-          optimizeForPerformance
-          onModeChange={() => {}}
-        />
-      </div>
+      {!isMobile && (
+        <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+          <WaveTiles
+            className={isLightMode ? "opacity-40" : "opacity-30"}
+            optimizeForPerformance
+            onModeChange={() => {}}
+          />
+        </div>
+      )}
 
       {/* Floating Canvas Sequence Layer */}
-      <div className="absolute top-0 left-0 w-full z-0">
+      <motion.div
+        style={{ opacity: isMobile ? sequenceOpacity : 1 }}
+        className="absolute top-0 left-0 w-full z-0"
+      >
         <ScrollSequence
-          frameCount={192}
+          frameCount={isMobile ? 48 : 192}
+          totalFrames={192}
           padLength={3}
           fileExtension=".webp"
           filePrefix="frame-"
@@ -379,18 +422,20 @@ export default function Home() {
         <div
           className={`absolute bottom-0 left-0 w-full h-[50vh] bg-linear-to-t ${isLightMode ? "from-[#f5f5f5] to-transparent" : "from-black to-transparent"} z-10`}
         />
-      </div>
+      </motion.div>
 
-      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden opacity-20">
-        <div className="absolute top-[25%] -left-[10vw] flex whitespace-nowrap animate-[marquee_40s_linear_infinite]">
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden opacity-10 sm:opacity-20">
+        <div className="absolute top-[25%] -left-[10vw] flex whitespace-nowrap animate-[marquee_60s_linear_infinite] sm:animate-[marquee_40s_linear_infinite]">
           <span
-            className={`text-[25vw] font-black uppercase tracking-tighter ${isLightMode ? "text-outline-2 text-outline-light" : "text-outline-dark"}`}
+            className={`text-[20vw] sm:text-[25vw] font-black uppercase tracking-tighter ${isLightMode ? "text-outline-2 text-outline-light" : "text-outline-dark"}`}
           >
             HACKX 2.0 HACKX 2.0 HACKX 2.0 HACKX 2.0
           </span>
         </div>
-        <div className="absolute bottom-[10%] -left-[20vw] flex whitespace-nowrap animate-[marquee_35s_linear_infinite_reverse]">
-          <span className={`text-[15vw] font-black uppercase tracking-tighter`}>
+        <div className="absolute bottom-[10%] -left-[20vw] flex whitespace-nowrap animate-[marquee_50s_linear_infinite_reverse] sm:animate-[marquee_35s_linear_infinite_reverse]">
+          <span
+            className={`text-[12vw] sm:text-[15vw] font-black uppercase tracking-tighter`}
+          >
             BUILD THE FUTURE BUILD THE FUTURE BUILD THE FUTURE
           </span>
         </div>
@@ -406,8 +451,12 @@ export default function Home() {
           >
             {/* Hacking Begins Counter - Minimal */}
             <motion.div
-              style={{ opacity: introOpacity, y: introY }}
-              className=" absolute top-5 left-5 px-4 py-2 mx-auto max-w-xs bg-white/60 dark:bg-black/40 backdrop-blur-sm rounded-lg cursor-target"
+              style={{
+                opacity: introOpacity,
+                y: introY,
+                pointerEvents: introPointerEvents,
+              }}
+              className="absolute top-3 left-3 sm:top-5 sm:left-5 px-3 py-1.5 sm:px-4 sm:py-2 mx-auto max-w-xs bg-white/60 dark:bg-black/40 backdrop-blur-sm rounded-lg cursor-target"
             >
               <span className="text-base sm:text-lg font-bold uppercase tracking-tight text-black dark:text-white opacity-80">
                 Hacking Begins In
@@ -444,14 +493,20 @@ export default function Home() {
               <div className="relative w-full mx-auto flex-1 flex flex-col justify-between px-6 sm:px-12">
                 {/* GIANT BACKGROUND TITLE + Hacking Begins Counter (Glassmorphism) */}
                 <motion.div
-                  style={{ opacity: introOpacity, y: introY }}
-                  className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center flex flex-col items-center justify-center z-999"
+                  style={{
+                    opacity: introOpacity,
+                    y: introY,
+                    pointerEvents: introPointerEvents,
+                  }}
+                  className="absolute top-[35%] sm:top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center flex flex-col items-center justify-center z-50"
                 >
-                  <div className="flex font-black text-[clamp(4rem,16vw,200px)] leading-36 tracking-tighter  mix-blend-overlay">
+                  <div className="flex font-black text-[clamp(3rem,12vw,200px)] sm:text-[clamp(4rem,16vw,200px)] leading-tight tracking-tighter mix-blend-overlay">
                     <h1 className={`text-[#ff00a0] cursor-target`}>HACKX</h1>
                     <h1
-                      className="text-transparent ml-4 sm:ml-8 cursor-target"
-                      style={{ WebkitTextStroke: "3px white" }}
+                      className="text-transparent ml-2 sm:ml-8 cursor-target"
+                      style={{
+                        WebkitTextStroke: isMobile ? "1px white" : "3px white",
+                      }}
                     >
                       2.0
                     </h1>
@@ -459,7 +514,12 @@ export default function Home() {
                 </motion.div>
 
                 {/* Floating Badges */}
-                <motion.div style={{ opacity: introOpacity }}>
+                <motion.div
+                  style={{
+                    opacity: introOpacity,
+                    pointerEvents: introPointerEvents,
+                  }}
+                >
                   <FloatingBadge
                     isLightMode={isLightMode}
                     styleName="cursor-target absolute left-[2%] top-[45%] hidden md:flex"
@@ -504,10 +564,14 @@ export default function Home() {
 
                 {/* NARRATIVE PHASE 1: BRAND INTRO */}
                 <motion.div
-                  style={{ opacity: introOpacity, y: introY }}
+                  style={{
+                    opacity: introOpacity,
+                    y: introY,
+                    pointerEvents: introPointerEvents,
+                  }}
                   className="flex-1 flex flex-col justify-between"
                 >
-                  <div className="relative z-10 w-full flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 pt-42">
+                  <div className="relative z-10 w-full flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 pt-16 sm:pt-42">
                     <div
                       className={`inline-block border-[3px] px-6 py-2 text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] transition-transform hover:scale-105 ${isLightMode ? "border-black bg-[#ff00a0] text-white shadow-[4px_4px_0_#000]" : "border-white bg-[#ff00a0] text-white shadow-[4px_4px_0_#fff]"}`}
                     >
@@ -515,7 +579,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="relative z-10 w-full flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 pt-60">
+                  <div className="relative z-10 w-full flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 pt-18 sm:pt-60">
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-2 bg-black text-white px-4 py-2 border-[3px] border-white/50 shadow-[4px_4px_0_#c0ff00]">
                         <div className="h-2 w-2 rounded-full bg-[#00f0ff] animate-pulse"></div>
@@ -534,7 +598,7 @@ export default function Home() {
                         — CODE FOR BHARAT 5.0 —
                       </div>
                       <p
-                        className={`cursor-target text-sm sm:text-base font-bold leading-relaxed tracking-wide ${isLightMode ? "text-black p-4 sm:p-5 border-[3px] border-black bg-white/70 backdrop-blur-md shadow-[4px_4px_0_#000]" : "text-white p-4 sm:p-5 border-[3px] border-white/30 bg-black/50 backdrop-blur-md shadow-[4px_4px_0_#fff]"}`}
+                        className={`cursor-target text-xs sm:text-base font-bold leading-relaxed tracking-wide ${isLightMode ? "text-black p-3 sm:p-5 border-[3px] border-black bg-white/70 backdrop-blur-md shadow-[4px_4px_0_#000]" : "text-white p-3 sm:p-5 border-[3px] border-white/30 bg-black/50 backdrop-blur-md shadow-[4px_4px_0_#fff]"}`}
                       >
                         A national-level 24-hour student hackathon hosted at St.
                         Francis Institute of Technology, Mumbai. Join 10,000+
@@ -548,7 +612,7 @@ export default function Home() {
                         href="https://unstop.com/" // Placeholder: User should provide the actual event link
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="cursor-target group relative inline-flex items-center justify-center gap-3 px-8 py-4 sm:px-10 sm:py-5 font-black uppercase tracking-widest text-white transition-all hover:-translate-y-1 w-full sm:w-auto overflow-hidden border-[3px] border-black bg-[#1c4980] shadow-[8px_8px_0_#000]"
+                        className="cursor-target group relative inline-flex items-center justify-center gap-3 px-6 py-3 sm:px-10 sm:py-5 font-black uppercase tracking-widest text-white transition-all hover:-translate-y-1 w-full sm:w-auto overflow-hidden border-[3px] border-black bg-[#1c4980] shadow-[6px_6px_0_#000] sm:shadow-[8px_8px_0_#000]"
                       >
                         <div className="absolute inset-0 z-0 bg-[#2c69d1] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         <svg
@@ -564,7 +628,7 @@ export default function Home() {
                       </Link>
                       <Link
                         href="about"
-                        className="cursor-target group relative inline-flex items-center justify-center px-6 py-4 sm:px-8 sm:py-5 font-black uppercase tracking-widest transition-all hover:-translate-y-1 w-full sm:w-auto"
+                        className="cursor-target group relative inline-flex items-center justify-center px-4 py-3 sm:px-8 sm:py-5 font-black uppercase tracking-widest transition-all hover:-translate-y-1 w-full sm:w-auto"
                       >
                         <div
                           className={`absolute inset-0 border-[3px] transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2 ${isLightMode ? "bg-white border-black" : "bg-black border-white"}`}
@@ -587,12 +651,16 @@ export default function Home() {
 
                 {/* NARRATIVE PHASE 2: MISSION STATEMENT */}
                 <motion.div
-                  style={{ opacity: missionOpacity, y: missionY }}
+                  style={{
+                    opacity: missionOpacity,
+                    y: missionY,
+                    pointerEvents: missionPointerEvents,
+                  }}
                   className="absolute inset-0 flex items-center justify-center pointer-events-none"
                 >
                   <div className="max-w-4xl text-center px-6">
                     <h2
-                      className={`font-black uppercase tracking-tighter text-5xl sm:text-8xl mb-8 drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] ${isLightMode ? "text-white" : "text-white"}`}
+                      className={`font-black uppercase tracking-tighter text-4xl sm:text-8xl mb-6 sm:mb-8 drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] ${isLightMode ? "text-white" : "text-white"}`}
                     >
                       Driving Digital{" "}
                       <span className="text-[#ff00a0] drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">
@@ -603,7 +671,7 @@ export default function Home() {
                       className={`mx-auto h-2 w-32 mb-12 ${isLightMode ? "bg-black" : "bg-[#c0ff00]"}`}
                     />
                     <p
-                      className={`text-2xl sm:text-4xl font-black leading-tight tracking-tight uppercase p-6 border-[3px] backdrop-blur-md ${isLightMode ? "text-white border-white/30 bg-black/40 shadow-[8px_8px_0_#000]" : "text-white border-white/20 bg-black/60 shadow-[8px_8px_0_#fff]"}`}
+                      className={`text-lg sm:text-4xl font-black leading-tight tracking-tight uppercase p-4 sm:p-6 border-[3px] backdrop-blur-md ${isLightMode ? "text-white border-white/30 bg-black/40 shadow-[6px_6px_0_#000] sm:shadow-[8px_8px_0_#000]" : "text-white border-white/20 bg-black/60 shadow-[6px_6px_0_#fff]"}`}
                     >
                       Over an intense 24-hour experience, we build the bridges
                       between{" "}
@@ -620,7 +688,11 @@ export default function Home() {
 
                 {/* NARRATIVE PHASE 3: THE LOOT */}
                 <motion.div
-                  style={{ opacity: lootOpacity, y: lootY }}
+                  style={{
+                    opacity: lootOpacity,
+                    y: lootY,
+                    pointerEvents: lootPointerEvents,
+                  }}
                   className="absolute inset-0 flex flex-col items-center justify-center p-6 pointer-events-none"
                 >
                   <div className="text-center w-full max-w-5xl pointer-events-auto">
@@ -648,7 +720,7 @@ export default function Home() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 px-4 sm:px-0">
                       {[
                         {
                           domain: "Cyber Defence",
@@ -710,7 +782,11 @@ export default function Home() {
 
                 {/* NARRATIVE PHASE 4: THE DOMAINS */}
                 <motion.div
-                  style={{ opacity: domainsPhaseOpacity, y: domainsPhaseY }}
+                  style={{
+                    opacity: domainsPhaseOpacity,
+                    y: domainsPhaseY,
+                    pointerEvents: domainsPointerEvents,
+                  }}
                   className="absolute inset-0 flex flex-col items-center justify-center p-6 pointer-events-none"
                 >
                   <div className="w-full max-w-6xl pointer-events-auto">
@@ -725,7 +801,7 @@ export default function Home() {
                       Choose a challenge or pitch your own initiative.
                     </p>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 px-4 sm:px-0">
                       {[
                         {
                           name: "Cyber Defence",
@@ -778,8 +854,12 @@ export default function Home() {
                   </div>
                 </motion.div>
                 <motion.div
-                  style={{ opacity: pillarsOpacity, y: pillarsY }}
-                  className="absolute inset-0 flex flex-col justify-between pt-32 pb-48 px-6 pointer-events-none"
+                  style={{
+                    opacity: pillarsOpacity,
+                    y: pillarsY,
+                    pointerEvents: pillarsPointerEvents,
+                  }}
+                  className="absolute inset-0 flex flex-col justify-between pt-24 sm:pt-32 pb-32 sm:pb-48 px-4 sm:px-6 pointer-events-none"
                 >
                   <div className="text-center">
                     <h2
@@ -794,7 +874,7 @@ export default function Home() {
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pointer-events-auto max-w-7xl mx-auto w-full px-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 pointer-events-auto max-w-7xl mx-auto w-full px-6 sm:px-4">
                     <HighlightCard
                       title="Scale"
                       description="Connect with 10,000+ participants and builders across India."
@@ -837,7 +917,7 @@ export default function Home() {
               <div
                 className={`pointer-events-auto relative px-8 py-10 sm:py-14 text-center mx-auto max-w-4xl mt-32 border-[3px] ${isLightMode ? "border-black bg-[#c0ff00] shadow-[12px_12px_0_#000]" : "border-white/30 bg-[#c0ff00] shadow-[12px_12px_0_#fff]"}`}
               >
-                <h2 className="text-4xl sm:text-6xl font-black uppercase tracking-tighter text-black">
+                <h2 className="text-2xl sm:text-6xl font-black uppercase tracking-tighter text-black">
                   Hacking Begins In
                 </h2>
 
@@ -854,12 +934,12 @@ export default function Home() {
                 </div>
               </div>
               {/* RESOURCES & TEAM SECTION */}
-              <div className="mt-20 grid grid-cols-1 lg:grid-cols-2 gap-12 w-full relative z-20 pointer-events-auto">
+              <div className="mt-20 grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 w-full relative z-20 pointer-events-auto px-4 sm:px-0">
                 <div
-                  className={`p-8 border-[3px] ${isLightMode ? "border-black bg-white shadow-[8px_8px_0_#000]" : "border-white/30 bg-[#111] shadow-[8px_8px_0_#fff]"}`}
+                  className={`p-6 sm:p-8 border-[3px] ${isLightMode ? "border-black bg-white shadow-[8px_8px_0_#000]" : "border-white/30 bg-[#111] shadow-[8px_8px_0_#fff]"}`}
                 >
                   <h3
-                    className={`text-4xl font-black uppercase tracking-tighter mb-8 ${isLightMode ? "text-black" : "text-white"}`}
+                    className={`text-2xl sm:text-4xl font-black uppercase tracking-tighter mb-8 ${isLightMode ? "text-black" : "text-white"}`}
                   >
                     Hacker Toolkit
                   </h3>
@@ -889,15 +969,15 @@ export default function Home() {
                 </div>
 
                 <div
-                  className={`p-8 border-[3px] ${isLightMode ? "border-black bg-[#ff00a0] text-white shadow-[8px_8px_0_#000]" : "border-white bg-[#ff00a0] text-white shadow-[8px_8px_0_#fff]"}`}
+                  className={`p-6 sm:p-8 border-[3px] ${isLightMode ? "border-black bg-[#ff00a0] text-white shadow-[8px_8px_0_#000]" : "border-white bg-[#ff00a0] text-white shadow-[8px_8px_0_#fff]"}`}
                 >
-                  <h3 className="text-4xl font-black uppercase tracking-tighter mb-4">
+                  <h3 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter mb-4">
                     The Organizers
                   </h3>
                   <p className="font-bold mb-8 opacity-90">
                     Powered by CSI SFIT and GDG SFIT.
                   </p>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4 px-2 sm:px-0">
                     {["Shahiil", "Roen", "Aryan"].map((name, i) => (
                       <div
                         key={i}
@@ -920,7 +1000,11 @@ export default function Home() {
 
         {/* Animated Navbar Reveal */}
         <motion.div
-          style={{ opacity: navbarOpacity, x: navbarX }}
+          style={{
+            opacity: navbarOpacity,
+            x: navbarX,
+            pointerEvents: navbarPointerEvents,
+          }}
           className="fixed inset-y-0 right-0 z-50 pointer-events-none flex items-center"
         >
           <Nvbar />

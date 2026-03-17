@@ -19,14 +19,14 @@ export default function Preloader({
     setHasMounted(true);
     const visited = localStorage.getItem("hackx_visited");
 
-    if (!visited) {
+    if (visited) {
       setIsFirstLoad(true);
       setIsVisible(true);
 
       // Play animation for a fixed duration then complete
       const timer = setTimeout(() => {
         setIsVisible(false);
-        localStorage.setItem("hackx_visited", "true");
+        // localStorage.setItem("hackx_visited", "true");
         setTimeout(onComplete, 1000); // Wait for exit animation
       }, 3500);
       return () => clearTimeout(timer);
@@ -78,7 +78,7 @@ export default function Preloader({
                 }}
                 className="relative"
               >
-                <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-white uppercase italic">
+                <h1 className="text-7xl md:text-8xl font-black tracking-tighter text-white uppercase italic">
                   <motion.span
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
@@ -104,7 +104,7 @@ export default function Preloader({
                       damping: 20,
                       delay: 1.2,
                     }}
-                    className="absolute -top-4 -right-12 text-2xl md:text-3xl font-black text-[#c0ff00] not-italic"
+                    className="absolute -top-4 -right-12 text-2xl md:text-3xl font-black text-[#c0ff00] not-italic tracking-tighter"
                   >
                     2.0
                   </motion.span>
