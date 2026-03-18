@@ -56,7 +56,10 @@ export function Nvbar() {
       : "border-white/50 bg-black/80 text-white shadow-[6px_6px_0_rgba(255,255,255,0.15)] hover:border-white/70 hover:bg-black/90"
     }`;
 
-  const mobileTriggerClassName = `nav-trigger-btn pointer-events-auto flex h-14 w-14 items-center justify-center text-[1px] font-black uppercase tracking-[0.22em] transition-all duration-200 sm:hidden`;
+  const mobileTriggerClassName = `nav-trigger-btn pointer-events-auto flex h-14 w-14 items-center justify-center border-[3px] text-xs font-black uppercase tracking-[0.22em] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 sm:hidden ${isLightMode
+      ? "border-black bg-white text-black shadow-[6px_6px_0_#000]"
+      : "border-white/50 bg-black/80 text-white shadow-[6px_6px_0_rgba(255,255,255,0.15)] hover:border-white/70 hover:bg-black/90"
+    }`;
 
   const themeButtonClassName = `flex h-14 w-14 sm:h-15 sm:w-15 items-center justify-center border-[3px] text-xs font-black uppercase tracking-[0.22em] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 ${isLightMode
       ? "border-black bg-white text-black shadow-[6px_6px_0_#000] hover:bg-slate-100"
@@ -64,7 +67,12 @@ export function Nvbar() {
     }`;
 
   return (
-    <aside className="pointer-events-none fixed bottom-4 right-4 z-50 sm:bottom-auto sm:right-5 sm:top-1/2 sm:-translate-y-1/2 xl:right-7">
+    <aside className="pointer-events-none fixed bottom-4 right-4 z-50 sm:bottom-auto sm:right-5 sm:top-1/2 sm:-translate-y-1/2 xl:right-7"
+      style={{
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        paddingRight: 'env(safe-area-inset-right)',
+      }}
+    >
       <div className="flex flex-col items-end gap-3 sm:hidden">
         <div
           className={`flex flex-col items-end gap-3 transition-all duration-300 ${isMobileOpen
@@ -145,13 +153,14 @@ export function Nvbar() {
           aria-expanded={isMobileOpen}
           className={mobileTriggerClassName}
           style={
-            {
-              "--nav-accent": currentAccent,
-              "--nav-accent-glow": `${currentAccent}b3`,
-            } as React.CSSProperties
+            isMobileOpen
+              ? { boxShadow: `6px 6px 0 ${currentAccent}` }
+              : { boxShadow: isLightMode ? "6px 6px 0 #000" : "6px 6px 0 rgba(255,255,255,0.15)" }
           }
         >
-          {isMobileOpen ? "X" : currentShortLabel}
+          <span className="navbar-font text-lg leading-none">
+            {isMobileOpen ? "✕" : currentShortLabel}
+          </span>
         </button>
       </div>
 
