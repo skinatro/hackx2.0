@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useTheme } from "@/app/providers/theme-provider";
-import { motion, useSpring } from "framer-motion";
+import { motion, useSpring, useScroll, useTransform } from "framer-motion";
 
 /* ─── Styles ─────────────────────────────────────────────── */
 const STYLES = `
@@ -27,18 +27,27 @@ type EventItem = {
 };
 
 const EVENTS: EventItem[] = [
-  // Day 1
-  { title: "Reporting", time: "08:00 AM", date: "April 18th", step: "01", accent: "#00f0ff" },
-  { title: "Inauguration Ceremony", time: "09:00 AM", date: "April 18th", step: "02", accent: "#ffcf00" },
-  { title: "Hackathon Begins", time: "10:00 AM", date: "April 18th", step: "03", accent: "#ff00a0", highlight: true },
-  { title: "Round 1 {Idea Pitch}", sub: "Judges visit your table to validate your idea", time: "12:00 PM", date: "April 18th", step: "04", accent: "#c0ff00" },
-  { title: "Mentoring Round", time: "03:00 PM", date: "April 18th", step: "05", accent: "#a000ff" },
-  { title: "Round 2 {Mid Project Eval}", sub: "Progress assess issuing points", time: "07:00 PM", date: "April 18th", step: "06", accent: "#ff5e00" },
-  // Day 2
-  { title: "Reporting", time: "08:00 AM", date: "April 19th", step: "07", accent: "#00b8ff" },
-  { title: "Round 3 Final Judging", sub: "Final presentation", time: "09:00 AM", date: "April 19th", step: "08", accent: "#ff3c00" },
-  { title: "Prize Distribution", time: "10:00 AM", date: "April 19th", step: "09", accent: "#00ff40", highlight: true },
-  { title: "Hackathon Ends", time: "11:00 AM", date: "April 19th", step: "10", accent: "#ff00a0", highlight: true },
+  // Pre-Event Registration & Announcements
+  { title: "Registration Opens", time: "12:00 PM", date: "March 1st", step: "01", accent: "#00f0ff", highlight: true },
+  { title: "Problem Statements Release", time: "06:00 PM", date: "March 15th", step: "02", accent: "#c0ff00" },
+  { title: "Team Formation Period", sub: "Find teammates and form teams of 3-4", time: "All Week", date: "March 20-27th", step: "03", accent: "#ffcf00" },
+  { title: "Registration Closes", time: "11:59 PM", date: "April 10th", step: "04", accent: "#ff5e00" },
+  { title: "Shortlisted Teams Announced", sub: "Final participating teams revealed", time: "06:00 PM", date: "April 15th", step: "05", accent: "#a000ff", highlight: true },
+
+  // Event Days
+  { title: "Reporting & Check-in", time: "08:00 AM", date: "April 17th", step: "06", accent: "#00f0ff" },
+  { title: "Inauguration Ceremony", time: "09:00 AM", date: "April 17th", step: "07", accent: "#ffcf00" },
+  { title: "Hackathon Begins", time: "10:00 AM", date: "April 17th", step: "08", accent: "#ff00a0", highlight: true },
+  { title: "Round 1 {Idea Pitch}", sub: "Judges visit your table to validate your idea", time: "12:00 PM", date: "April 17th", step: "09", accent: "#c0ff00" },
+  { title: "Mentoring Round", sub: "Expert guidance and technical support", time: "03:00 PM", date: "April 17th", step: "10", accent: "#a000ff" },
+  { title: "Round 2 {Mid Project Eval}", sub: "Progress assessment and scoring", time: "07:00 PM", date: "April 17th", step: "11", accent: "#ff5e00" },
+
+  // Final Day
+  { title: "Final Sprint Begins", time: "08:00 AM", date: "April 18th", step: "12", accent: "#00b8ff" },
+  { title: "Code Freeze", sub: "Stop development, prepare presentations", time: "09:00 AM", date: "April 18th", step: "13", accent: "#ff3c00", highlight: true },
+  { title: "Round 3 Final Judging", sub: "Final presentation and demo", time: "09:30 AM", date: "April 18th", step: "14", accent: "#ff3c00" },
+  { title: "Prize Distribution", time: "10:30 AM", date: "April 18th", step: "15", accent: "#00ff40", highlight: true },
+  { title: "Hackathon Ends", time: "11:00 AM", date: "April 18th", step: "16", accent: "#ff00a0", highlight: true },
 ];
 
 /* ─── 3-D Cube ────────────────────────────────────────────── */
@@ -236,46 +245,28 @@ export default function TimelinePage() {
     };
   }, []);
 
-  const [timeProgress, setTimeProgress] = useState(0);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  // Scroll-based progress tracking
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"]
+  });
 
   useEffect(() => {
-    const updateProgress = () => {
-      // **Testing:** Uncomment the line below and change the date/time to preview different progress states.
-      // const now = new Date("2026-04-18T15:00:00").getTime(); 
-      const now = Date.now();
-      
-      const eventTimes = EVENTS.map(e => {
-          const dStr = e.date.replace(/(st|nd|rd|th)/, "");
-          return new Date(`2026 ${dStr} ${e.time}`).getTime();
-      });
+    const unsubscribe = scrollYProgress.onChange((latest) => {
+      // Map scroll progress to timeline progress
+      // Start showing progress when timeline section is 20% visible
+      // Complete it when section is 80% through the viewport
+      const adjustedProgress = Math.max(0, Math.min(1, (latest - 0.2) * 1.25));
+      setScrollProgress(adjustedProgress);
+    });
 
-      const startTime = eventTimes[0];
-      const endTime = eventTimes[eventTimes.length - 1];
-
-      if (now <= startTime) {
-        setTimeProgress(0);
-      } else if (now >= endTime) {
-        setTimeProgress(1);
-      } else {
-        let progress = 0;
-        for (let i = 0; i < eventTimes.length - 1; i++) {
-          if (now >= eventTimes[i] && now < eventTimes[i+1]) {
-            const segmentProgress = (now - eventTimes[i]) / (eventTimes[i+1] - eventTimes[i]);
-            progress = (i + segmentProgress) / (eventTimes.length - 1);
-            break;
-          }
-        }
-        setTimeProgress(progress);
-      }
-    };
-
-    updateProgress();
-    const interval = setInterval(updateProgress, 60000);
-    return () => clearInterval(interval);
-  }, []);
+    return unsubscribe;
+  }, [scrollYProgress]);
 
   // Apply spring physics so drawing feels smooth and snappy
-  const drawProgress = useSpring(timeProgress, {
+  const drawProgress = useSpring(scrollProgress, {
     stiffness: 100,
     damping: 30,
     restDelta: 0.001
@@ -305,7 +296,7 @@ export default function TimelinePage() {
         <p
           className={`cursor-target text-center font-black uppercase tracking-widest text-sm mb-16 px-4 py-2 border-[3px] mx-auto w-fit ${isLightMode ? "border-black bg-[#c0ff00] text-black" : "border-[#c0ff00] bg-black text-[#c0ff00]"}`}
         >
-          Key Milestones · HackX 2.0 · 2026
+          Registration to Grand Finale · HackX 2.0 · 2026
         </p>
       </div>
 
@@ -367,11 +358,15 @@ export default function TimelinePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16 lg:gap-y-24">
             {EVENTS.map((e, i) => {
               const solidShadow = `10px 10px 0 ${e.accent}`;
+              const eventProgress = i / (EVENTS.length - 1);
+              const isCompleted = scrollProgress > eventProgress;
+              const isCurrentlyActive = scrollProgress >= eventProgress && scrollProgress < (i + 1) / (EVENTS.length - 1);
 
               const cardClasses = `cursor-target w-full h-full max-w-[280px] sm:max-w-sm border-[3px] p-6 md:p-8 flex flex-col items-center relative overflow-hidden transition-all duration-500 hover:-translate-y-2 ${light
                 ? "border-black/85 bg-[#fafafa] text-black hover:bg-white"
                 : "border-black bg-[#0a0a0a] text-white hover:bg-[#111]"
-                }`;
+                } ${isCompleted ? 'opacity-100' : 'opacity-60'} ${isCurrentlyActive ? 'scale-105 ring-4' : ''}`;
+
               return (
                 <div
                   key={i}
@@ -381,11 +376,26 @@ export default function TimelinePage() {
                   <div
                     ref={(el) => { cubeRefs.current[i] = el; }}
                     className={cardClasses}
-                    style={{ boxShadow: solidShadow }}
+                    style={{
+                      boxShadow: solidShadow,
+                      ...(isCurrentlyActive && {
+                        '--tw-ring-color': e.accent
+                      })
+                    } as React.CSSProperties}
                   >
                     {/* Cube Attachment Point (The SVG path connects to these) */}
                     <div className="cursor-target relative z-10 mb-8 p-3 bg-black/5 dark:bg-white/5 rounded-2xl flex flex-col items-center">
-                      <Cube3D accent={e.accent} isLight={light} step={e.step} className="group-hover:scale-110 transition-transform duration-500" />
+                      <Cube3D
+                        accent={e.accent}
+                        isLight={light}
+                        step={e.step}
+                        className={`group-hover:scale-110 transition-transform duration-500 ${isCurrentlyActive ? 'animate-pulse' : ''}`}
+                      />
+                      {isCompleted && (
+                        <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                          <span className="text-white text-xs font-bold">✓</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Content Details: Stacked precisely Time -> Date -> Title -> Sub */}
