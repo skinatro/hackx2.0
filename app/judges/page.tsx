@@ -57,7 +57,7 @@ export default function JudgesPage() {
       y: 0,
       opacity: 1,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         damping: 25,
         stiffness: 120,
       },
