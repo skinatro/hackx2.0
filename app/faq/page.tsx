@@ -48,11 +48,11 @@ const FAQ_ITEMS = [
   },
   {
     q: "Will the problem statements be given in advance?",
-    a: "The broad domains (Cyber Defence & Digital Trust, Digital Economy, InfraTech, Future Mobility & Transportation) are known, but the exact problem statements are revealed during the opening ceremony to maintain equal footing.",
+    a: "There are no problem statemments. the particpants are free to build any project that aligns with the one of the domains of Bharat 5.0 provided.",
   },
   {
     q: "Is accommodation provided for outstation participants?",
-    a: "Yes! A common room will be provided for participants within the college campus; no additional accommodation will be available.",
+    a: "Yes! Food and accommodation will be provided for outstation participants.",
   },
   {
     q: "What should I bring to the hackathon?",
@@ -68,7 +68,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "What technologies or tools can I use?",
-    a: "You are free to use any programming language, framework, or tool. Open-source libraries are allowed. If you use any third-party APIs or services, make sure to disclose them during your final submission.",
+    a: "You are free to use any programming language, framework, or tool. Open-source libraries are allowed. However, all work must be done during the hackathon hours, and no pre-built code is permitted.",
   },
   {
     q: "Will there be mentors available during the hackathon?",
@@ -105,11 +105,10 @@ function AccordionItem({
 
   return (
     <div
-      className={`cursor-target group border-[3px] h-fit transition-all duration-300 ${
-        isLightMode
+      className={`cursor-target group border-[3px] h-fit transition-all duration-300 ${isLightMode
           ? "border-black bg-white shadow-[4px_4px_0_#000]"
           : "border-white/40 bg-[#111] shadow-[4px_4px_0_#c0ff00]"
-      } ${isOpen ? "-translate-y-1" : "hover:-translate-y-0.5"}`}
+        } ${isOpen ? "-translate-y-1" : "hover:-translate-y-0.5"}`}
     >
       <button
         onClick={() => setIsOpen(!isOpen)}

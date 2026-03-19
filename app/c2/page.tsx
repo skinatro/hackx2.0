@@ -1,9 +1,9 @@
 "use client";
 
+import { useCountdown } from "@/app/hooks/useCountdown";
 import { useTheme } from "@/app/providers/theme-provider";
 import Link from "next/link";
 import React, { useEffect, useMemo } from "react";
-import { useCountdown } from "@/app/hooks/useCountdown";
 
 const STYLES = `
   @keyframes float {
@@ -57,11 +57,10 @@ function FloatingBadge({
 }) {
   return (
     <div
-      className={`absolute z-20 flex items-center justify-center p-3 transition-all duration-500 ${
-        isLightMode
+      className={`absolute z-20 flex items-center justify-center p-3 transition-all duration-500 ${isLightMode
           ? "border-[3px] border-black bg-white/80 shadow-[6px_6px_0_#000]"
           : "border-[3px] border-white/50 bg-[#111]/80 shadow-[6px_6px_0_#c0ff00]"
-      } ${styleName}`}
+        } ${styleName}`}
       style={{
         animation: `${floatRev ? "float-reverse" : "float"} 6s ease-in-out infinite`,
         animationDelay: `${delay}s`,
@@ -89,11 +88,10 @@ function HighlightCard({
 }) {
   return (
     <div
-      className={`cursor-target group relative flex flex-col p-8 transition-transform duration-500 hover:-translate-y-2 ${
-        isLightMode
+      className={`cursor-target group relative flex flex-col p-8 transition-transform duration-500 hover:-translate-y-2 ${isLightMode
           ? "border-[3px] border-black bg-white shadow-[8px_8px_0_#000]"
           : "border-[3px] border-white/30 bg-[#0a0a0a] shadow-[8px_8px_0_#fff]"
-      }`}
+        }`}
       style={{
         animation: `float-reverse 8s ease-in-out infinite`,
         animationDelay: `${delay}s`,
@@ -376,28 +374,24 @@ export default function Home() {
             {/* ABOUT SECTION  */}
             <div className="mt-40 pt-10 pb-10 text-left w-full mx-auto relative z-20 pointer-events-auto cursor-target group">
               <div
-                className={`p-10 sm:p-16 border-[3px] transition-transform duration-500 hover:-translate-y-2 hover:shadow-[12px_12px_0_#00f0ff] ${
-                  isLightMode
+                className={`p-10 sm:p-16 border-[3px] transition-transform duration-500 hover:-translate-y-2 hover:shadow-[12px_12px_0_#00f0ff] ${isLightMode
                     ? "border-black bg-white shadow-[12px_12px_0_#000]"
                     : "border-white/30 bg-[#111] shadow-[12px_12px_0_#fff]"
-                }`}
+                  }`}
               >
                 <h2
-                  className={`font-black uppercase tracking-tighter text-4xl sm:text-6xl ${
-                    isLightMode ? "text-black" : "text-white"
-                  }`}
+                  className={`font-black uppercase tracking-tighter text-4xl sm:text-6xl ${isLightMode ? "text-black" : "text-white"
+                    }`}
                 >
                   Driving Digital Bharat
                 </h2>
                 <div
-                  className={`mt-2 h-2 w-24 ${
-                    isLightMode ? "bg-[#ff00a0]" : "bg-[#c0ff00]"
-                  }`}
+                  className={`mt-2 h-2 w-24 ${isLightMode ? "bg-[#ff00a0]" : "bg-[#c0ff00]"
+                    }`}
                 ></div>
                 <p
-                  className={`mt-8 text-lg sm:text-xl font-bold leading-relaxed tracking-wide ${
-                    isLightMode ? "text-black/80" : "text-white/80"
-                  }`}
+                  className={`mt-8 text-lg sm:text-xl font-bold leading-relaxed tracking-wide ${isLightMode ? "text-black/80" : "text-white/80"
+                    }`}
                 >
                   Over an intense 24-hour hacking experience, participants will
                   work in teams to develop impactful solutions that matter. With
@@ -427,22 +421,21 @@ export default function Home() {
 
               <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6">
                 {[
-                  { name: "Cyber Defence", color: "#ff00a0", icon: "🛡️" },
+                  { name: "Cyber Defence & Digital Trust", color: "#ff00a0", icon: "🛡️" },
                   {
                     name: "FinTech & Digital Economy",
                     color: "#c0ff00",
                     icon: "💸",
                   },
-                  { name: "Smart Cities", color: "#00f0ff", icon: "🏙️" },
-                  { name: "Future Mobility", color: "#ff00a0", icon: "🚀" },
+                  { name: "InfraTech", color: "#00f0ff", icon: "🏙️" },
+                  { name: "Future of Mobility & Transportation", color: "#ff00a0", icon: "🚀" },
                 ].map((track, i) => (
                   <div
                     key={i}
-                    className={`cursor-target group relative flex flex-col items-center justify-center p-8 transition-transform duration-500 hover:-translate-y-2 ${
-                      isLightMode
+                    className={`cursor-target group relative flex flex-col items-center justify-center p-8 transition-transform duration-500 hover:-translate-y-2 ${isLightMode
                         ? "border-[3px] border-black bg-white shadow-[6px_6px_0_#000]"
                         : "border-[3px] border-white/30 bg-[#111] shadow-[6px_6px_0_#fff]"
-                    }`}
+                      }`}
                   >
                     <div
                       className="absolute inset-0 z-0 origin-bottom scale-y-0 transition-transform duration-300 ease-out group-hover:scale-y-100"
@@ -452,9 +445,8 @@ export default function Home() {
                       {track.icon}
                     </div>
                     <h3
-                      className={`relative z-10 text-lg font-black uppercase tracking-widest transition-colors duration-300 ${
-                        isLightMode ? "text-black" : "text-white"
-                      } group-hover:text-black`}
+                      className={`relative z-10 text-lg font-black uppercase tracking-widest transition-colors duration-300 ${isLightMode ? "text-black" : "text-white"
+                        } group-hover:text-black`}
                     >
                       {track.name}
                     </h3>
@@ -501,18 +493,16 @@ export default function Home() {
                 ].map((item, idx) => (
                   <div
                     key={idx}
-                    className={`cursor-target flex flex-col sm:flex-row items-start sm:items-center gap-6 p-6 border-[3px] transition-transform duration-300 hover:-translate-y-1 ${
-                      isLightMode
+                    className={`cursor-target flex flex-col sm:flex-row items-start sm:items-center gap-6 p-6 border-[3px] transition-transform duration-300 hover:-translate-y-1 ${isLightMode
                         ? "border-black bg-white shadow-[4px_4px_0_#000] hover:shadow-[8px_8px_0_#000]"
                         : "border-white/30 bg-[#111] shadow-[4px_4px_0_#fff] hover:shadow-[8px_8px_0_#ff00a0]"
-                    }`}
+                      }`}
                   >
                     <div
-                      className={`px-4 py-2 font-black uppercase tracking-wider whitespace-nowrap text-sm border-[3px] ${
-                        isLightMode
+                      className={`px-4 py-2 font-black uppercase tracking-wider whitespace-nowrap text-sm border-[3px] ${isLightMode
                           ? "border-black bg-[#ff00a0] text-white"
                           : "border-white bg-[#ff00a0] text-white"
-                      }`}
+                        }`}
                     >
                       {item.date}
                     </div>
@@ -550,11 +540,10 @@ export default function Home() {
                 {[1, 2, 3, 4].map((i) => (
                   <div
                     key={i}
-                    className={`cursor-target w-40 h-24 sm:w-56 sm:h-32 flex items-center justify-center border-[3px] transition-transform hover:scale-105 duration-300 ${
-                      isLightMode
+                    className={`cursor-target w-40 h-24 sm:w-56 sm:h-32 flex items-center justify-center border-[3px] transition-transform hover:scale-105 duration-300 ${isLightMode
                         ? "border-black bg-white shadow-[6px_6px_0_#000]"
                         : "border-white/30 bg-[#111] shadow-[6px_6px_0_#fff]"
-                    }`}
+                      }`}
                   >
                     <span
                       className={`font-black text-xl tracking-widest opacity-50 ${isLightMode ? "text-black" : "text-white"}`}
@@ -594,16 +583,15 @@ export default function Home() {
                   },
                   {
                     q: "Will the problem statements be given in advance?",
-                    a: "The broad domains (Cyber Defence, FinTech, Smart Cities, Future Mobility) are known, but the exact problem statements are revealed during the opening ceremony to maintain equal footing.",
+                    a: "The broad domains (Cyber Defence & Digital Trust, FinTech & Digital Economy, InfraTech, Future of Mobility & Transportation) are known, but the exact problem statements are revealed during the opening ceremony to maintain equal footing.",
                   },
                 ].map((faq, i) => (
                   <details
                     key={i}
-                    className={`cursor-target group border-[3px] [&_summary::-webkit-details-marker]:hidden ${
-                      isLightMode
+                    className={`cursor-target group border-[3px] [&_summary::-webkit-details-marker]:hidden ${isLightMode
                         ? "border-black bg-white shadow-[4px_4px_0_#000]"
                         : "border-white/30 bg-[#111] shadow-[4px_4px_0_#fff]"
-                    }`}
+                      }`}
                   >
                     <summary
                       className={`flex cursor-pointer items-center justify-between p-6 font-black uppercase tracking-wide text-lg sm:text-xl focus:outline-none ${isLightMode ? "text-black" : "text-white"}`}

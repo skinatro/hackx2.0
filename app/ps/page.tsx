@@ -1,8 +1,8 @@
 "use client";
 
+import { useTheme } from "@/app/providers/theme-provider";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
-import { useTheme } from "@/app/providers/theme-provider";
 
 const STYLES = `
   @keyframes float {
@@ -43,7 +43,7 @@ type Track = {
 
 const buildTracks = (): Track[] => [
   {
-    name: "Cyber Defence",
+    name: "Cyber Defence & Digital Trust",
     color: "#ff00a0",
     icon: <ShieldIcon className="h-full w-full" />,
     desc: "Build systems that protect critical infrastructure and user data from evolving digital threats.",
@@ -81,7 +81,7 @@ const buildTracks = (): Track[] => [
     ],
   },
   {
-    name: "Smart Cities",
+    name: "InfraTech",
     color: "#00f0ff",
     icon: <CityIcon className="h-full w-full" />,
     desc: "Create technology to optimize urban living, from waste management to smart lighting and energy.",
@@ -99,7 +99,7 @@ const buildTracks = (): Track[] => [
     ],
   },
   {
-    name: "Future Mobility",
+    name: "Future of Mobility & Transportation",
     color: "#ff00a0",
     icon: <MobilityIcon className="h-full w-full" />,
     desc: "Design the next generation of transportation, focusing on efficiency, sustainability, and connectivity.",
@@ -236,11 +236,10 @@ export default function PSPage() {
               {tracks.map((track, i) => (
                 <div
                   key={i}
-                  className={`cursor-target group relative flex flex-col p-10 transition-transform duration-500 hover:-translate-y-2 ${
-                    isLightMode
+                  className={`cursor-target group relative flex flex-col p-10 transition-transform duration-500 hover:-translate-y-2 ${isLightMode
                       ? "border-[3px] border-black bg-white shadow-[8px_8px_0_#000]"
                       : "border-[3px] border-white/30 bg-[#111] shadow-[8px_8px_0_#fff]"
-                  }`}
+                    }`}
                 >
                   <div
                     className="absolute inset-0 z-0 origin-right scale-x-0 transition-transform duration-300 ease-out group-hover:scale-x-100"
@@ -252,9 +251,8 @@ export default function PSPage() {
                     {track.icon}
                   </div>
                   <h3
-                    className={`relative z-10 text-3xl font-black uppercase tracking-widest transition-colors duration-300 ${
-                      isLightMode ? "text-black" : "text-white"
-                    } group-hover:text-black`}
+                    className={`relative z-10 text-3xl font-black uppercase tracking-widest transition-colors duration-300 ${isLightMode ? "text-black" : "text-white"
+                      } group-hover:text-black`}
                   >
                     {track.name}
                   </h3>

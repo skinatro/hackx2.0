@@ -56,8 +56,8 @@ const EVENTS: EventItem[] = [
   { title: "Final Development Sprint", time: "08:00 AM", date: "April 18th", step: "14", accent: "#00b8ff" },
   { title: "Code Freeze", sub: "Development ends, prepare presentations", time: "09:00 AM", date: "April 18th", step: "15", accent: "#ff3c00", highlight: true },
   { title: "Final Presentations", sub: "Teams pitch their solutions to judges", time: "09:30 AM", date: "April 18th", step: "16", accent: "#ff3c00" },
-  { title: "Prize Distribution", time: "10:30 AM", date: "April 18th", step: "17", accent: "#00ff40", highlight: true },
-  { title: "Round 2 Hackathon Ends", time: "11:00 AM", date: "April 18th", step: "18", accent: "#ff00a0", highlight: true },
+  { title: "Prize Distribution", time: "12:00 AM", date: "April 18th", step: "17", accent: "#00ff40", highlight: true },
+  { title: "Round 2 Hackathon Ends", time: "02:00 PM", date: "April 18th", step: "18", accent: "#ff00a0", highlight: true },
 ];
 
 /* ─── 3-D Cube ────────────────────────────────────────────── */

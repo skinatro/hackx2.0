@@ -24,9 +24,9 @@ const navCubes: NavCube[] = [
   },
   { label: "Timeline", shortLabel: "TL", href: "/timeline", accent: "#c0ff00" },
   { label: "Sponsors", shortLabel: "SP", href: "/sponsors", accent: "#ffd23f" },
+  { label: "Judges & Mentors", shortLabel: "JM", href: "/judges", accent: "#ff6b35" },
   { label: "F.A.Q", shortLabel: "FAQ", href: "/faq", accent: "#00f0ff" },
   { label: "Contact", shortLabel: "CT", href: "/contact", accent: "#c0ff00" },
-  { label: "Credits", shortLabel: "CR", href: "/credits", accent: "#ff00a0" },
 ];
 
 function isActivePath(pathname: string, href: string) {
@@ -52,18 +52,18 @@ export function Nvbar() {
   const currentShortLabel = currentNav?.shortLabel ?? "NAV";
 
   const navButtonClassName = `flex h-14 w-14 items-center justify-center border-[3px] text-xs font-black uppercase tracking-[0.22em] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 sm:h-15 sm:w-15 ${isLightMode
-      ? "border-black bg-white text-black shadow-[6px_6px_0_#000]"
-      : "border-white/50 bg-black/80 text-white shadow-[6px_6px_0_rgba(255,255,255,0.15)] hover:border-white/70 hover:bg-black/90"
+    ? "border-black bg-white text-black shadow-[6px_6px_0_#000]"
+    : "border-white/50 bg-black/80 text-white shadow-[6px_6px_0_rgba(255,255,255,0.15)] hover:border-white/70 hover:bg-black/90"
     }`;
 
   const mobileTriggerClassName = `nav-trigger-btn pointer-events-auto flex h-14 w-14 items-center justify-center border-[3px] text-xs font-black uppercase tracking-[0.22em] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 sm:hidden ${isLightMode
-      ? "border-black bg-white text-black shadow-[6px_6px_0_#000]"
-      : "border-white/50 bg-black/80 text-white shadow-[6px_6px_0_rgba(255,255,255,0.15)] hover:border-white/70 hover:bg-black/90"
+    ? "border-black bg-white text-black shadow-[6px_6px_0_#000]"
+    : "border-white/50 bg-black/80 text-white shadow-[6px_6px_0_rgba(255,255,255,0.15)] hover:border-white/70 hover:bg-black/90"
     }`;
 
   const themeButtonClassName = `flex h-14 w-14 sm:h-15 sm:w-15 items-center justify-center border-[3px] text-xs font-black uppercase tracking-[0.22em] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 ${isLightMode
-      ? "border-black bg-white text-black shadow-[6px_6px_0_#000] hover:bg-slate-100"
-      : "border-white/50 bg-black/80 text-white shadow-[6px_6px_0_rgba(255,255,255,0.15)] hover:border-white/70 hover:bg-black/90"
+    ? "border-black bg-white text-black shadow-[6px_6px_0_#000] hover:bg-slate-100"
+    : "border-white/50 bg-black/80 text-white shadow-[6px_6px_0_rgba(255,255,255,0.15)] hover:border-white/70 hover:bg-black/90"
     }`;
 
   return (

@@ -6,7 +6,7 @@ import Preloader from "@/ui/components/preloader";
 import ScrollSequence from "@/ui/components/scroll-sequence";
 import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import Link from "next/link";
-import React, { useRef, useState, useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { Nvbar } from "./components/nvbar";
 import { useCountdown } from "./hooks/useCountdown";
 
@@ -625,7 +625,7 @@ export default function Home() {
 
                     <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 pointer-events-auto">
                       <Link
-                        href="https://unstop.com/" // Placeholder: User should provide the actual event link
+                        href="https://unstop.com/o/X6Qsj0O?lb=PdelV0YM&utm_medium=Share&utm_source=csisfi85205&utm_campaign=Online_coding_challenge" // Placeholder: User should provide the actual event link
                         target="_blank"
                         rel="noopener noreferrer"
                         className="cursor-target group relative inline-flex items-center justify-center gap-3 px-6 py-3 sm:px-10 sm:py-5 font-black uppercase tracking-widest text-white transition-all hover:-translate-y-1 w-full sm:w-auto overflow-hidden border-[3px] border-black bg-[#1c4980] shadow-[6px_6px_0_#000] sm:shadow-[8px_8px_0_#000]"
@@ -739,22 +739,22 @@ export default function Home() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 px-4 sm:px-0">
                       {[
                         {
-                          domain: "Cyber Defence",
+                          domain: "Cyber Defence & Digital Trust",
                           amount: "₹25k",
                           color: "#ff00a0",
                         },
                         {
-                          domain: "FinTech & Finance",
+                          domain: "FinTech & Digital Economy",
                           amount: "₹25k",
                           color: "#c0ff00",
                         },
                         {
-                          domain: "Smart Cities",
+                          domain: "InfraTech",
                           amount: "₹25k",
                           color: "#00f0ff",
                         },
                         {
-                          domain: "Future Mobility",
+                          domain: "Future of Mobility & Transportation",
                           amount: "₹25k",
                           color: "#ff00a0",
                         },
@@ -960,31 +960,35 @@ export default function Home() {
                   </h3>
                   <div className="flex flex-col gap-4">
                     <a
-                      href="#"
+                      href="/HACKX 2.0 Brochure.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className={`cursor-target flex items-center justify-between p-4 border-[3px] text-lg font-black uppercase tracking-wider transition-colors ${isLightMode ? "border-black hover:bg-[#c0ff00]" : "border-white/30 hover:bg-[#c0ff00] hover:text-black hover:border-[#c0ff00] text-white"}`}
                     >
-                      <span>Rules & Regulations</span>
+                      <span>Event Brochure</span>
                       <span>→</span>
                     </a>
                     <a
-                      href="#"
+                      href="/HACKX 2.0 PRESENTATION TEMPLATE.pptx"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className={`cursor-target flex items-center justify-between p-4 border-[3px] font-black uppercase tracking-wider transition-colors ${isLightMode ? "border-black hover:bg-[#00f0ff]" : "border-white/30 hover:bg-[#00f0ff] hover:text-black hover:border-[#00f0ff] text-white"}`}
                     >
                       <span>PPT Template</span>
                       <span>→</span>
                     </a>
-                    <a
-                      href="#"
+                    <Link
+                      href="/faq"
                       className={`cursor-target flex items-center justify-between p-4 border-[3px] font-black uppercase tracking-wider transition-colors ${isLightMode ? "border-black hover:bg-[#ff00a0] hover:text-white" : "border-white/30 hover:bg-[#ff00a0] text-white"}`}
                     >
-                      <span>API Guidelines</span>
+                      <span>FAQ</span>
                       <span>→</span>
-                    </a>
+                    </Link>
                   </div>
                 </div>
 
                 <div
-                  className={`p-6 sm:p-8 border-[3px] ${isLightMode ? "border-black bg-[#ff00a0] text-white shadow-[8px_8px_0_#000]" : "border-white bg-[#ff00a0] text-white shadow-[8px_8px_0_#fff]"}`}
+                  className={`p-6 sm:p-8 border-[3px] ${isLightMode ? "border-black bg-[#ff00a0] text-white shadow-[8px_8px_0_#000]" : "border-white bg-[#ff00a0] text-white shadow-[8px_8px_0_#fff]"} cursor-target`}
                 >
                   <h3 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter mb-4">
                     The Organizers
@@ -1000,7 +1004,7 @@ export default function Home() {
                     ].map((member, i) => (
                       <div
                         key={i}
-                        className="flex flex-col border-b-[3px] border-black/20 pb-2"
+                        className="flex flex-col border-b-[3px] border-black/20 pb-2 cursor-target"
                       >
                         <span className="font-black uppercase tracking-wider">
                           {member.name}

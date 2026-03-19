@@ -46,14 +46,6 @@ const contactCards: ContactCardData[] = [
         cta: "Call →",
     },
     {
-        eyebrow: "Phone 02",
-        title: "Edwin Moses",
-        description: "GDG Marketing Head",
-        value: "+91 70215 33681",
-        href: "tel:+917021533681",
-        cta: "Call →",
-    },
-    {
         eyebrow: "Phone 03",
         title: "Rayan Pawar",
         description: "CSI Marketing Head",
@@ -131,11 +123,12 @@ function XIcon() {
 }
 
 const socialLinks: SocialLinkData[] = [
-    { label: "Linktree", href: "https://linktr.ee/placeholder", icon: <LinktreeIcon /> },
-    { label: "LinkedIn", href: "https://linkedin.com/company/placeholder", icon: <LinkedInIcon /> },
-    { label: "Facebook", href: "https://facebook.com/placeholder", icon: <FacebookIcon /> },
-    { label: "Instagram", href: "https://instagram.com/placeholder", icon: <InstagramIcon /> },
-    { label: "X", href: "https://x.com/placeholder", icon: <XIcon /> },
+    { label: "Unstop (HackX 2.0)", href: "https://unstop.com/o/X6Qsj0O?lb=PdelV0YM&utm_medium=Share&utm_source=csisfi85205&utm_campaign=Online_coding_challenge", icon: <LinktreeIcon /> },
+    { label: "CSI SFIT Website", href: "https://csi-sfit.vercel.app/", icon: <LinkedInIcon /> },
+    { label: "LinkedIn (CSI-SFIT)", href: "https://www.linkedin.com/company/csi-sfit/", icon: <LinkedInIcon /> },
+    // { label: "Facebook", href: "https://facebook.com/placeholder", icon: <FacebookIcon /> },
+    { label: "Instagram (CSI-SFIT)", href: "https://instagram.com/csi_sfit/", icon: <InstagramIcon /> },
+    { label: "Instagram (GDG-SFIT)", href: "https://instagram.com/gdg.sfit/", icon: <InstagramIcon /> },
 ];
 
 type ContactCardProps = ContactCardData & {
@@ -147,9 +140,8 @@ function ContactCard({ eyebrow, title, value, href, cta, accent, isLightMode }: 
     const content = (
         <>
             <div
-                className={`flex h-10 items-center justify-between border-2 px-3 text-[10px] font-bold uppercase tracking-widest xl:h-12 xl:text-xs ${
-                    isLightMode ? "border-black/10 bg-black/5 text-black/40" : "border-white/10 bg-white/5 text-white/30"
-                }`}
+                className={`flex h-10 items-center justify-between border-2 px-3 text-[10px] font-bold uppercase tracking-widest xl:h-12 xl:text-xs ${isLightMode ? "border-black/10 bg-black/5 text-black/40" : "border-white/10 bg-white/5 text-white/30"
+                    }`}
                 style={{ borderTopColor: accent }}
             >
                 <span>{eyebrow}</span>
@@ -168,8 +160,8 @@ function ContactCard({ eyebrow, title, value, href, cta, accent, isLightMode }: 
     );
 
     const className = `pointer-events-auto group flex h-full flex-col gap-2 border-2 p-3 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 xl:gap-3 xl:p-4 ${isLightMode
-            ? "border-black/15 bg-white/72 text-black shadow-[8px_8px_0_rgba(255,255,255,0.15)] hover:border-black/35 hover:bg-white/85"
-            : "border-white/20 bg-black/55 text-white shadow-[8px_8px_0_rgba(0,0,0,0.35)] hover:border-white/50 hover:bg-black/70"
+        ? "border-black/15 bg-white/72 text-black shadow-[8px_8px_0_rgba(255,255,255,0.15)] hover:border-black/35 hover:bg-white/85"
+        : "border-white/20 bg-black/55 text-white shadow-[8px_8px_0_rgba(0,0,0,0.35)] hover:border-white/50 hover:bg-black/70"
         }`;
 
     if (href) {
@@ -190,84 +182,82 @@ export default function ContactPage() {
         <div className={`relative min-h-screen font-sans selection:bg-[#ff00a0] selection:text-white transition-colors duration-500 ${isLightMode ? "bg-[#f5f5f5]" : "bg-black"}`}>
             <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 py-20 sm:px-6 lg:px-8 relative z-20">
                 <div className="text-left w-full mx-auto relative z-20 pointer-events-auto pb-10">
-                <header className="text-center">
-                    <p className={`text-[10px] font-black uppercase tracking-[0.4em] xl:text-xs ${isLightMode ? "text-black/55" : "text-white/50"}`}>Hack X 2.0</p>
-                    <h1
-                        className={`text-center font-black uppercase tracking-tighter text-6xl sm:text-7xl md:text-8xl lg:text-9xl mb-4 ${isLightMode ? "text-black" : "text-white"}`}
-                    >
-                        Contact The Team
-                    </h1>
-                    <p className={`text-center font-black uppercase tracking-widest text-sm mb-16 px-4 py-2 border-[3px] mx-auto w-fit ${isLightMode ? "border-black bg-[#5ce1e6] text-black" : "border-[#5ce1e6] bg-black text-[#5ce1e6]"}`}>
-                        Email • Phone • Venue • Socials
-                    </p>
-                </header>
+                    <header className="text-center">
+                        <p className={`text-[10px] font-black uppercase tracking-[0.4em] xl:text-xs ${isLightMode ? "text-black/55" : "text-white/50"}`}>Hack X 2.0</p>
+                        <h1
+                            className={`text-center font-black uppercase tracking-tighter text-6xl sm:text-7xl md:text-8xl lg:text-9xl mb-4 ${isLightMode ? "text-black" : "text-white"}`}
+                        >
+                            Contact The Team
+                        </h1>
+                        <p className={`text-center font-black uppercase tracking-widest text-sm mb-16 px-4 py-2 border-[3px] mx-auto w-fit ${isLightMode ? "border-black bg-[#5ce1e6] text-black" : "border-[#5ce1e6] bg-black text-[#5ce1e6]"}`}>
+                            Email • Phone • Venue • Socials
+                        </p>
+                    </header>
 
-                <section className="w-full">
-                    <div className={`mb-10 border-[3px] p-6 sm:p-8 ${isLightMode ? "border-black bg-white shadow-[8px_8px_0_#000]" : "border-white/30 bg-[#111] shadow-[8px_8px_0_#fff]"}`}>
-                        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-                            <div>
-                                <p className={`text-[10px] font-black uppercase tracking-[0.34em] ${isLightMode ? "text-black/50" : "text-white/55"}`}>Contact info</p>
-                                <h2 className={`mt-3 font-black uppercase tracking-tighter text-4xl sm:text-5xl ${isLightMode ? "text-black" : "text-white"}`}>
-                                    Reach Us
-                                </h2>
+                    <section className="w-full">
+                        <div className={`mb-10 border-[3px] p-6 sm:p-8 ${isLightMode ? "border-black bg-white shadow-[8px_8px_0_#000]" : "border-white/30 bg-[#111] shadow-[8px_8px_0_#fff]"}`}>
+                            <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                                <div>
+                                    <p className={`text-[10px] font-black uppercase tracking-[0.34em] ${isLightMode ? "text-black/50" : "text-white/55"}`}>Contact info</p>
+                                    <h2 className={`mt-3 font-black uppercase tracking-tighter text-4xl sm:text-5xl ${isLightMode ? "text-black" : "text-white"}`}>
+                                        Reach Us
+                                    </h2>
+                                </div>
+                                <span
+                                    className="inline-flex w-fit border-[3px] border-black px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-black"
+                                    style={{ backgroundColor: accent }}
+                                >
+                                    06 details
+                                </span>
                             </div>
-                            <span
-                                className="inline-flex w-fit border-[3px] border-black px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-black"
-                                style={{ backgroundColor: accent }}
-                            >
-                                06 details
-                            </span>
                         </div>
-                    </div>
 
-                    <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
-                                <div className="grid auto-rows-fr gap-4 sm:grid-cols-2">
-                                    {contactCards.map((card, index) => (
-                                        <div
-                                            key={card.title}
-                                            className="h-full scale-100 transition-all duration-500"
-                                            style={{ transitionDelay: `${80 + index * 50}ms` }}
-                                        >
-                                            <ContactCard {...card} accent={accent} isLightMode={isLightMode} />
-                                        </div>
-                                    ))}
+                        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
+                            <div className="grid auto-rows-fr gap-4 sm:grid-cols-2">
+                                {contactCards.map((card, index) => (
+                                    <div
+                                        key={card.title}
+                                        className="h-full scale-100 transition-all duration-500"
+                                        style={{ transitionDelay: `${80 + index * 50}ms` }}
+                                    >
+                                        <ContactCard {...card} accent={accent} isLightMode={isLightMode} />
+                                    </div>
+                                ))}
+                            </div>
+
+                            <aside
+                                className={`pointer-events-auto group flex h-full flex-col gap-4 border-2 p-4 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 xl:p-6 ${isLightMode
+                                    ? "border-black/15 bg-white/72 text-black shadow-[8px_8px_0_rgba(255,255,255,0.15)] hover:border-black/35 hover:bg-white/85"
+                                    : "border-white/20 bg-black/55 text-white shadow-[8px_8px_0_rgba(0,0,0,0.35)] hover:border-white/50 hover:bg-black/70"
+                                    } scale-100`}
+                            >
+                                <div className={`border-b pb-2 ${isLightMode ? "border-black/10" : "border-white/10"}`}>
+                                    <p className={`text-[10px] font-black uppercase tracking-[0.34em] xl:text-[11px] ${isLightMode ? "text-black/50" : "text-white/55"}`}>Socials</p>
+                                    <h3 className={`mt-2 font-black uppercase tracking-tighter text-3xl ${isLightMode ? "text-black" : "text-white"}`}>
+                                        Follow Along
+                                    </h3>
                                 </div>
 
-                                <aside
-                                    className={`pointer-events-auto group flex h-full flex-col gap-4 border-2 p-4 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 xl:p-6 ${
-                                        isLightMode
-                                            ? "border-black/15 bg-white/72 text-black shadow-[8px_8px_0_rgba(255,255,255,0.15)] hover:border-black/35 hover:bg-white/85"
-                                            : "border-white/20 bg-black/55 text-white shadow-[8px_8px_0_rgba(0,0,0,0.35)] hover:border-white/50 hover:bg-black/70"
-                                    } scale-100`}
-                                >
-                                    <div className={`border-b pb-2 ${isLightMode ? "border-black/10" : "border-white/10"}`}>
-                                        <p className={`text-[10px] font-black uppercase tracking-[0.34em] xl:text-[11px] ${isLightMode ? "text-black/50" : "text-white/55"}`}>Socials</p>
-                                        <h3 className={`mt-2 font-black uppercase tracking-tighter text-3xl ${isLightMode ? "text-black" : "text-white"}`}>
-                                            Follow Along
-                                        </h3>
-                                    </div>
-
-                                    <div className="grid gap-3 flex-1">
-                                        {socialLinks.map((social) => (
-                                            <a
-                                                key={social.label}
-                                                href={social.href}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className={`flex items-center justify-center gap-3 border-2 h-full min-h-0 transition-all duration-300 hover:-translate-y-0.5 ${
-                                                    isLightMode
-                                                        ? "border-black/10 bg-black/5 text-black hover:border-black/35"
-                                                        : "border-white/10 bg-white/5 text-white hover:border-white/35"
+                                <div className="grid gap-3 flex-1">
+                                    {socialLinks.map((social) => (
+                                        <a
+                                            key={social.label}
+                                            href={social.href}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className={`flex items-center justify-center gap-3 border-2 h-full min-h-0 transition-all duration-300 hover:-translate-y-0.5 ${isLightMode
+                                                ? "border-black/10 bg-black/5 text-black hover:border-black/35"
+                                                : "border-white/10 bg-white/5 text-white hover:border-white/35"
                                                 }`}
-                                            >
-                                                {social.icon}
-                                                <p className="text-[11px] font-black uppercase tracking-[0.18em] xl:text-xs">{social.label}</p>
-                                            </a>
-                                        ))}
-                                    </div>
-                                </aside>
-                    </div>
-                </section>
+                                        >
+                                            {social.icon}
+                                            <p className="text-[11px] font-black uppercase tracking-[0.18em] xl:text-xs">{social.label}</p>
+                                        </a>
+                                    ))}
+                                </div>
+                            </aside>
+                        </div>
+                    </section>
 
                 </div>
             </main>
