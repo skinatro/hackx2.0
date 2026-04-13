@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import ClientChrome from "./components/ClientChrome";
+import { ToastProvider } from "./components/ui/toast-provider";
+import { AuthProvider } from "./providers/auth-provider";
 import { ThemeProvider } from "./providers/theme-provider";
 
 import "./globals.css";
@@ -59,8 +61,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black overflow-x-hidden`}
       >
         <ThemeProvider>
-          <ClientChrome />
-          {children}
+          <AuthProvider>
+            <ClientChrome />
+            {children}
+            <ToastProvider />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

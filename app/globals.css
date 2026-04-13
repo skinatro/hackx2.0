@@ -103,3 +103,62 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* html5-qrcode overrides */
+#qr-reader {
+  border: none !important;
+  background-color: transparent !important;
+}
+
+#qr-reader__scan_region {
+  background-color: transparent !important;
+}
+
+#qr-reader__scan_region canvas {
+  /* This fixes the misaligned finder corners by hiding the default ones */
+  display: none !important;
+}
+
+/* Custom finder style to replace the glitchy default one */
+#qr-reader {
+  position: relative;
+}
+
+#qr-reader video {
+  width: 100% !important;
+  height: auto !important;
+  border: 3.5px border-black;
+  box-shadow: 6px 6px 0 rgba(0,0,0,0.2);
+}
+
+.dark #qr-reader video {
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 6px 6px 0 rgba(255,255,255,0.1);
+}
+
+/* Hide library's ugly messages and dashboard elements if needed */
+#qr-reader__status_span {
+  display: none !important;
+}
+
+#qr-reader__dashboard {
+  padding: 0 !important;
+  background-color: transparent !important;
+}
+
+#qr-reader img[alt="Camera menu symbol"] {
+  display: none !important;
+}
+
+#qr-reader__header_message {
+  display: none !important;
+}
+
+@keyframes scan-line {
+  0% { top: 0; }
+  100% { top: 100%; }
+}
+
+.animate-scan-line {
+  animation: scan-line 2s linear infinite;
+}

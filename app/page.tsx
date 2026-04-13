@@ -623,7 +623,7 @@ export default function Home() {
                       </p>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 pointer-events-auto">
+                    <div className="flex flex-col sm:flex-row flex-wrap gap-4 sm:gap-6 pointer-events-auto">
                       <Link
                         href="https://unstop.com/o/X6Qsj0O?lb=PdelV0YM&utm_medium=Share&utm_source=csisfi85205&utm_campaign=Online_coding_challenge" // Placeholder: User should provide the actual event link
                         target="_blank"
@@ -658,6 +658,25 @@ export default function Home() {
                           LEARN MORE{" "}
                           <span className="group-hover:translate-y-1 transition-transform">
                             ↓
+                          </span>
+                        </span>
+                      </Link>
+                      <Link
+                        href="/login"
+                        className="cursor-target group relative inline-flex items-center justify-center px-4 py-3 sm:px-8 sm:py-5 font-black uppercase tracking-widest transition-all hover:-translate-y-1 w-full sm:w-auto"
+                      >
+                        <div
+                          className={`absolute inset-0 border-[3px] transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2 ${isLightMode ? "bg-white border-black" : "bg-black border-white"}`}
+                        />
+                        <div
+                          className={`absolute inset-0 border-[3px] -z-10 translate-x-2 translate-y-2 ${isLightMode ? "border-black bg-[#c0ff00]" : "border-white bg-[#c0ff00]"}`}
+                        />
+                        <span
+                          className={`relative z-10 mix-blend-normal! flex items-center justify-center gap-2 ${isLightMode ? "text-black" : "text-white"}`}
+                        >
+                          LOGIN{" "}
+                          <span className="group-hover:translate-x-1 transition-transform">
+                            →
                           </span>
                         </span>
                       </Link>

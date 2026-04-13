@@ -6,7 +6,7 @@ import { Nvbar } from "./nvbar";
 export default function NavbarWrapper() {
   const pathname = usePathname();
 
-  if (pathname === "/") return null;
+  if (pathname === "/" || pathname === "/timer" || pathname === "/login") return null;
 
   return <Nvbar />;
 }
