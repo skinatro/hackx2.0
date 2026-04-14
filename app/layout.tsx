@@ -20,7 +20,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "HackX 2.0 - Digital Bharat Innovation Challenge",
-  description: "Join India's premier hackathon for building solutions for Digital Bharat. Organized by CSI SFIT and GDG SFIT.",
+  description:
+    "Join India's premier hackathon for building solutions for Digital Bharat. Organized by CSI SFIT and GDG SFIT.",
   icons: {
     icon: [
       {

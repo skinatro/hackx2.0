@@ -1,8 +1,15 @@
 "use client";
-import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  useEffect,
+} from "react";
 
 const WaveTiles = dynamic(
   () => import("@/ui/components/basic/wave-tiles").then((mod) => mod.WaveTiles),
@@ -21,7 +28,7 @@ type ThemeContextValue = {
 };
 
 const ThemeContext = createContext<ThemeContextValue>({
-  isLightMode: true,
+  isLightMode: false,
   setWaveTilesOpacity: () => () => {},
   toggleTheme: () => {},
 });
@@ -34,26 +41,38 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [isLightMode, setIsLightMode] = useState(false);
   const [lightClass, setLightClass] = useState(DEFAULT_LIGHT);
   const [darkClass, setDarkClass] = useState(DEFAULT_DARK);
-  const [forceTheme, setForceTheme] = useState(false);
-  const pathname = usePathname();
-  const showWaveTiles = pathname !== "/";
 
-  const toggleTheme = useCallback(() => {
-    setIsLightMode((prev) => !prev);
-    setForceTheme((prev) => !prev);
+  const pathname = usePathname();
+  const showWaveTiles =
+    pathname !== "/" && pathname !== "/timer" && pathname !== "/login";
+
+  // Initialize theme from localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      setIsLightMode(savedTheme === "light");
+    } else if (window.matchMedia("(prefers-color-scheme: light)").matches) {
+      // Optional: use system preference if no saved theme
+      setIsLightMode(true);
+    }
   }, []);
 
-  const setWaveTilesOpacity = useCallback(
-    (lc: string, dc: string) => {
-      setLightClass(lc);
-      setDarkClass(dc);
-      return () => {
-        setLightClass(DEFAULT_LIGHT);
-        setDarkClass(DEFAULT_DARK);
-      };
-    },
-    [],
-  );
+  const toggleTheme = useCallback(() => {
+    setIsLightMode((prev) => {
+      const next = !prev;
+      localStorage.setItem("theme", next ? "light" : "dark");
+      return next;
+    });
+  }, []);
+
+  const setWaveTilesOpacity = useCallback((lc: string, dc: string) => {
+    setLightClass(lc);
+    setDarkClass(dc);
+    return () => {
+      setLightClass(DEFAULT_LIGHT);
+      setDarkClass(DEFAULT_DARK);
+    };
+  }, []);
 
   const contextValue = useMemo(
     () => ({ isLightMode, setWaveTilesOpacity, toggleTheme }),
@@ -66,8 +85,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         <div className="fixed inset-0 z-[1] overflow-hidden pointer-events-none">
           <WaveTiles
             className={isLightMode ? lightClass : darkClass}
-            onModeChange={setIsLightMode}
-            forceTheme={forceTheme}
+            onModeChange={(val) => {
+              setIsLightMode(val);
+              localStorage.setItem("theme", val ? "light" : "dark");
+            }}
+            forceTheme={isLightMode}
+            initialTheme={isLightMode ? "light" : "dark"}
             trackPointerGlobally
             optimizeForPerformance
           />

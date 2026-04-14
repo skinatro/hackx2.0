@@ -7,8 +7,9 @@ import {
   WaveTiles,
   type WaveTilesHandle,
 } from "@/ui/components/basic/wave-tiles";
+import { useTheme } from "@/app/providers/theme-provider";
 
-const BACKGROUND_TYPE: "waves" | "video" = "waves"; // Toggle this if you want a video background instead
+const BACKGROUND_TYPE: "waves" | "video" = "video"; // Toggle this if you want a video background instead
 const VIDEO_PATH = "/timer-bg.mp4"; // Path to your background video
 
 const TIMER_STYLES = `
@@ -68,6 +69,7 @@ function pad(n: number) {
 }
 
 export default function TimerPage() {
+  const { isLightMode } = useTheme();
   const [endTime, setEndTime] = useState<Date | null>(null);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [now, setNow] = useState<Date | null>(null);
@@ -83,7 +85,7 @@ export default function TimerPage() {
       .select("key, value")
       .in("key", ["hackathon_start_time", "hackathon_end_time"])
       .then(({ data }) => {
-        let end = new Date("2026-04-14T12:00:00+05:30"); // Fallback
+        let end = new Date("2026-04-18T10:00:00+05:30"); // Fallback
         let start = new Date(end.getTime() - 24 * 60 * 60 * 1000); // Default to 24h before
         if (data) {
           const endConfig = data.find((c) => c.key === "hackathon_end_time");
@@ -116,6 +118,11 @@ export default function TimerPage() {
     const diff = endTime.getTime() - now.getTime();
     const total = endTime.getTime() - startTime.getTime();
 
+    // If it hasn't started yet, show 00:00:00
+    if (now.getTime() < startTime.getTime()) {
+      return { hours: 0, minutes: 0, seconds: 0, finished: false, progress: 0 };
+    }
+
     if (diff <= 0)
       return {
         hours: 0,
@@ -141,15 +148,17 @@ export default function TimerPage() {
       const len = rectRef.current.getTotalLength();
       if (len === 0) return;
       const pos = (remaining.progress / 100) * len;
-      // Depending on browsers, getPointAtLength(0) is (0,0) meaning top-left.
       const pt = rectRef.current.getPointAtLength(pos);
-      // Fallback in case of SVG zero-point issue
       setMarkerPos({ x: pt.x || 0, y: pt.y || 0 });
     };
 
     updatePos();
     window.addEventListener("resize", updatePos);
-    return () => window.removeEventListener("resize", updatePos);
+    const interval = setInterval(updatePos, 100);
+    return () => {
+      window.removeEventListener("resize", updatePos);
+      clearInterval(interval);
+    };
   }, [remaining.progress]);
 
   const currentTimeStr = now
@@ -170,6 +179,7 @@ export default function TimerPage() {
           ref={waveTilesRef}
           isTimerMode
           globalColor="neon"
+          forceTheme={isLightMode}
           className="fixed inset-0 opacity-[0.2] pointer-events-none"
           optimizeForPerformance
         />
@@ -179,7 +189,7 @@ export default function TimerPage() {
           loop
           muted
           playsInline
-          className="fixed inset-0 w-full h-full object-cover opacity-[0.2] pointer-events-none"
+          className="fixed inset-0 w-full h-full object-cover opacity-[0.5] pointer-events-none"
         >
           <source src={VIDEO_PATH} type="video/mp4" />
         </video>
@@ -219,87 +229,104 @@ export default function TimerPage() {
         </div> */}
 
           {/* Countdown */}
-          <div className="relative p-8 sm:p-16 mt-8 sm:mt-12 bg-black w-[95vw] md:w-[80vw] lg:w-[70vw] max-w-6xl">
-            {/* SVG Progress Box */}
-            <svg
-              className="absolute inset-0 z-20 w-full h-full pointer-events-none overflow-visible"
-              preserveAspectRatio="none"
-            >
+
+          <div className="relative p-8 sm:p-12 mb-8 mt-8 sm:mt-12 bg-black/40 backdrop-blur-xl w-[95vw] md:w-[85vw] lg:w-[80vw] max-w-7xl rounded-[40px] border border-white/5 overflow-visible">
+            {/* SVG Progress Border - Pixel Perfect matching rounded-[40px] */}
+            <svg className="absolute inset-0 z-20 w-full h-full pointer-events-none overflow-visible">
               <rect
-                x="0"
-                y="0"
-                width="100%"
-                height="100%"
+                x="2"
+                y="2"
+                width="calc(100% - 4px)"
+                height="calc(100% - 4px)"
+                rx="40"
+                ry="40"
                 fill="none"
                 stroke="#c0ff00"
                 strokeOpacity="0.1"
-                strokeWidth="12"
+                strokeWidth="4"
               />
               <rect
                 ref={rectRef}
-                x="0"
-                y="0"
-                width="100%"
-                height="100%"
+                x="2"
+                y="2"
+                width="calc(100% - 4px)"
+                height="calc(100% - 4px)"
+                rx="40"
+                ry="40"
                 fill="none"
                 stroke="#c0ff00"
-                strokeWidth="12"
+                strokeWidth="4"
                 strokeDasharray="100 100"
                 strokeDashoffset={-remaining.progress}
                 pathLength="100"
                 className="transition-all duration-1000 ease-linear"
               />
-              <image
-                href="/marker.png"
-                x={markerPos.x - 36} // Centers a 48x48 image
-                y={markerPos.y - 36}
-                width="64"
-                height="64"
-                className="transition-all duration-1000 ease-linear z-2000"
-              />
             </svg>
 
-            <div className="flex justify-center items-center gap-4 sm:gap-8 relative z-10 w-full">
-              <div className="flex flex-col items-center w-1/3">
+            {/* Marker positioned independently to avoid stretching */}
+            <div
+              className="absolute z-50 pointer-events-none transition-all duration-1000 ease-linear"
+              style={{
+                left: markerPos.x,
+                top: markerPos.y,
+                transform: "translate(-50%, -35%)",
+                width: "64px",
+                height: "64px",
+              }}
+            >
+              <Image
+                src="/marker.png"
+                alt="progress-marker"
+                width={64}
+                height={64}
+                className="drop-shadow-[0_0_15px_rgba(192,255,0,0.8)]"
+              />
+            </div>
+
+            <div className="flex justify-center items-center gap-2 sm:gap-6 relative z-10 w-full">
+              {/* Unit Box: Hours */}
+              <div className="flex flex-col items-center w-1/3 bg-white/5 backdrop-blur-md rounded-[24px] py-6 sm:py-10 border border-white/10 shadow-2xl">
                 <span
                   className="timer-digit text-[18vw] sm:text-[14vw] md:text-[12vw] lg:text-[10vw] font-black leading-none text-[#c0ff00]"
                   style={{ animationDelay: "0s" }}
                 >
                   {pad(remaining.hours)}
                 </span>
-                <span className="mt-2 text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] text-white/20">
+                <span className="mt-4 text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] text-white/40">
                   Hours
                 </span>
               </div>
 
-              <span className="text-[10vw] sm:text-[8vw] md:text-[6vw] font-black text-white/10 -mt-8">
+              <span className="text-[10vw] sm:text-[8vw] md:text-[6vw] font-black text-[#c0ff00]/20 timer-colon">
                 :
               </span>
 
-              <div className="flex flex-col items-center w-1/3">
+              {/* Unit Box: Minutes */}
+              <div className="flex flex-col items-center w-1/3 bg-white/5 backdrop-blur-md rounded-[24px] py-6 sm:py-10 border border-white/10 shadow-2xl">
                 <span
                   className="timer-digit text-[18vw] sm:text-[14vw] md:text-[12vw] lg:text-[10vw] font-black leading-none text-[#c0ff00]"
                   style={{ animationDelay: "0.5s" }}
                 >
                   {pad(remaining.minutes)}
                 </span>
-                <span className="mt-2 text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] text-white/20">
+                <span className="mt-4 text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] text-white/40">
                   Minutes
                 </span>
               </div>
 
-              <span className="text-[10vw] sm:text-[8vw] md:text-[6vw] font-black text-white/10 -mt-8">
+              <span className="text-[10vw] sm:text-[8vw] md:text-[6vw] font-black text-[#c0ff00]/20 timer-colon">
                 :
               </span>
 
-              <div className="flex flex-col items-center w-1/3">
+              {/* Unit Box: Seconds */}
+              <div className="flex flex-col items-center w-1/3 bg-white/5 backdrop-blur-md rounded-[24px] py-6 sm:py-10 border border-white/10 shadow-2xl">
                 <span
                   className="timer-digit text-[18vw] sm:text-[14vw] md:text-[12vw] lg:text-[10vw] font-black leading-none text-[#c0ff00]"
                   style={{ animationDelay: "1s" }}
                 >
                   {pad(remaining.seconds)}
                 </span>
-                <span className="mt-2 text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] text-white/20">
+                <span className="mt-4 text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] text-white/40">
                   Seconds
                 </span>
               </div>

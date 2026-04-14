@@ -2,7 +2,10 @@
 
 import { useAuth } from "@/app/providers/auth-provider";
 import { useTheme } from "@/app/providers/theme-provider";
-import { FullPageLoader, LoadingSpinner } from "@/app/components/ui/loading-spinner";
+import {
+  FullPageLoader,
+  LoadingSpinner,
+} from "@/app/components/ui/loading-spinner";
 import { createClient } from "@/libs/supabase/client";
 import { MEAL_LABELS } from "@/libs/utils";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
@@ -27,7 +30,9 @@ export default function ScanPage() {
   const [isScanning, setIsScanning] = useState(false);
   const [scannerReady, setScannerReady] = useState(false);
   const scannerRef = useRef<HTMLDivElement>(null);
-  const html5QrCodeRef = useRef<import("html5-qrcode").Html5Qrcode | null>(null);
+  const html5QrCodeRef = useRef<import("html5-qrcode").Html5Qrcode | null>(
+    null,
+  );
   const processingRef = useRef(false);
 
   // Load recent scans
@@ -46,9 +51,7 @@ export default function ScanPage() {
         .select("user_id, name, team_name")
         .in("user_id", userIds);
 
-      const profileMap = new Map(
-        (profiles || []).map((p) => [p.user_id, p])
-      );
+      const profileMap = new Map((profiles || []).map((p) => [p.user_id, p]));
 
       const enriched = data.map((d) => ({
         ...d,
@@ -73,7 +76,7 @@ export default function ScanPage() {
         { event: "INSERT", schema: "public", table: "food_logs" },
         () => {
           loadRecentScans();
-        }
+        },
       )
       .subscribe();
 
@@ -113,7 +116,7 @@ export default function ScanPage() {
             {
               onConflict: "user_id,meal",
               ignoreDuplicates: true,
-            }
+            },
           )
           .select();
 
@@ -126,12 +129,12 @@ export default function ScanPage() {
           // Duplicate — unique constraint prevented insert
           toast.warning(
             `⚠️ Already scanned! ${participant.name} (${participant.team_name}) already collected ${MEAL_LABELS[selectedMeal]}`,
-            { duration: 5000 }
+            { duration: 5000 },
           );
         } else {
           toast.success(
             `✅ ${participant.name} (${participant.team_name}) — ${MEAL_LABELS[selectedMeal]} recorded!`,
-            { duration: 3000 }
+            { duration: 3000 },
           );
           loadRecentScans();
         }
@@ -144,11 +147,21 @@ export default function ScanPage() {
         }, 1500);
       }
     },
-    [selectedMeal, user, supabase, loadRecentScans]
+    [selectedMeal, user, supabase, loadRecentScans],
   );
 
   const startScanner = useCallback(async () => {
     if (!scannerRef.current) return;
+
+    if (!window.isSecureContext && window.location.hostname !== "localhost") {
+      toast.error(
+        "Scanner requires HTTPS (Secure Context) to work on mobile devices.",
+        {
+          duration: 8000,
+        },
+      );
+      return;
+    }
 
     try {
       const { Html5Qrcode } = await import("html5-qrcode");
@@ -167,7 +180,7 @@ export default function ScanPage() {
         },
         () => {
           // ignore errors (no QR found in frame)
-        }
+        },
       );
 
       setScannerReady(true);
@@ -204,7 +217,7 @@ export default function ScanPage() {
     <div
       className={`relative min-h-screen font-sans transition-colors duration-500 ${isLightMode ? "bg-[#f5f5f5]" : "bg-black"}`}
     >
-      <main className="mx-auto flex w-full max-w-3xl flex-col px-4 py-20 sm:px-6 lg:px-8 relative z-20">
+      <main className="mx-auto flex w-full max-w-3xl flex-col px-4 py-20 sm:px-6 lg:px-8 lg:pb-48 relative z-20">
         {/* Header */}
         <div className="text-center mb-10">
           <p
@@ -222,7 +235,9 @@ export default function ScanPage() {
         {authLoading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <LoadingSpinner size="lg" />
-            <p className={`mt-4 text-[10px] font-black uppercase tracking-widest ${isLightMode ? "text-black/50" : "text-white/40"}`}>
+            <p
+              className={`mt-4 text-[10px] font-black uppercase tracking-widest ${isLightMode ? "text-black/50" : "text-white/40"}`}
+            >
               Verifying admin credentials...
             </p>
           </div>
@@ -233,189 +248,201 @@ export default function ScanPage() {
             </p>
           </div>
         ) : (
-          <div className="animate-in fade-in duration-500">
+          <div className="animate-in fade-in duration-500 mb-12 lg:mb-0">
             {/* Meal Selector */}
-        <div
-          className={`mb-8 border-[3px] p-6 ${isLightMode
-            ? "border-black bg-white shadow-[6px_6px_0_#000]"
-            : "border-white/30 bg-[#111] shadow-[6px_6px_0_#fff]"
-            }`}
-        >
-          <label
-            className={`block text-[10px] font-black uppercase tracking-[0.3em] mb-3 ${isLightMode ? "text-black/70" : "text-white/50"}`}
-          >
-            Select Meal
-          </label>
-          <div className="flex flex-wrap gap-3">
-            {Object.entries(MEAL_LABELS).map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => {
-                  setSelectedMeal(key);
-                  if (isScanning) {
-                    toast.info(`Switched to ${label}`);
-                  }
-                }}
-                className={`border-[3px] px-4 py-3 text-xs font-black uppercase tracking-[0.2em] transition-all hover:-translate-y-1 ${selectedMeal === key
-                  ? isLightMode
-                    ? "border-black bg-[#c0ff00] text-black shadow-[4px_4px_0_#000]"
-                    : "border-white bg-[#c0ff00] text-black shadow-[4px_4px_0_#fff]"
-                  : isLightMode
-                    ? "border-black/20 bg-white text-black/50 hover:border-black/50"
-                    : "border-white/20 bg-black text-white/50 hover:border-white/40"
-                  }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Scanner */}
-        <div
-          className={`mb-8 border-[3px] p-6 ${isLightMode
-            ? "border-black bg-white shadow-[6px_6px_0_#000]"
-            : "border-white/30 bg-[#111] shadow-[6px_6px_0_#fff]"
-            }`}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <p
-              className={`text-[10px] font-black uppercase tracking-[0.3em] ${isLightMode ? "text-black/70" : "text-white/50"}`}
+            <div
+              className={`mb-8 border-[3px] p-6 ${
+                isLightMode
+                  ? "border-black bg-white shadow-[6px_6px_0_#000]"
+                  : "border-white/30 bg-[#111] shadow-[6px_6px_0_#fff]"
+              }`}
             >
-              QR Scanner
-            </p>
-            {scannerReady && (
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-[#c0ff00] animate-pulse" />
-                <span className="text-[10px] font-bold text-[#c0ff00]">
-                  LIVE
-                </span>
-              </div>
-            )}
-          </div>
-
-          <div
-            className={`relative overflow-hidden ${!isScanning ? "hidden" : ""}`}
-            style={{ width: "100%" }}
-          >
-            <div id="qr-reader" ref={scannerRef} style={{ width: "100%" }} />
-            
-            {/* Custom Finder Overlay */}
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-              <div className="w-64 h-64 border-2 border-white/20 relative">
-                {/* Brutalist Corners */}
-                <div className="absolute top-[-4px] left-[-4px] w-6 h-6 border-t-4 border-l-4 border-[#c0ff00]" />
-                <div className="absolute top-[-4px] right-[-4px] w-6 h-6 border-t-4 border-r-4 border-[#c0ff00]" />
-                <div className="absolute bottom-[-4px] left-[-4px] w-6 h-6 border-b-4 border-l-4 border-[#c0ff00]" />
-                <div className="absolute bottom-[-4px] right-[-4px] w-6 h-6 border-b-4 border-r-4 border-[#c0ff00]" />
-                
-                {/* Scanning Animation Line */}
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-[#c0ff00]/30 animate-scan-line shadow-[0_0_15px_#c0ff00]" />
+              <label
+                className={`block text-[10px] font-black uppercase tracking-[0.3em] mb-3 ${isLightMode ? "text-black/70" : "text-white/50"}`}
+              >
+                Select Meal
+              </label>
+              <div className="flex flex-wrap gap-3">
+                {Object.entries(MEAL_LABELS).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => {
+                      setSelectedMeal(key);
+                      if (isScanning) {
+                        toast.info(`Switched to ${label}`);
+                      }
+                    }}
+                    className={`border-[3px] px-4 py-3 text-xs font-black uppercase tracking-[0.2em] transition-all hover:-translate-y-1 ${
+                      selectedMeal === key
+                        ? isLightMode
+                          ? "border-black bg-[#c0ff00] text-black shadow-[4px_4px_0_#000]"
+                          : "border-white bg-[#c0ff00] text-black shadow-[4px_4px_0_#fff]"
+                        : isLightMode
+                          ? "border-black/20 bg-white text-black/50 hover:border-black/50"
+                          : "border-white/20 bg-black text-white/50 hover:border-white/40"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
             </div>
-          </div>
 
-          <div className="mt-4 flex gap-3">
-            {!isScanning ? (
-              <button
-                type="button"
-                onClick={startScanner}
-                className={`flex-1 flex items-center justify-center gap-2 border-[3px] px-6 py-4 text-sm font-black uppercase tracking-[0.2em] transition-all hover:-translate-y-1 ${isLightMode
-                  ? "border-black bg-[#c0ff00] text-black shadow-[6px_6px_0_#000]"
-                  : "border-white bg-[#c0ff00] text-black shadow-[6px_6px_0_#fff]"
-                  }`}
-              >
-                📷 Start Scanner
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={stopScanner}
-                className={`flex-1 flex items-center justify-center gap-2 border-[3px] px-6 py-4 text-sm font-black uppercase tracking-[0.2em] transition-all hover:-translate-y-1 ${isLightMode
-                  ? "border-black bg-[#ff00a0] text-white shadow-[6px_6px_0_#000]"
-                  : "border-white bg-[#ff00a0] text-white shadow-[6px_6px_0_#fff]"
-                  }`}
-              >
-                ⏹ Stop Scanner
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Recent Scans */}
-        <div
-          className={`border-[3px] p-6 ${isLightMode
-            ? "border-black bg-white shadow-[6px_6px_0_#000]"
-            : "border-white/30 bg-[#111] shadow-[6px_6px_0_#fff]"
-            }`}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <p
-              className={`text-[10px] font-black uppercase tracking-[0.3em] ${isLightMode ? "text-black/70" : "text-white/50"}`}
+            {/* Scanner */}
+            <div
+              className={`mb-8 border-[3px] p-6 ${
+                isLightMode
+                  ? "border-black bg-white shadow-[6px_6px_0_#000]"
+                  : "border-white/30 bg-[#111] shadow-[6px_6px_0_#fff]"
+              }`}
             >
-              Recent Scans
-            </p>
-            <button
-              type="button"
-              onClick={loadRecentScans}
-              className={`text-[10px] font-black uppercase tracking-[0.2em] ${isLightMode ? "text-black/40 hover:text-black" : "text-white/30 hover:text-white"}`}
-            >
-              Refresh ↻
-            </button>
-          </div>
-
-          {recentScans.length === 0 ? (
-            <p
-              className={`text-center py-8 text-sm font-bold ${isLightMode ? "text-black/30" : "text-white/20"}`}
-            >
-              No scans yet
-            </p>
-          ) : (
-            <div className="flex flex-col gap-3 max-h-[400px] overflow-y-auto no-scrollbar">
-              {recentScans.map((scan) => (
-                <div
-                  key={scan.id}
-                  className={`flex items-center justify-between border-[2px] px-4 py-3 ${isLightMode
-                    ? "border-black/10 bg-black/5"
-                    : "border-white/10 bg-white/5"
-                    }`}
+              <div className="flex items-center justify-between mb-4">
+                <p
+                  className={`text-[10px] font-black uppercase tracking-[0.3em] ${isLightMode ? "text-black/70" : "text-white/50"}`}
                 >
-                  <div>
-                    <p
-                      className={`text-sm font-black ${isLightMode ? "text-black" : "text-white"}`}
-                    >
-                      {scan.participant_name}
-                    </p>
-                    <p
-                      className={`text-[10px] font-bold ${isLightMode ? "text-black/50" : "text-white/40"}`}
-                    >
-                      {scan.participant_team}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span
-                      className="inline-flex border-[2px] border-black bg-[#c0ff00] px-2 py-1 text-[9px] font-black uppercase tracking-wider text-black"
-                    >
-                      {MEAL_LABELS[scan.meal] || scan.meal}
+                  QR Scanner
+                </p>
+                {scannerReady && (
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-[#c0ff00] animate-pulse" />
+                    <span className="text-[10px] font-bold text-[#c0ff00]">
+                      LIVE
                     </span>
-                    <p
-                      className={`mt-1 text-[9px] font-bold ${isLightMode ? "text-black/30" : "text-white/20"}`}
-                    >
-                      {new Date(scan.scanned_at).toLocaleTimeString("en-IN", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div
+                className={`relative overflow-hidden ${!isScanning ? "hidden" : ""}`}
+                style={{ width: "100%" }}
+              >
+                <div
+                  id="qr-reader"
+                  ref={scannerRef}
+                  style={{ width: "100%" }}
+                />
+
+                {/* Custom Finder Overlay */}
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                  <div className="w-64 h-64 border-2 border-white/20 relative">
+                    {/* Brutalist Corners */}
+                    <div className="absolute top-[-4px] left-[-4px] w-6 h-6 border-t-4 border-l-4 border-[#c0ff00]" />
+                    <div className="absolute top-[-4px] right-[-4px] w-6 h-6 border-t-4 border-r-4 border-[#c0ff00]" />
+                    <div className="absolute bottom-[-4px] left-[-4px] w-6 h-6 border-b-4 border-l-4 border-[#c0ff00]" />
+                    <div className="absolute bottom-[-4px] right-[-4px] w-6 h-6 border-b-4 border-r-4 border-[#c0ff00]" />
+
+                    {/* Scanning Animation Line */}
+                    <div className="absolute top-0 left-0 w-full h-[2px] bg-[#c0ff00]/30 animate-scan-line shadow-[0_0_15px_#c0ff00]" />
                   </div>
                 </div>
-              ))}
+              </div>
+
+              <div className="mt-4 flex gap-3">
+                {!isScanning ? (
+                  <button
+                    type="button"
+                    onClick={startScanner}
+                    className={`flex-1 flex items-center justify-center gap-2 border-[3px] px-6 py-4 text-sm font-black uppercase tracking-[0.2em] transition-all hover:-translate-y-1 ${
+                      isLightMode
+                        ? "border-black bg-[#c0ff00] text-black shadow-[6px_6px_0_#000]"
+                        : "border-white bg-[#c0ff00] text-black shadow-[6px_6px_0_#fff]"
+                    }`}
+                  >
+                    📷 Start Scanner
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={stopScanner}
+                    className={`flex-1 flex items-center justify-center gap-2 border-[3px] px-6 py-4 text-sm font-black uppercase tracking-[0.2em] transition-all hover:-translate-y-1 ${
+                      isLightMode
+                        ? "border-black bg-[#ff00a0] text-white shadow-[6px_6px_0_#000]"
+                        : "border-white bg-[#ff00a0] text-white shadow-[6px_6px_0_#fff]"
+                    }`}
+                  >
+                    ⏹ Stop Scanner
+                  </button>
+                )}
+              </div>
             </div>
-          )}
+
+            {/* Recent Scans */}
+            <div
+              className={`border-[3px] p-6 ${
+                isLightMode
+                  ? "border-black bg-white shadow-[6px_6px_0_#000]"
+                  : "border-white/30 bg-[#111] shadow-[6px_6px_0_#fff]"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <p
+                  className={`text-[10px] font-black uppercase tracking-[0.3em] ${isLightMode ? "text-black/70" : "text-white/50"}`}
+                >
+                  Recent Scans
+                </p>
+                <button
+                  type="button"
+                  onClick={loadRecentScans}
+                  className={`text-[10px] font-black uppercase tracking-[0.2em] ${isLightMode ? "text-black/40 hover:text-black" : "text-white/30 hover:text-white"}`}
+                >
+                  Refresh ↻
+                </button>
+              </div>
+
+              {recentScans.length === 0 ? (
+                <p
+                  className={`text-center py-8 text-sm font-bold ${isLightMode ? "text-black/30" : "text-white/20"}`}
+                >
+                  No scans yet
+                </p>
+              ) : (
+                <div className="flex flex-col gap-3 max-h-[400px] overflow-y-auto no-scrollbar">
+                  {recentScans.map((scan) => (
+                    <div
+                      key={scan.id}
+                      className={`flex items-center justify-between border-[2px] px-4 py-3 ${
+                        isLightMode
+                          ? "border-black/10 bg-black/5"
+                          : "border-white/10 bg-white/5"
+                      }`}
+                    >
+                      <div>
+                        <p
+                          className={`text-sm font-black ${isLightMode ? "text-black" : "text-white"}`}
+                        >
+                          {scan.participant_name}
+                        </p>
+                        <p
+                          className={`text-[10px] font-bold ${isLightMode ? "text-black/50" : "text-white/40"}`}
+                        >
+                          {scan.participant_team}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="inline-flex border-[2px] border-black bg-[#c0ff00] px-2 py-1 text-[9px] font-black uppercase tracking-wider text-black">
+                          {MEAL_LABELS[scan.meal] || scan.meal}
+                        </span>
+                        <p
+                          className={`mt-1 text-[9px] font-bold ${isLightMode ? "text-black/30" : "text-white/20"}`}
+                        >
+                          {new Date(scan.scanned_at).toLocaleTimeString(
+                            "en-IN",
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            },
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
-    </main>
-  </div>
+        )}
+      </main>
+    </div>
   );
 }

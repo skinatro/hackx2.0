@@ -122,6 +122,7 @@ type WaveTilesProps = {
   trackPointerGlobally?: boolean;
   optimizeForPerformance?: boolean;
   forceTheme?: boolean;
+  initialTheme?: "light" | "dark";
   isTimerMode?: boolean;
 };
 
@@ -143,6 +144,7 @@ export const WaveTiles = forwardRef<WaveTilesHandle, WaveTilesProps>(
       trackPointerGlobally = false,
       optimizeForPerformance = false,
       forceTheme,
+      initialTheme = "dark",
       isTimerMode = false,
     },
     ref,
@@ -193,11 +195,17 @@ export const WaveTiles = forwardRef<WaveTilesHandle, WaveTilesProps>(
     >(null);
     patchCubesRef.current = null;
     const onModeChangeRef = useRef(onModeChange);
-    const forceToggleRef = useRef<(() => void) | null>(null);
+    const forceThemeRef = useRef<((targetLightMode: boolean) => void) | null>(
+      null,
+    );
 
-    latestCubeLayoutRef.current = cubeLayout;
     onModeChangeRef.current = onModeChange;
 
+    useEffect(() => {
+      if (forceTheme !== undefined) {
+        forceThemeRef.current?.(forceTheme);
+      }
+    }, [forceTheme]);
     useEffect(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -239,7 +247,7 @@ export const WaveTiles = forwardRef<WaveTilesHandle, WaveTilesProps>(
       let lastTime = 0;
       let bgCurrent = 215;
       let bgTarget = 215;
-      let isLightMode = true;
+      let isLightMode = forceTheme ?? initialTheme === "light";
       let isPaused = false;
       let cursorX = 0;
       let cursorY = 0;
@@ -2261,7 +2269,9 @@ export const WaveTiles = forwardRef<WaveTilesHandle, WaveTilesProps>(
         }
       }
 
-      forceToggleRef.current = () => {
+      forceThemeRef.current = (targetLightMode: boolean) => {
+        if (isLightMode === targetLightMode) return;
+
         let triggerCube: Cube | null = null;
         let maxRight = -1;
 
@@ -2277,7 +2287,7 @@ export const WaveTiles = forwardRef<WaveTilesHandle, WaveTilesProps>(
 
         if (!triggerCube) return;
 
-        isLightMode = !isLightMode;
+        isLightMode = targetLightMode;
         onModeChangeRef.current?.(isLightMode);
         bgTarget = isLightMode ? 215 : 40;
         triggerRipple(triggerCube);
@@ -2462,8 +2472,8 @@ export const WaveTiles = forwardRef<WaveTilesHandle, WaveTilesProps>(
     }, [patchLayout]);
 
     useEffect(() => {
-      if (forceTheme !== undefined && forceToggleRef.current) {
-        forceToggleRef.current();
+      if (forceTheme !== undefined && forceThemeRef.current) {
+        forceThemeRef.current(forceTheme);
       }
     }, [forceTheme]);
 

@@ -86,10 +86,11 @@ function LoginForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className={`w-full border-[3px] px-4 py-3 text-sm font-bold outline-none transition-all focus:translate-y-[-1px] ${isLightMode
-                    ? "border-black bg-white text-black placeholder:text-black/30 focus:shadow-[4px_4px_0_#c0ff00]"
-                    : "border-white/30 bg-black text-white placeholder:text-white/30 focus:border-white/60 focus:shadow-[4px_4px_0_#c0ff00]"
-                    }`}
+                  className={`w-full border-[3px] px-4 py-3 text-sm font-bold outline-none transition-all focus:translate-y-[-1px] ${
+                    isLightMode
+                      ? "border-black bg-white text-black placeholder:text-black/30 focus:shadow-[4px_4px_0_#c0ff00]"
+                      : "border-white/30 bg-black text-white placeholder:text-white/30 focus:border-white/60 focus:shadow-[4px_4px_0_#c0ff00]"
+                  }`}
                   required
                 />
               </div>
@@ -107,10 +108,11 @@ function LoginForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className={`w-full border-[3px] px-4 py-3 text-sm font-bold outline-none transition-all focus:translate-y-[-1px] ${isLightMode
-                    ? "border-black bg-white text-black placeholder:text-black/30 focus:shadow-[4px_4px_0_#c0ff00]"
-                    : "border-white/30 bg-black text-white placeholder:text-white/30 focus:border-white/60 focus:shadow-[4px_4px_0_#c0ff00]"
-                    }`}
+                  className={`w-full border-[3px] px-4 py-3 text-sm font-bold outline-none transition-all focus:translate-y-[-1px] ${
+                    isLightMode
+                      ? "border-black bg-white text-black placeholder:text-black/30 focus:shadow-[4px_4px_0_#c0ff00]"
+                      : "border-white/30 bg-black text-white placeholder:text-white/30 focus:border-white/60 focus:shadow-[4px_4px_0_#c0ff00]"
+                  }`}
                   required
                 />
               </div>
@@ -118,10 +120,11 @@ function LoginForm() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`relative flex items-center justify-center gap-3 border-[3px] px-6 py-4 text-sm font-black uppercase tracking-[0.2em] transition-all hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed ${isLightMode
-                  ? "border-black bg-[#ff00a0] text-white shadow-[6px_6px_0_#000] hover:shadow-[8px_8px_0_#000]"
-                  : "border-white bg-[#ff00a0] text-white shadow-[6px_6px_0_#fff] hover:shadow-[8px_8px_0_#c0ff00]"
-                  }`}
+                className={`relative flex items-center justify-center gap-3 border-[3px] px-6 py-4 text-sm font-black uppercase tracking-[0.2em] transition-all hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isLightMode
+                    ? "border-black bg-[#ff00a0] text-white shadow-[6px_6px_0_#000] hover:shadow-[8px_8px_0_#000]"
+                    : "border-white bg-[#ff00a0] text-white shadow-[6px_6px_0_#fff] hover:shadow-[8px_8px_0_#c0ff00]"
+                }`}
               >
                 {isLoading ? (
                   <>
@@ -135,11 +138,11 @@ function LoginForm() {
             </div>
           </form>
 
-          <p
+          {/* <p
             className={`mt-6 text-center text-xs font-bold ${isLightMode ? "text-black/40" : "text-white/30"}`}
           >
             Credentials are provided by the organizers.
-          </p>
+          </p> */}
         </div>
       </main>
     </div>

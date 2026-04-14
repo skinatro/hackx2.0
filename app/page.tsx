@@ -105,10 +105,11 @@ function FloatingBadge({
 }) {
   return (
     <div
-      className={`absolute z-20 flex items-center justify-center p-3 transition-all duration-500 ${isLightMode
-        ? "border-[3px] border-black bg-white/80 shadow-[6px_6px_0_#000]"
-        : "border-[3px] border-white/50 bg-[#111]/80 shadow-[6px_6px_0_#c0ff00]"
-        } ${styleName}`}
+      className={`absolute z-20 flex items-center justify-center p-3 transition-all duration-500 ${
+        isLightMode
+          ? "border-[3px] border-black bg-white/80 shadow-[6px_6px_0_#000]"
+          : "border-[3px] border-white/50 bg-[#111]/80 shadow-[6px_6px_0_#c0ff00]"
+      } ${styleName}`}
       style={{
         animation: `${floatRev ? "float-reverse" : "float"} 6s ease-in-out infinite`,
         animationDelay: `${delay}s`,
@@ -136,10 +137,11 @@ function HighlightCard({
 }) {
   return (
     <div
-      className={`cursor-target group relative flex flex-col p-6 sm:p-8 transition-transform duration-500 hover:-translate-y-2 ${isLightMode
-        ? "border-[3px] border-black bg-white shadow-[8px_8px_0_#000]"
-        : "border-[3px] border-white/30 bg-[#0a0a0a] shadow-[8px_8px_0_#fff]"
-        }`}
+      className={`cursor-target group relative flex flex-col p-6 sm:p-8 transition-transform duration-500 hover:-translate-y-2 ${
+        isLightMode
+          ? "border-[3px] border-black bg-white shadow-[8px_8px_0_#000]"
+          : "border-[3px] border-white/30 bg-[#0a0a0a] shadow-[8px_8px_0_#fff]"
+      }`}
       style={{
         animation: `float-reverse 8s ease-in-out infinite`,
         animationDelay: `${delay}s`,
@@ -294,7 +296,10 @@ export default function Home() {
   const [isMobile, setIsMobile] = useState(false);
 
   // Hackathon countdown - April 17th, 2026 (memoized to prevent re-creation)
-  const hackathonDate = useMemo(() => new Date('2026-04-17T00:00:00+05:30'), []); // IST
+  const hackathonDate = useMemo(
+    () => new Date("2026-04-17T00:00:00+05:30"),
+    [],
+  ); // IST
   const countdown = useCountdown(hackathonDate);
 
   // Memoize preloader completion callback to prevent infinite re-renders
@@ -405,10 +410,7 @@ export default function Home() {
     <div
       className={`relative min-h-screen font-sans selection:bg-[#ff00a0] selection:text-white ${isLightMode ? "bg-[#f5f5f5]" : "bg-black"}`}
     >
-      <Preloader
-        onComplete={handlePreloaderComplete}
-        optimizeForPerformance
-      />
+      <Preloader onComplete={handlePreloaderComplete} optimizeForPerformance />
       <style dangerouslySetInnerHTML={{ __html: STYLES }} />
       {/* Grid Pattern Background - Keeping this for texture */}
       <div
@@ -424,7 +426,8 @@ export default function Home() {
           <WaveTiles
             className={isLightMode ? "opacity-40" : "opacity-30"}
             optimizeForPerformance
-            onModeChange={() => { }}
+            forceTheme={isLightMode}
+            onModeChange={() => {}}
           />
         </div>
       )}
@@ -609,7 +612,7 @@ export default function Home() {
                   <div className="relative z-10 w-full flex flex-col items-center lg:flex-row lg:items-end justify-between text-center lg:text-left mt-auto pb-8 gap-10">
                     <div className="flex flex-col items-center lg:items-start gap-4 sm:gap-6 max-w-xl">
                       <div
-                        className={`cursor-target inline-block w-max font-black uppercase tracking-widest text-xs sm:text-sm whitespace-nowrap border-[3px] px-4 py-2 ${isLightMode ? "border-black bg-white text-black shadow-[4px_4px_0_#000]" : "border-white bg-black text-white shadow-[4px_4px_0_#c0ff00]"}`}
+                        className={`cursor-target hidden md:inline-block w-max font-black uppercase tracking-widest text-xs sm:text-sm whitespace-nowrap border-[3px] px-4 py-2 ${isLightMode ? "border-black bg-white text-black shadow-[4px_4px_0_#000]" : "border-white bg-black text-white shadow-[4px_4px_0_#c0ff00]"}`}
                       >
                         — CODE FOR BHARAT 5.0 —
                       </div>
@@ -628,7 +631,7 @@ export default function Home() {
                         href="https://unstop.com/o/X6Qsj0O?lb=PdelV0YM&utm_medium=Share&utm_source=csisfi85205&utm_campaign=Online_coding_challenge" // Placeholder: User should provide the actual event link
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="cursor-target group relative inline-flex items-center justify-center gap-3 px-6 py-3 sm:px-10 sm:py-5 font-black uppercase tracking-widest text-white transition-all hover:-translate-y-1 w-full sm:w-auto overflow-hidden border-[3px] border-black bg-[#1c4980] shadow-[6px_6px_0_#000] sm:shadow-[8px_8px_0_#000]"
+                        className="cursor-target group relative hidden md:inline-flex items-center justify-center gap-3 px-6 py-3 sm:px-10 sm:py-5 font-black uppercase tracking-widest text-white transition-all hover:-translate-y-1 w-full sm:w-auto overflow-hidden border-[3px] border-black bg-[#1c4980] shadow-[6px_6px_0_#000] sm:shadow-[8px_8px_0_#000]"
                       >
                         <div className="absolute inset-0 z-0 bg-[#2c69d1] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         <svg
@@ -780,10 +783,11 @@ export default function Home() {
                       ].map((prize, idx) => (
                         <div
                           key={idx}
-                          className={`cursor-target p-6 sm:p-8 flex flex-col items-center justify-center border-[3px] transition-transform hover:-translate-y-2 duration-300 ${isLightMode
-                            ? "border-black bg-white shadow-[8px_8px_0_#000]"
-                            : "border-white/30 bg-[#111] shadow-[8px_8px_0_#fff]"
-                            }`}
+                          className={`cursor-target p-6 sm:p-8 flex flex-col items-center justify-center border-[3px] transition-transform hover:-translate-y-2 duration-300 ${
+                            isLightMode
+                              ? "border-black bg-white shadow-[8px_8px_0_#000]"
+                              : "border-white/30 bg-[#111] shadow-[8px_8px_0_#fff]"
+                          }`}
                         >
                           <span className="text-[11px] sm:text-sm font-black uppercase tracking-widest text-gray-500 mb-2 text-center leading-tight">
                             {prize.domain}
@@ -805,11 +809,11 @@ export default function Home() {
                       <p className="text-zinc-400 text-sm sm:text-base font-bold leading-relaxed">
                         Additional prizes for{" "}
                         <span className="text-[#00f0ff]">Best UI/UX</span>,{" "}
-                        <span className="text-[#ff00a0]">
-                          Best Innovation
+                        <span className="text-[#ff00a0]">Best Innovation</span>,
+                        and{" "}
+                        <span className="text-[#c0ff00]">
+                          Best Business Model
                         </span>
-                        , and{" "}
-                        <span className="text-[#c0ff00]">Best Business Model</span>
                         !
                       </p>
                     </div>
@@ -862,10 +866,11 @@ export default function Home() {
                       ].map((track, i) => (
                         <div
                           key={i}
-                          className={`cursor-target group relative flex flex-col items-center justify-center p-6 sm:p-8 transition-transform duration-500 hover:-translate-y-2 ${isLightMode
-                            ? "border-[3px] border-black bg-white shadow-[6px_6px_0_#000]"
-                            : "border-[3px] border-white/30 bg-[#111] shadow-[6px_6px_0_#fff]"
-                            }`}
+                          className={`cursor-target group relative flex flex-col items-center justify-center p-6 sm:p-8 transition-transform duration-500 hover:-translate-y-2 ${
+                            isLightMode
+                              ? "border-[3px] border-black bg-white shadow-[6px_6px_0_#000]"
+                              : "border-[3px] border-white/30 bg-[#111] shadow-[6px_6px_0_#fff]"
+                          }`}
                         >
                           <div
                             className="absolute inset-0 z-0 origin-bottom scale-y-0 transition-transform duration-300 ease-out group-hover:scale-y-100"
@@ -877,8 +882,9 @@ export default function Home() {
                             {track.icon}
                           </div>
                           <h3
-                            className={`relative z-10 text-base sm:text-lg font-black uppercase tracking-widest text-center transition-colors duration-300 ${isLightMode ? "text-black" : "text-white"
-                              } group-hover:text-black`}
+                            className={`relative z-10 text-base sm:text-lg font-black uppercase tracking-widest text-center transition-colors duration-300 ${
+                              isLightMode ? "text-black" : "text-white"
+                            } group-hover:text-black`}
                           >
                             {track.name}
                           </h3>
@@ -956,15 +962,27 @@ export default function Home() {
                 </h2>
 
                 <div className="mt-10 flex flex-wrap items-center justify-center gap-6 sm:gap-8 cursor-target">
-                  <CountdownItem value={countdown.days.toString()} label="Days" color="#ff00a0" />
+                  <CountdownItem
+                    value={countdown.days.toString()}
+                    label="Days"
+                    color="#ff00a0"
+                  />
                   <div className="text-4xl font-black text-black hidden sm:block">
                     :
                   </div>
-                  <CountdownItem value={countdown.hours.toString()} label="Hours" color="#00f0ff" />
+                  <CountdownItem
+                    value={countdown.hours.toString()}
+                    label="Hours"
+                    color="#00f0ff"
+                  />
                   <div className="text-4xl font-black text-black hidden sm:block">
                     :
                   </div>
-                  <CountdownItem value={countdown.minutes.toString()} label="Minutes" color="#ff00a0" />
+                  <CountdownItem
+                    value={countdown.minutes.toString()}
+                    label="Minutes"
+                    color="#ff00a0"
+                  />
                 </div>
               </div>
               {/* RESOURCES & TEAM SECTION */}
@@ -1017,9 +1035,15 @@ export default function Home() {
                   </p>
                   <div className="grid grid-cols-2 gap-4 px-2 sm:px-0">
                     {[
-                      { name: "Shahiil Shet", designation: "CSI SFIT President" },
+                      {
+                        name: "Shahiil Shet",
+                        designation: "CSI SFIT President",
+                      },
                       { name: "Reon Lemos", designation: "GDG SFIT President" },
-                      { name: "Aryan Brahmane", designation: "CSI SFIT Treasurer" }
+                      {
+                        name: "Aryan Brahmane",
+                        designation: "CSI SFIT Treasurer",
+                      },
                     ].map((member, i) => (
                       <div
                         key={i}
