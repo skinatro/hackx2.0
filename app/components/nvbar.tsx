@@ -41,7 +41,17 @@ function isActivePath(pathname: string, href: string) {
     return pathname === "/";
   }
 
-  return pathname === href || pathname.startsWith(href + "/");
+  // Exact match or prefix match with / (but not for admin routes with multiple segments)
+  if (pathname === href) {
+    return true;
+  }
+
+  // For routes like /admin, don't match /admin/users
+  if (href.includes("/admin")) {
+    return pathname === href;
+  }
+
+  return pathname.startsWith(href + "/");
 }
 
 export function Nvbar() {

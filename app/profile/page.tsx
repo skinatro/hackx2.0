@@ -55,6 +55,24 @@ function DomainBadge({
   );
 }
 
+
+function formatPhoneNumber(phone: string): string {
+  if (!phone) return "";
+  const cleaned = phone.replace(/\D/g, "");
+  
+  // Indian format: +91 XXXXX XXXXX (for 10-digit)
+  // or +91 XXXXX XXXXX (if 12 digits with 91 prefix)
+  if (cleaned.length === 10) {
+    return `+91 ${cleaned.slice(0, 5)} ${cleaned.slice(5)}`;
+  }
+  
+  if (cleaned.length === 12 && cleaned.startsWith("91")) {
+    return `+${cleaned.slice(0, 2)} ${cleaned.slice(2, 7)} ${cleaned.slice(7)}`;
+  }
+  
+  return phone;
+}
+
 export default function ProfilePage() {
   const { profile, isLoading, signOut } = useAuth();
   const { isLightMode } = useTheme();
@@ -293,7 +311,7 @@ export default function ProfilePage() {
                       <p
                         className={`text-sm font-bold ${isLightMode ? "text-black/70" : "text-white/70"}`}
                       >
-                        {profile.phone}
+                        {formatPhoneNumber(profile.phone)}
                       </p>
                     </div>
                   )}
