@@ -1,5 +1,4 @@
 # Hackathon Platform Website
-
 A professional, dynamic, and responsive website built specifically to host and manage our upcoming flagship Hackathon. This event is proudly co-organized by two prominent committees: **[CSI SFIT](https://csi-sfit.vercel.app/)** and **GDG SFIT** (Google Developer Group at SFIT). The platform provides all necessary information for participants, sponsors, and visitors, wrapped in a polished, highly uniform design system.
 
 ## 🎨 Design System & Architecture
