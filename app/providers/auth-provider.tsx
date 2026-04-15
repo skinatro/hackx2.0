@@ -3,6 +3,7 @@
 import { createClient } from "@/libs/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
+import type { ReactNode } from "react";
 import {
   createContext,
   useCallback,
@@ -12,7 +13,6 @@ import {
   useRef,
   useState,
 } from "react";
-import type { ReactNode } from "react";
 
 export type Profile = {
   user_id: string;
@@ -22,6 +22,7 @@ export type Profile = {
   team_name: string;
   role: "admin" | "leader" | "member";
   domain: string;
+  avatar_gender?: "male" | "female";
 };
 
 type AuthContextValue = {
@@ -38,8 +39,8 @@ const AuthContext = createContext<AuthContextValue>({
   profile: null,
   isAdmin: false,
   isLoading: true,
-  signOut: async () => {},
-  refreshProfile: async () => {},
+  signOut: async () => { },
+  refreshProfile: async () => { },
 });
 
 export function useAuth() {
@@ -78,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const handleUser = async (currentUser: User | null) => {
       setUser(currentUser);
-      
+
       if (currentUser) {
         // Only fetch if we aren't already fetching THIS user and don't have a profile yet
         if (fetchingRef.current !== currentUser.id) {
@@ -94,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         fetchingRef.current = null;
         setProfile(null);
       }
-      
+
       if (mounted) setIsLoading(false);
     };
 

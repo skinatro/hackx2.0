@@ -1,14 +1,13 @@
 "use client";
 
+import {
+  LoadingSpinner
+} from "@/app/components/ui/loading-spinner";
 import { useAuth } from "@/app/providers/auth-provider";
 import { useTheme } from "@/app/providers/theme-provider";
-import {
-  FullPageLoader,
-  LoadingSpinner,
-} from "@/app/components/ui/loading-spinner";
 import { createClient } from "@/libs/supabase/client";
 import { MEAL_LABELS } from "@/libs/utils";
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 type ScanLog = {
@@ -25,6 +24,7 @@ export default function ScanPage() {
   const { isLightMode } = useTheme();
   const supabase = useMemo(() => createClient(), []);
 
+  const [scanMode, setScanMode] = useState<"food" | "registration">("registration");
   const [selectedMeal, setSelectedMeal] = useState("day1_lunch");
   const [recentScans, setRecentScans] = useState<ScanLog[]>([]);
   const [isScanning, setIsScanning] = useState(false);
@@ -37,30 +37,60 @@ export default function ScanPage() {
 
   // Load recent scans
   const loadRecentScans = useCallback(async () => {
-    const { data } = await supabase
-      .from("food_logs")
-      .select("*")
-      .order("scanned_at", { ascending: false })
-      .limit(20);
+    if (scanMode === "registration") {
+      // Load registration check-ins
+      const { data } = await supabase
+        .from("registration_logs")
+        .select("*")
+        .order("checked_in_at", { ascending: false })
+        .limit(20);
 
-    if (data) {
-      // Enrich with user names
-      const userIds = [...new Set(data.map((d) => d.user_id))];
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("user_id, name, team_name")
-        .in("user_id", userIds);
+      if (data) {
+        // Enrich with user names
+        const userIds = [...new Set(data.map((d) => d.user_id))];
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, name, team_name")
+          .in("user_id", userIds);
 
-      const profileMap = new Map((profiles || []).map((p) => [p.user_id, p]));
+        const profileMap = new Map((profiles || []).map((p) => [p.user_id, p]));
 
-      const enriched = data.map((d) => ({
-        ...d,
-        participant_name: profileMap.get(d.user_id)?.name || "Unknown",
-        participant_team: profileMap.get(d.user_id)?.team_name || "Unknown",
-      }));
-      setRecentScans(enriched);
+        const enriched = data.map((d) => ({
+          ...d,
+          meal: "registration",
+          scanned_at: d.checked_in_at,
+          participant_name: profileMap.get(d.user_id)?.name || "Unknown",
+          participant_team: profileMap.get(d.user_id)?.team_name || "Unknown",
+        }));
+        setRecentScans(enriched);
+      }
+    } else {
+      // Load food logs
+      const { data } = await supabase
+        .from("food_logs")
+        .select("*")
+        .order("scanned_at", { ascending: false })
+        .limit(20);
+
+      if (data) {
+        // Enrich with user names
+        const userIds = [...new Set(data.map((d) => d.user_id))];
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, name, team_name")
+          .in("user_id", userIds);
+
+        const profileMap = new Map((profiles || []).map((p) => [p.user_id, p]));
+
+        const enriched = data.map((d) => ({
+          ...d,
+          participant_name: profileMap.get(d.user_id)?.name || "Unknown",
+          participant_team: profileMap.get(d.user_id)?.team_name || "Unknown",
+        }));
+        setRecentScans(enriched);
+      }
     }
-  }, [supabase]);
+  }, [supabase, scanMode]);
 
   useEffect(() => {
     if (isAdmin) loadRecentScans();
@@ -69,11 +99,12 @@ export default function ScanPage() {
   // Setup realtime subscription
   useEffect(() => {
     if (!isAdmin) return;
+    const tableName = scanMode === "registration" ? "registration_logs" : "food_logs";
     const channel = supabase
-      .channel("food_logs_realtime")
+      .channel(`${tableName}_realtime`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "food_logs" },
+        { event: "INSERT", schema: "public", table: tableName },
         () => {
           loadRecentScans();
         },
@@ -83,7 +114,7 @@ export default function ScanPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [isAdmin, supabase, loadRecentScans]);
+  }, [isAdmin, supabase, loadRecentScans, scanMode]);
 
   const handleScan = useCallback(
     async (scannedUserId: string) => {
@@ -103,40 +134,76 @@ export default function ScanPage() {
           return;
         }
 
-        // Upsert with ON CONFLICT DO NOTHING
-        const { data, error } = await supabase
-          .from("food_logs")
-          .upsert(
-            {
-              user_id: scannedUserId,
-              meal: selectedMeal,
-              scanned_at: new Date().toISOString(),
-              scanned_by: user?.id,
-            },
-            {
-              onConflict: "user_id,meal",
-              ignoreDuplicates: true,
-            },
-          )
-          .select();
+        if (scanMode === "registration") {
+          // Handle registration check-in
+          const { data, error } = await supabase
+            .from("registration_logs")
+            .upsert(
+              {
+                user_id: scannedUserId,
+                checked_in_at: new Date().toISOString(),
+                scanned_by: user?.id,
+              },
+              {
+                onConflict: "user_id",
+                ignoreDuplicates: true,
+              },
+            )
+            .select();
 
-        if (error) {
-          toast.error("Scan failed: " + error.message);
-          return;
-        }
+          if (error) {
+            toast.error("Check-in failed: " + error.message);
+            return;
+          }
 
-        if (!data || data.length === 0) {
-          // Duplicate — unique constraint prevented insert
-          toast.warning(
-            `⚠️ Already scanned! ${participant.name} (${participant.team_name}) already collected ${MEAL_LABELS[selectedMeal]}`,
-            { duration: 5000 },
-          );
+          if (!data || data.length === 0) {
+            toast.warning(
+              `⚠️ Already checked in! ${participant.name} (${participant.team_name}) is already registered.`,
+              { duration: 5000 },
+            );
+          } else {
+            toast.success(
+              `✅ ${participant.name} (${participant.team_name}) — Checked in at registration!`,
+              { duration: 3000 },
+            );
+            loadRecentScans();
+          }
         } else {
-          toast.success(
-            `✅ ${participant.name} (${participant.team_name}) — ${MEAL_LABELS[selectedMeal]} recorded!`,
-            { duration: 3000 },
-          );
-          loadRecentScans();
+          // Handle food log (existing functionality)
+          const { data, error } = await supabase
+            .from("food_logs")
+            .upsert(
+              {
+                user_id: scannedUserId,
+                meal: selectedMeal,
+                scanned_at: new Date().toISOString(),
+                scanned_by: user?.id,
+              },
+              {
+                onConflict: "user_id,meal",
+                ignoreDuplicates: true,
+              },
+            )
+            .select();
+
+          if (error) {
+            toast.error("Scan failed: " + error.message);
+            return;
+          }
+
+          if (!data || data.length === 0) {
+            // Duplicate — unique constraint prevented insert
+            toast.warning(
+              `⚠️ Already scanned! ${participant.name} (${participant.team_name}) already collected ${MEAL_LABELS[selectedMeal]}`,
+              { duration: 5000 },
+            );
+          } else {
+            toast.success(
+              `✅ ${participant.name} (${participant.team_name}) — ${MEAL_LABELS[selectedMeal]} recorded!`,
+              { duration: 3000 },
+            );
+            loadRecentScans();
+          }
         }
       } catch (err) {
         console.error(err);
@@ -147,7 +214,7 @@ export default function ScanPage() {
         }, 1500);
       }
     },
-    [selectedMeal, user, supabase, loadRecentScans],
+    [scanMode, selectedMeal, user, supabase, loadRecentScans],
   );
 
   const startScanner = useCallback(async () => {
@@ -208,7 +275,7 @@ export default function ScanPage() {
   useEffect(() => {
     return () => {
       if (html5QrCodeRef.current) {
-        html5QrCodeRef.current.stop().catch(() => {});
+        html5QrCodeRef.current.stop().catch(() => { });
       }
     };
   }, []);
@@ -228,7 +295,7 @@ export default function ScanPage() {
           <h1
             className={`mt-3 font-black uppercase tracking-tighter text-5xl sm:text-7xl ${isLightMode ? "text-black" : "text-white"}`}
           >
-            Food Scan
+            Scan
           </h1>
         </div>
 
@@ -249,53 +316,123 @@ export default function ScanPage() {
           </div>
         ) : (
           <div className="animate-in fade-in duration-500 mb-12 lg:mb-0">
-            {/* Meal Selector */}
+            {/* Header */}
+            <div className="text-center mb-10 pb-6 border-b-[3px] border-black/10">
+              <h2
+                className={`font-black uppercase tracking-tighter text-2xl sm:text-3xl mb-2 ${isLightMode ? "text-black" : "text-white"}`}
+              >
+                {scanMode === "registration" ? "Registration Check-In" : "Food Service"}
+              </h2>
+              <p
+                className={`text-[10px] font-bold uppercase tracking-widest ${isLightMode ? "text-black/50" : "text-white/40"}`}
+              >
+                {scanMode === "registration"
+                  ? "Scan users at the registration desk ✓"
+                  : "Scan users for meal distribution 🍱"}
+              </p>
+            </div>
+            {/* Mode Selector */}
             <div
-              className={`mb-8 border-[3px] p-6 ${
-                isLightMode
-                  ? "border-black bg-white shadow-[6px_6px_0_#000]"
-                  : "border-white/30 bg-[#111] shadow-[6px_6px_0_#fff]"
-              }`}
+              className={`mb-8 border-[3px] p-6 ${isLightMode
+                ? "border-black bg-white shadow-[6px_6px_0_#000]"
+                : "border-white/30 bg-[#111] shadow-[6px_6px_0_#fff]"
+                }`}
             >
               <label
                 className={`block text-[10px] font-black uppercase tracking-[0.3em] mb-3 ${isLightMode ? "text-black/70" : "text-white/50"}`}
               >
-                Select Meal
+                Scan Mode
               </label>
-              <div className="flex flex-wrap gap-3">
-                {Object.entries(MEAL_LABELS).map(([key, label]) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => {
-                      setSelectedMeal(key);
-                      if (isScanning) {
-                        toast.info(`Switched to ${label}`);
-                      }
-                    }}
-                    className={`border-[3px] px-4 py-3 text-xs font-black uppercase tracking-[0.2em] transition-all hover:-translate-y-1 ${
-                      selectedMeal === key
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setScanMode("registration");
+                    if (isScanning) {
+                      stopScanner();
+                    }
+                    toast.info("Switched to Registration Check-In mode");
+                  }}
+                  className={`flex-1 border-[3px] px-4 py-3 text-xs font-black uppercase tracking-[0.2em] transition-all hover:-translate-y-1 ${scanMode === "registration"
+                    ? isLightMode
+                      ? "border-black bg-[#00f0ff] text-black shadow-[4px_4px_0_#000]"
+                      : "border-white bg-[#00f0ff] text-black shadow-[4px_4px_0_#fff]"
+                    : isLightMode
+                      ? "border-black/20 bg-white text-black/50 hover:border-black/50"
+                      : "border-white/20 bg-black text-white/50 hover:border-white/40"
+                    }`}
+                >
+                  Registration ✓
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setScanMode("food");
+                    if (isScanning) {
+                      stopScanner();
+                    }
+                    toast.info("Switched to Food Log mode");
+                  }}
+                  className={`flex-1 border-[3px] px-4 py-3 text-xs font-black uppercase tracking-[0.2em] transition-all hover:-translate-y-1 ${scanMode === "food"
+                    ? isLightMode
+                      ? "border-black bg-[#c0ff00] text-black shadow-[4px_4px_0_#000]"
+                      : "border-white bg-[#c0ff00] text-black shadow-[4px_4px_0_#fff]"
+                    : isLightMode
+                      ? "border-black/20 bg-white text-black/50 hover:border-black/50"
+                      : "border-white/20 bg-black text-white/50 hover:border-white/40"
+                    }`}
+                >
+                  Food 🍱
+                </button>
+              </div>
+            </div>
+
+            {/* Meal Selector - Only show in food mode */}
+            {scanMode === "food" && (
+              <div
+                className={`mb-8 border-[3px] p-6 ${isLightMode
+                  ? "border-black bg-white shadow-[6px_6px_0_#000]"
+                  : "border-white/30 bg-[#111] shadow-[6px_6px_0_#fff]"
+                  }`}
+              >
+                <label
+                  className={`block text-[10px] font-black uppercase tracking-[0.3em] mb-3 ${isLightMode ? "text-black/70" : "text-white/50"}`}
+                >
+                  Select Meal
+                </label>
+                <div className="flex flex-wrap gap-3">
+                  {Object.entries(MEAL_LABELS).map(([key, label]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => {
+                        setSelectedMeal(key);
+                        if (isScanning) {
+                          toast.info(`Switched to ${label}`);
+                        }
+                      }}
+                      className={`border-[3px] px-4 py-3 text-xs font-black uppercase tracking-[0.2em] transition-all hover:-translate-y-1 ${selectedMeal === key
                         ? isLightMode
                           ? "border-black bg-[#c0ff00] text-black shadow-[4px_4px_0_#000]"
                           : "border-white bg-[#c0ff00] text-black shadow-[4px_4px_0_#fff]"
                         : isLightMode
                           ? "border-black/20 bg-white text-black/50 hover:border-black/50"
                           : "border-white/20 bg-black text-white/50 hover:border-white/40"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
+                        }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Scanner */}
             <div
-              className={`mb-8 border-[3px] p-6 ${
-                isLightMode
-                  ? "border-black bg-white shadow-[6px_6px_0_#000]"
-                  : "border-white/30 bg-[#111] shadow-[6px_6px_0_#fff]"
-              }`}
+              className={`mb-8 border-[3px] p-6 ${isLightMode
+                ? "border-black bg-white shadow-[6px_6px_0_#000]"
+                : "border-white/30 bg-[#111] shadow-[6px_6px_0_#fff]"
+                }`}
             >
               <div className="flex items-center justify-between mb-4">
                 <p
@@ -343,11 +480,10 @@ export default function ScanPage() {
                   <button
                     type="button"
                     onClick={startScanner}
-                    className={`flex-1 flex items-center justify-center gap-2 border-[3px] px-6 py-4 text-sm font-black uppercase tracking-[0.2em] transition-all hover:-translate-y-1 ${
-                      isLightMode
-                        ? "border-black bg-[#c0ff00] text-black shadow-[6px_6px_0_#000]"
-                        : "border-white bg-[#c0ff00] text-black shadow-[6px_6px_0_#fff]"
-                    }`}
+                    className={`flex-1 flex items-center justify-center gap-2 border-[3px] px-6 py-4 text-sm font-black uppercase tracking-[0.2em] transition-all hover:-translate-y-1 ${isLightMode
+                      ? "border-black bg-[#c0ff00] text-black shadow-[6px_6px_0_#000]"
+                      : "border-white bg-[#c0ff00] text-black shadow-[6px_6px_0_#fff]"
+                      }`}
                   >
                     📷 Start Scanner
                   </button>
@@ -355,11 +491,10 @@ export default function ScanPage() {
                   <button
                     type="button"
                     onClick={stopScanner}
-                    className={`flex-1 flex items-center justify-center gap-2 border-[3px] px-6 py-4 text-sm font-black uppercase tracking-[0.2em] transition-all hover:-translate-y-1 ${
-                      isLightMode
-                        ? "border-black bg-[#ff00a0] text-white shadow-[6px_6px_0_#000]"
-                        : "border-white bg-[#ff00a0] text-white shadow-[6px_6px_0_#fff]"
-                    }`}
+                    className={`flex-1 flex items-center justify-center gap-2 border-[3px] px-6 py-4 text-sm font-black uppercase tracking-[0.2em] transition-all hover:-translate-y-1 ${isLightMode
+                      ? "border-black bg-[#ff00a0] text-white shadow-[6px_6px_0_#000]"
+                      : "border-white bg-[#ff00a0] text-white shadow-[6px_6px_0_#fff]"
+                      }`}
                   >
                     ⏹ Stop Scanner
                   </button>
@@ -369,11 +504,10 @@ export default function ScanPage() {
 
             {/* Recent Scans */}
             <div
-              className={`border-[3px] p-6 ${
-                isLightMode
-                  ? "border-black bg-white shadow-[6px_6px_0_#000]"
-                  : "border-white/30 bg-[#111] shadow-[6px_6px_0_#fff]"
-              }`}
+              className={`border-[3px] p-6 ${isLightMode
+                ? "border-black bg-white shadow-[6px_6px_0_#000]"
+                : "border-white/30 bg-[#111] shadow-[6px_6px_0_#fff]"
+                }`}
             >
               <div className="flex items-center justify-between mb-4">
                 <p
@@ -401,11 +535,10 @@ export default function ScanPage() {
                   {recentScans.map((scan) => (
                     <div
                       key={scan.id}
-                      className={`flex items-center justify-between border-[2px] px-4 py-3 ${
-                        isLightMode
-                          ? "border-black/10 bg-black/5"
-                          : "border-white/10 bg-white/5"
-                      }`}
+                      className={`flex items-center justify-between border-[2px] px-4 py-3 ${isLightMode
+                        ? "border-black/10 bg-black/5"
+                        : "border-white/10 bg-white/5"
+                        }`}
                     >
                       <div>
                         <p

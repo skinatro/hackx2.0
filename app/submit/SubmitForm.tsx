@@ -22,6 +22,8 @@ interface SubmitFormProps {
   isLightMode: boolean;
   labelClass: string;
   inputClass: string;
+  submissionsEnabled: boolean;
+  isAdmin: boolean;
 }
 
 export default function SubmitForm({
@@ -43,7 +45,9 @@ export default function SubmitForm({
   isExisting,
   isLightMode,
   labelClass,
-  inputClass
+  inputClass,
+  submissionsEnabled,
+  isAdmin
 }: SubmitFormProps) {
   return (
     <form
@@ -189,7 +193,7 @@ export default function SubmitForm({
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={isSaving}
+          disabled={isSaving || (!submissionsEnabled && !isAdmin)}
           className={`relative flex items-center justify-center gap-3 border-[3px] px-6 py-4 text-sm font-black uppercase tracking-[0.2em] transition-all hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed ${isLightMode
             ? "border-black bg-[#ff00a0] text-white shadow-[6px_6px_0_#000] hover:shadow-[8px_8px_0_#000]"
             : "border-white bg-[#ff00a0] text-white shadow-[6px_6px_0_#fff] hover:shadow-[8px_8px_0_#c0ff00]"
@@ -200,6 +204,8 @@ export default function SubmitForm({
               <LoadingSpinner size="sm"></LoadingSpinner>
               Saving...
             </>
+          ) : !submissionsEnabled && !isAdmin ? (
+            "Submissions Closed"
           ) : isExisting ? (
             "Update Project"
           ) : (

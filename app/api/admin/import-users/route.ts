@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
-import { createClient } from "@/libs/supabase/server";
 import { createAdminClient } from "@/libs/supabase/admin";
+import { createClient } from "@/libs/supabase/server";
 import { generatePassword } from "@/libs/utils";
+import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     for (const u of usersToImport) {
       try {
         const email = u.email?.trim().toLowerCase();
-        
+
         // Map roles: "Team Leader" -> "leader", etc.
         let role = u.role?.trim();
         if (role === "Team Leader") role = "leader";
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
           if (createError) {
             // If user already exists in Auth but not in profiles for some reason
             if (createError.message.includes("already exists")) {
-               throw new Error(`User exists in Auth but no profile found for ${email}`);
+              throw new Error(`User exists in Auth but no profile found for ${email}`);
             }
             throw new Error(`Auth Error for ${email}: ${createError.message}`);
           }
@@ -98,6 +98,7 @@ export async function POST(request: Request) {
               domain: u.domain?.trim() || null,
               role: role,
               team_name: u.team_name?.trim(),
+              avatar_gender: "male",
             },
             { onConflict: "user_id" }
           );

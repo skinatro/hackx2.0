@@ -52,6 +52,7 @@ export function Nvbar() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [endTime, setEndTime] = useState<Date | null>(null);
   const [showLockModal, setShowLockModal] = useState(false);
+  const [submissionsEnabled, setSubmissionsEnabled] = useState(true);
 
   // Fetch hackathon config
   useEffect(() => {
@@ -59,13 +60,36 @@ export function Nvbar() {
     supabase
       .from("config")
       .select("key, value")
-      .eq("key", "hackathon_end_time")
-      .single()
+      .in("key", ["hackathon_end_time", "submissions_enabled"])
       .then(({ data }) => {
-        if (data?.value) {
-          setEndTime(new Date(data.value));
+        if (data) {
+          data.forEach((row) => {
+            if (row.key === "hackathon_end_time" && row.value) {
+              setEndTime(new Date(row.value));
+            }
+            if (row.key === "submissions_enabled") {
+              const isEnabled = row.value === "true" || row.value === true;
+              setSubmissionsEnabled(isEnabled);
+            }
+          });
         }
       });
+
+    // Poll for changes every 2 seconds
+    const interval = setInterval(() => {
+      supabase
+        .from("config")
+        .select("key, value")
+        .eq("key", "submissions_enabled")
+        .then(({ data }) => {
+          if (data && data.length > 0) {
+            const isEnabled = data[0].value === "true" || data[0].value === true;
+            setSubmissionsEnabled(isEnabled);
+          }
+        });
+    }, 2000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const isFinalHour = useMemo(() => {
@@ -93,11 +117,11 @@ export function Nvbar() {
         },
       ];
 
-      // Scan/Food Logs: Only for Leader and Admin
-      if (!isMember) {
+      // Scan page: Only for Admin
+      if (isAdmin) {
         cubes.push({
-          label: "Food Logs",
-          shortLabel: "FL",
+          label: "Scan & Check-In",
+          shortLabel: "SC",
           href: "/scan",
           accent: "#ff00a0",
         });
@@ -116,7 +140,13 @@ export function Nvbar() {
           href: "/admin/users",
           accent: "#ffd23f",
         });
-      } else if (isLeader) {
+        cubes.push({
+          label: "Settings",
+          shortLabel: "ST",
+          href: "/admin",
+          accent: "#ff6b35",
+        });
+      } else if (isLeader || isMember) {
         cubes.push({
           label: "Submit Project",
           shortLabel: "SB",
@@ -154,7 +184,7 @@ export function Nvbar() {
     }
 
     return cubes;
-  }, [user, isAdmin, pathname]);
+  }, [user, isAdmin, pathname, profile]);
 
   useEffect(() => {
     setIsMobileOpen(false);
@@ -165,44 +195,39 @@ export function Nvbar() {
   const currentAccent = currentNav?.accent ?? "#ffd23f";
   const currentShortLabel = currentNav?.shortLabel ?? "NAV";
 
-  const navButtonClassName = `flex h-14 w-14 items-center justify-center border-[3px] text-xs font-black uppercase tracking-[0.22em] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 sm:h-15 sm:w-15 ${
-    isLightMode
+  const navButtonClassName = `flex h-14 w-14 items-center justify-center border-[3px] text-xs font-black uppercase tracking-[0.22em] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 sm:h-15 sm:w-15 ${isLightMode
       ? "border-black bg-white text-black shadow-[6px_6px_0_#000]"
       : "border-white/50 bg-black/80 text-white shadow-[6px_6px_0_rgba(255,255,255,0.15)] hover:border-white/70 hover:bg-black/90"
-  }`;
+    }`;
 
-  const mobileTriggerClassName = `nav-trigger-btn pointer-events-auto flex h-14 w-14 items-center justify-center border-[3px] text-xs font-black uppercase tracking-[0.22em] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 sm:hidden ${
-    isLightMode
+  const mobileTriggerClassName = `nav-trigger-btn pointer-events-auto flex h-14 w-14 items-center justify-center border-[3px] text-xs font-black uppercase tracking-[0.22em] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 sm:hidden ${isLightMode
       ? "border-black bg-white text-black shadow-[6px_6px_0_#000]"
       : "border-white/50 bg-black/80 text-white shadow-[6px_6px_0_rgba(255,255,255,0.15)] hover:border-white/70 hover:bg-black/90"
-  }`;
+    }`;
 
-  const themeButtonClassName = `flex h-14 w-14 sm:h-15 sm:w-15 items-center justify-center border-[3px] text-xs font-black uppercase tracking-[0.22em] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 ${
-    isLightMode
+  const themeButtonClassName = `flex h-14 w-14 sm:h-15 sm:w-15 items-center justify-center border-[3px] text-xs font-black uppercase tracking-[0.22em] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 ${isLightMode
       ? "border-black bg-white text-black shadow-[6px_6px_0_#000] hover:bg-slate-100"
       : "border-white/50 bg-black/80 text-white shadow-[6px_6px_0_rgba(255,255,255,0.15)] hover:border-white/70 hover:bg-black/90"
-  }`;
+    }`;
 
   // Determine if we should show the simplified portal layout
   const portalPaths = ["/profile", "/scan", "/submit", "/admin"];
   const isPortal = portalPaths.some((path) => pathname.startsWith(path));
 
   const wrapperClass = isPortal
-    ? `flex-row backdrop-blur-3xl p-1 sm:p-2.5 border-[2.5px] sm:border-[3.5px] transition-all duration-500 rounded-lg sm:rounded-none ${
-        isLightMode
-          ? "bg-white/95 border-black shadow-[6px_6px_0_rgba(0,0,0,0.15)] sm:shadow-[12px_12px_0_rgba(0,0,0,0.2)]"
-          : "bg-black/95 border-white/40 shadow-[6px_6px_0_rgba(0,0,0,0.45)] sm:shadow-[12px_12px_0_rgba(0,0,0,0.6)]"
-      }`
+    ? `flex-row backdrop-blur-3xl p-1 sm:p-2.5 border-[2.5px] sm:border-[3.5px] transition-all duration-500 rounded-lg sm:rounded-none ${isLightMode
+      ? "bg-white/95 border-black shadow-[6px_6px_0_rgba(0,0,0,0.15)] sm:shadow-[12px_12px_0_rgba(0,0,0,0.2)]"
+      : "bg-black/95 border-white/40 shadow-[6px_6px_0_rgba(0,0,0,0.45)] sm:shadow-[12px_12px_0_rgba(0,0,0,0.6)]"
+    }`
     : "flex-col items-end";
 
   return (
     <>
       <aside
-        className={`fixed z-50 transition-all duration-500 ${
-          isPortal
+        className={`fixed z-50 transition-all duration-500 ${isPortal
             ? "bottom-8 left-1/2 -translate-x-1/2 w-auto"
             : "bottom-4 right-4 sm:bottom-auto sm:right-5 sm:top-1/2 sm:-translate-y-1/2 xl:right-7"
-        }`}
+          }`}
         style={{
           paddingBottom: "env(safe-area-inset-bottom)",
           paddingRight: !isPortal ? "env(safe-area-inset-right)" : undefined,
@@ -219,7 +244,7 @@ export function Nvbar() {
                 const isSubmitLink = item.href === "/submit" && !isAdmin;
 
                 const handleClick = (e: React.MouseEvent) => {
-                  if (isSubmitLink && !isFinalHour) {
+                  if (isSubmitLink && !submissionsEnabled) {
                     e.preventDefault();
                     setShowLockModal(true);
                   }
@@ -231,33 +256,31 @@ export function Nvbar() {
                     href={item.href}
                     aria-label={item.label}
                     onClick={handleClick}
-                    className={`group relative flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center border-2 sm:border-[3px] transition-all duration-300 hover:-translate-y-1 rounded-sm sm:rounded-none ${
-                      isActive
+                    className={`group relative flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center border-2 sm:border-[3px] transition-all duration-300 hover:-translate-y-1 rounded-sm sm:rounded-none ${isActive
                         ? isLightMode
                           ? "border-black scale-105 sm:scale-110 z-10"
                           : "border-white scale-105 sm:scale-110 z-10"
                         : isLightMode
                           ? "border-black/10 bg-black/5 hover:border-black/30"
                           : "border-white/20 bg-white/10 hover:border-white/40"
-                    }`}
+                      }`}
                     style={
                       isActive
                         ? {
-                            backgroundColor: item.accent,
-                            opacity: 1,
-                            boxShadow: `0 0 20px ${item.accent}66`,
-                          }
+                          backgroundColor: item.accent,
+                          opacity: 1,
+                          boxShadow: `0 0 20px ${item.accent}66`,
+                        }
                         : {}
                     }
                   >
                     <span
-                      className={`navbar-font text-sm leading-none font-black ${
-                        isActive
+                      className={`navbar-font text-sm leading-none font-black ${isActive
                           ? "text-black"
                           : isLightMode
                             ? "text-black/60"
                             : "text-white/80"
-                      }`}
+                        }`}
                     >
                       {item.shortLabel}
                     </span>
@@ -266,24 +289,20 @@ export function Nvbar() {
                     {isActive && (
                       <>
                         <div
-                          className={`absolute -top-[5px] -left-[5px] w-2.5 h-2.5 border-t-[2.5px] border-l-[2.5px] transition-all duration-300 ${
-                            isLightMode ? "border-black" : "border-white"
-                          }`}
+                          className={`absolute -top-[5px] -left-[5px] w-2.5 h-2.5 border-t-[2.5px] border-l-[2.5px] transition-all duration-300 ${isLightMode ? "border-black" : "border-white"
+                            }`}
                         />
                         <div
-                          className={`absolute -top-[5px] -right-[5px] w-2.5 h-2.5 border-t-[2.5px] border-r-[2.5px] transition-all duration-300 ${
-                            isLightMode ? "border-black" : "border-white"
-                          }`}
+                          className={`absolute -top-[5px] -right-[5px] w-2.5 h-2.5 border-t-[2.5px] border-r-[2.5px] transition-all duration-300 ${isLightMode ? "border-black" : "border-white"
+                            }`}
                         />
                         <div
-                          className={`absolute -bottom-[5px] -left-[5px] w-2.5 h-2.5 border-b-[2.5px] border-l-[2.5px] transition-all duration-300 ${
-                            isLightMode ? "border-black" : "border-white"
-                          }`}
+                          className={`absolute -bottom-[5px] -left-[5px] w-2.5 h-2.5 border-b-[2.5px] border-l-[2.5px] transition-all duration-300 ${isLightMode ? "border-black" : "border-white"
+                            }`}
                         />
                         <div
-                          className={`absolute -bottom-[5px] -right-[5px] w-2.5 h-2.5 border-b-[2.5px] border-r-[2.5px] transition-all duration-300 ${
-                            isLightMode ? "border-black" : "border-white"
-                          }`}
+                          className={`absolute -bottom-[5px] -right-[5px] w-2.5 h-2.5 border-b-[2.5px] border-r-[2.5px] transition-all duration-300 ${isLightMode ? "border-black" : "border-white"
+                            }`}
                         />
                       </>
                     )}
@@ -299,11 +318,10 @@ export function Nvbar() {
               />
               <button
                 onClick={toggleTheme}
-                className={`flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center border-2 sm:border-[3px] transition-all active:scale-95 hover:-translate-y-1 rounded-sm sm:rounded-none ${
-                  isLightMode
+                className={`flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center border-2 sm:border-[3px] transition-all active:scale-95 hover:-translate-y-1 rounded-sm sm:rounded-none ${isLightMode
                     ? "border-black bg-black text-white shadow-[inset_0_0_10px_rgba(255,255,255,0.2)] hover:bg-slate-900"
                     : "border-white bg-white text-black shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] hover:bg-slate-100"
-                }`}
+                  }`}
               >
                 {isLightMode ? (
                   <Moon className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -323,7 +341,7 @@ export function Nvbar() {
                   const isSubmitLink = item.href === "/submit" && !isAdmin;
 
                   const handleClick = (e: React.MouseEvent) => {
-                    if (isSubmitLink && !isFinalHour) {
+                    if (isSubmitLink && !submissionsEnabled) {
                       e.preventDefault();
                       setShowLockModal(true);
                     }
@@ -418,7 +436,7 @@ export function Nvbar() {
                       const isSubmitLink = item.href === "/submit" && !isAdmin;
 
                       const handleClick = (e: React.MouseEvent) => {
-                        if (isSubmitLink && !isFinalHour) {
+                        if (isSubmitLink && !submissionsEnabled) {
                           e.preventDefault();
                           setShowLockModal(true);
                         }
@@ -475,11 +493,10 @@ export function Nvbar() {
       {showLockModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md bg-black/40 animate-in fade-in duration-300">
           <div
-            className={`relative w-full max-w-md border-[4px] p-8 shadow-[12px_12px_0_#000] sm:p-10 ${
-              isLightMode
+            className={`relative w-full max-w-md border-[4px] p-8 shadow-[12px_12px_0_#000] sm:p-10 ${isLightMode
                 ? "bg-white border-black"
                 : "bg-zinc-900 border-white text-white"
-            }`}
+              }`}
           >
             <button
               onClick={() => setShowLockModal(false)}
@@ -498,33 +515,15 @@ export function Nvbar() {
               </h2>
 
               <p className="mb-8 text-lg font-bold leading-relaxed opacity-80">
-                To keep the competition fair, project submissions will only open
-                during the
-                <span className="mx-1 bg-[#c0ff00] px-2 py-0.5 text-black">
-                  final hour
-                </span>
-                of the hackathon.
-              </p>
-
-              <p className="mb-8 text-sm font-black uppercase tracking-widest opacity-60">
-                Estimated opening:{" "}
-                {endTime
-                  ? new Date(
-                      endTime.getTime() - 60 * 60 * 1000,
-                    ).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
-                  : "Calculating..."}
+                Project submissions are currently closed. Please check back later when submissions are enabled.
               </p>
 
               <button
                 onClick={() => setShowLockModal(false)}
-                className={`w-full border-[4px] py-4 text-xl font-black uppercase tracking-widest transition-all active:translate-y-1 active:shadow-none ${
-                  isLightMode
+                className={`w-full border-[4px] py-4 text-xl font-black uppercase tracking-widest transition-all active:translate-y-1 active:shadow-none ${isLightMode
                     ? "border-black bg-black text-white shadow-[8px_8px_0_#c0ff00] hover:bg-zinc-800"
                     : "border-white bg-white text-black shadow-[8px_8px_0_#c0ff00] hover:bg-zinc-200"
-                }`}
+                  }`}
               >
                 GOT IT
               </button>

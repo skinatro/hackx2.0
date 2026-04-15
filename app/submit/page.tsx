@@ -1,25 +1,15 @@
 "use client";
 
-import { useAuth } from "@/app/providers/auth-provider";
-import { useTheme } from "@/app/providers/theme-provider";
 import {
   FullPageLoader,
   LoadingSpinner,
 } from "@/app/components/ui/loading-spinner";
+import { useAuth } from "@/app/providers/auth-provider";
+import { useTheme } from "@/app/providers/theme-provider";
 import { createClient } from "@/libs/supabase/client";
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import {
-  Folder,
-  Github,
-  ExternalLink,
-  ChevronDown,
-  ChevronUp,
-  Search,
-  Users,
-  Clock,
-} from "lucide-react";
 
 import AdminDashboard from "./AdminDashboard";
 import SubmitForm from "./SubmitForm";
@@ -51,6 +41,7 @@ export default function SubmitPage() {
   const [isExisting, setIsExisting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingProject, setIsLoadingProject] = useState(true);
+  const [submissionsEnabled, setSubmissionsEnabled] = useState(true);
 
   // Admin states
   // We initialize activeTab based on isAdmin if available to avoid flicker
@@ -68,6 +59,54 @@ export default function SubmitPage() {
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
   const [isLoadingAll, setIsLoadingAll] = useState(false);
 
+  // Fetch submissions enabled setting with polling
+  useEffect(() => {
+    const fetchSubmissionsStatus = async () => {
+      try {
+        console.log("[SubmitPage] Fetching submissions status...");
+        const { data, error } = await supabase
+          .from("config")
+          .select("key,value")
+          .eq("key", "submissions_enabled");
+
+        console.log("[SubmitPage] Config response:", { data, error });
+
+        if (error) {
+          console.error("[SubmitPage] Error fetching submissions status:", error);
+          // Default to true if error
+          setSubmissionsEnabled(true);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const rawValue = data[0].value;
+          console.log("[SubmitPage] Raw value:", rawValue, "Type:", typeof rawValue);
+          
+          // Handle both "true" string and boolean true, and also "false" and false
+          const isEnabled = rawValue === "true" || rawValue === true || rawValue === "True";
+          console.log("[SubmitPage] Setting submissionsEnabled to:", isEnabled);
+          setSubmissionsEnabled(isEnabled);
+        } else {
+          console.log("[SubmitPage] No config row found - defaulting to true");
+          setSubmissionsEnabled(true);
+        }
+      } catch (err) {
+        console.error("[SubmitPage] Exception:", err);
+        setSubmissionsEnabled(true);
+      }
+    };
+
+    // Fetch immediately
+    fetchSubmissionsStatus();
+
+    // Poll every 1.5 seconds
+    const pollInterval = setInterval(fetchSubmissionsStatus, 1500);
+
+    return () => {
+      clearInterval(pollInterval);
+    };
+  }, [supabase]);
+
   // Load existing project
   useEffect(() => {
     if (!profile || isAdmin) {
@@ -75,14 +114,15 @@ export default function SubmitPage() {
       return;
     }
     const loadProject = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("projects")
         .select("*")
-        .eq("team_name", profile.team_name)
-        .single();
+        .eq("team_name", profile.team_name);
 
-      if (data) {
-        const p = data as Project;
+      if (error) {
+        console.error("Error loading project:", error);
+      } else if (data && data.length > 0) {
+        const p = data[0] as Project;
         setProjectName(p.project_name);
         setGithubUrl(p.github_url);
         setWebsiteUrl(p.website_url || "");
@@ -133,6 +173,12 @@ export default function SubmitPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check if submissions are enabled (admins can always submit)
+    if (!submissionsEnabled && !isAdmin) {
+      toast.error("Project submissions are currently closed");
+      return;
+    }
 
     if (!projectName.trim() || !githubUrl.trim() || !description.trim()) {
       toast.error("Please fill in all required fields");
@@ -214,7 +260,7 @@ export default function SubmitPage() {
 
   // Only show full page loader during initial auth check
   if (authLoading) return <FullPageLoader />;
-  
+
   // For regular users, we allow the app shell to render even if project is loading,
   // or we can keep blocking if the data is essential for the initial paint.
   // The user complained about "too much loading", so let's skip the blocking loader here
@@ -226,20 +272,18 @@ export default function SubmitPage() {
       p.project_name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const inputClass = `w-full border-[3px] px-4 py-3 text-sm font-bold outline-none transition-all focus:translate-y-[-1px] ${
-    isLightMode
+  const inputClass = `w-full border-[3px] px-4 py-3 text-sm font-bold outline-none transition-all focus:translate-y-[-1px] ${isLightMode
       ? "border-black bg-white text-black placeholder:text-black/30 focus:shadow-[4px_4px_0_#c0ff00]"
       : "border-white/30 bg-black text-white placeholder:text-white/30 focus:border-white/60 focus:shadow-[4px_4px_0_#c0ff00]"
-  }`;
+    }`;
 
   const hackxLabelClass = `text-[10px] font-black uppercase tracking-[0.4em] ${isLightMode ? "text-black/50" : "text-white/50"}`;
   const labelClass = `block text-[10px] font-black uppercase tracking-widest mb-2 ${isLightMode ? "text-black/50" : "text-white/40"}`;
   const h1Class = `mt-3 font-black uppercase tracking-tighter text-5xl sm:text-7xl ${isLightMode ? "text-black" : "text-white"}`;
-  const teamLabelClass = `mx-auto mt-4 w-fit border-[3px] px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] ${
-    isLightMode
+  const teamLabelClass = `mx-auto mt-4 w-fit border-[3px] px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] ${isLightMode
       ? "border-black bg-[#c0ff00] text-black"
       : "border-[#c0ff00] bg-black text-[#c0ff00]"
-  }`;
+    }`;
 
   const adminTabFormClass =
     activeTab === "form"
@@ -274,6 +318,35 @@ export default function SubmitPage() {
             {isAdmin ? "Admin View" : "Team: " + (profile?.team_name || "")}
           </div>
         </div>
+
+        {/* Submissions Closed Banner */}
+        {!submissionsEnabled && !isAdmin && (
+          <div
+            className={`mb-8 border-[3px] p-8 flex flex-col items-center gap-4 ${isLightMode
+              ? "border-black bg-white shadow-[8px_8px_0_#000]"
+              : "border-white/30 bg-[#111] shadow-[8px_8px_0_#fff]"
+            }`}
+          >
+            <div className="flex h-16 w-16 items-center justify-center border-[3px] bg-[#c0ff00]">
+              <span className="text-3xl">⚠</span>
+            </div>
+            <p
+              className={`text-center font-black uppercase tracking-wider text-xl ${isLightMode ? "text-black" : "text-white"}`}
+            >
+              Submission Locked
+            </p>
+            <p
+              className={`text-center text-sm leading-relaxed ${isLightMode ? "text-black/80" : "text-white/80"}`}
+            >
+              To keep the competition fair, project submissions will only open during the <span className="font-black bg-[#c0ff00] text-black px-2">final hour</span> of the hackathon.
+            </p>
+            <p
+              className={`text-center text-xs font-black uppercase tracking-widest ${isLightMode ? "text-black/60" : "text-white/60"}`}
+            >
+              Estimated opening: calculating...
+            </p>
+          </div>
+        )}
 
         {/* Admin Tabs - Only show if user could theoretically submit too (not requested now) */}
         {isAdmin && false && (
@@ -329,6 +402,8 @@ export default function SubmitPage() {
             isLightMode={isLightMode}
             labelClass={labelClass}
             inputClass={inputClass}
+            submissionsEnabled={submissionsEnabled}
+            isAdmin={isAdmin}
           />
         )}
       </main>

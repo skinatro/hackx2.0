@@ -66,6 +66,22 @@ First, install the dependencies using pnpm:
 pnpm install
 ```
 
+### Database Setup
+
+The project uses Supabase for authentication and data storage. To set up the database:
+
+1. **Initial Setup** (for new deployments):
+   - Go to your Supabase project dashboard
+   - Open the SQL Editor
+   - Copy and paste the content from `scripts/setup_schema.sql`
+   - Execute the SQL to create all tables and policies
+
+2. **Applying Migrations** (for existing deployments):
+   - Navigate to `scripts/` directory
+   - Review migration files (e.g., `add_avatar_gender_migration.sql`)
+   - Execute migrations in the Supabase SQL Editor
+   - See `scripts/MIGRATION_README.md` for detailed instructions
+
 Then, run the development server:
 
 ```bash
